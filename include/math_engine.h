@@ -29,6 +29,8 @@ struct EncoderState {
   uint16_t cal_min;
   uint16_t cal_max;
   uint16_t cal_range;
+  uint16_t original_cal_min;
+  uint16_t original_cal_max;
 
   float mm_min;
   float mm_max;
@@ -36,6 +38,7 @@ struct EncoderState {
 
   bool overshoot_detected;
   uint8_t direction;
+  uint16_t noise_floor;
 
   bool ema_initialized;
   float ema_state;
