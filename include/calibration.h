@@ -69,7 +69,6 @@ struct EncoderCalibration {
   float scale_factor;
 
   uint16_t noise_floor;
-  uint16_t repeatability;
   uint8_t quality_score;
 
   uint32_t sample_count;

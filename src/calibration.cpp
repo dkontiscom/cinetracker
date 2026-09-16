@@ -381,11 +381,9 @@ int calibration_collect_samples(CalibrationSession *session, uint8_t encoder_id,
   session->sample_count = copy_count;
 
   enc->noise_floor = calculate_noise_floor(samples, count);
-  enc->repeatability = enc->noise_floor;
   enc->sample_count = count;
 
-  Serial.printf("Calibration: Collected %u samples, noise=%u, repeatability=%u\n",
-                (unsigned)count, enc->noise_floor, enc->repeatability);
+  Serial.printf("Calibration: Collected %u samples, noise=%u\n", (unsigned)count, enc->noise_floor);
 
   return CAL_OK;
 }
@@ -446,7 +444,6 @@ int calibration_test_accuracy(const CalibrationData *cal, uint8_t encoder_id, ui
   int32_t total_score = 100;
 
   if (enc->noise_floor > 10) total_score -= min(20, enc->noise_floor / 5);
-  if (enc->repeatability > 5) total_score -= min(20, enc->repeatability / 2);
   if (enc->total_range < 1000) total_score -= 10;
 
   *score = (uint8_t)total_score;
