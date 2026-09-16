@@ -163,9 +163,6 @@ int profiles_quick_load(int slot) {
     return -1;
   }
 
-  // Not wired up yet: this should call apply_calibration() for each of the
-  // three live EncoderState instances, but those don't exist as a global
-  // yet - that comes together with the encoder driver port.
   g_active_profile_slot = slot;
 
   Serial.printf("Profiles: Loaded profile '%s'\n", stored.profile.name);

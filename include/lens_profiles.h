@@ -34,9 +34,6 @@ struct ProfileFilter {
   uint32_t min_quality_score;
 };
 
-// On-disk record: a lens profile plus its per-encoder calibration and usage
-// metadata. Provided (serialized to flash) by the storage module, ported
-// separately.
 struct StoredLensProfile {
   LensProfile profile;
   EncoderCalibration encoder_cal[3];

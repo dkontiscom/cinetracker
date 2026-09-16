@@ -22,9 +22,14 @@ Subsystems and what drives them:
   software-timed.
 - Genlock: hardware timer / FlexPWM output, GPIO pins per the
   t41-tri-sync-ptp reference (their example uses pins 10 and 12). PTP-locked.
-- AES67 / LTC: I2S/SAI with DMA, per the AES67Teensy reference. One audio in
-  (LTC from a local device -> streamed to network), one audio out (LTC from
-  network -> local device). Not a general audio router.
+- AES67 / LTC: I2S/SAI with DMA, per the AES67Teensy reference. One direction
+  active at a time, user-selected in the web UI: either LTC in (local device
+  -> streamed to network) or LTC out (network -> local device), never both
+  at once. Not a general audio router. Needs a codec with both ADC and DAC,
+  switched between in firmware - not true simultaneous full-duplex.
+  AES67Teensy itself runs 16-bit/48kHz today; 24-bit (the actual broadcast
+  standard) needs checking against the real codec datasheet before picking
+  hardware - not confirmed yet either way.
 - FIZ encoders: 3x AS5048A, each on its own SPI bus (Teensy 4.1 has three:
   SPI, SPI1, SPI2), sampled via IntervalTimer at 1kHz. Avoid using pin 10 for
   an encoder chip-select since genlock uses it for sync output.

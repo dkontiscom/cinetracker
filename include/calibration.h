@@ -154,8 +154,5 @@ uint8_t calibration_get_progress(const CalibrationSession *session);
 
 void apply_calibration(EncoderState *encoder, const EncoderCalibration *cal);
 
-// Provided by the encoder driver module, ported separately.
 bool encoder_read_angle(uint8_t encoder_id, uint16_t *angle);
-
-// Provided by the storage module, ported separately.
 int storage_save_calibration(const CalibrationData *cal);
