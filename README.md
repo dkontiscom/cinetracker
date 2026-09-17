@@ -26,4 +26,6 @@ This builds firmware.hex under .pio/build/teensy41/. Flash it with the
 official Teensy Loader, same as any other Teensy 4.1 project - there's no
 special install step here.
 
-License: MIT, see LICENSE.
+License: AGPL-3.0-or-later, see LICENSE. Comes from depending on QNEthernet
+for the PTP/genlock/AES67 timing stack, which is AGPL itself - so the whole
+firmware is too.

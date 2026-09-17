@@ -20,6 +20,9 @@ which itself is based on:
 FreeD protocol: the FreeD camera tracking protocol specification, and the virtual
 production community around it.
 
-All of the above are used under their own licenses (MIT where checked so far).
-If you're one of the people/projects above and something here is wrong or
-missing, open an issue.
+QNEthernet itself (used by both the genlock and AES67 paths above) is
+AGPL-3.0-or-later, which is why the whole of CineTracker is AGPL too rather
+than the MIT license used by t41-tri-sync-ptp and AES67Teensy's own code.
+
+All of the above are used under their own licenses. If you're one of the
+people/projects above and something here is wrong or missing, open an issue.
