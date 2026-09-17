@@ -10,6 +10,7 @@
 #include "web_interface.h"
 #include "fleet.h"
 #include "ptp_client.h"
+#include "genlock.h"
 
 static EncoderState g_encoders[3];
 static CalibrationSession g_cal_session;
@@ -55,7 +56,7 @@ void setup() {
   NetworkConfig net_config;
   network_get_default_config(&net_config);
   network_stack_init(&net_config);
-  ptp_client_init();
+  genlock_init();
 
   web_interface_init();
 

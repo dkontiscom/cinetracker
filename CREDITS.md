@@ -1,19 +1,21 @@
 CineTracker builds on work from other people, credit where its due:
 
-PTP time sync, used directly (not just as a reference):
-t41-ptp by IMS-AS-LUH (Leibniz Universitat Hannover, IMS/AS group)
-https://github.com/IMS-AS-LUH/t41-ptp
-MIT license, checked directly. one shared PTP client built on this feeds
-both genlock and aes67 timing. needs the HedgeHawk QNEthernet fork,
-https://github.com/HedgeHawk/QNEthernet/tree/ieee1588-2-fix
-
-Genlock / tri level sync generation, PTP locked:
-based on t41-tri-sync-ptp by IMS-AS-LUH
+PTP time sync + genlock (tri level sync generation), used directly, both
+vendored straight into this repo at lib/t41-ptp and lib/t41-tri-sync
+rather than pulled in as a remote dependency:
+t41-tri-sync-ptp by IMS-AS-LUH (Leibniz Universitat Hannover, IMS/AS
+group), commit 4a121127f63f826a1db01534c0b7c4614c448026
 https://github.com/IMS-AS-LUH/t41-tri-sync-ptp
-which is also where we got the reference tri-level sync output circuit
-(the actual pcb build was outsourced separately). also based on the
-paper "PTP-Synchronized Tri-Level Sync Generation for Networked
-Multi-Sensor Systems" by Riggers, Schleusner, Renke and Blume (2024)
+MIT license, checked directly in the source files. one shared PTP client
+feeds both genlock and aes67 timing. the standalone IMS-AS-LUH/t41-ptp
+repo turned out to be an older, stale copy missing the extended
+PTPBase::begin() genlock actually needs (see ARCHITECTURE.md for why),
+so we vendor the newer copy bundled inside t41-tri-sync-ptp instead.
+also where we got the reference tri-level sync output circuit (the
+actual pcb build was outsourced separately). also based on the paper
+"PTP-Synchronized Tri-Level Sync Generation for Networked Multi-Sensor
+Systems" by Riggers, Schleusner, Renke and Blume (2024). needs the
+HedgeHawk QNEthernet fork, https://github.com/HedgeHawk/QNEthernet/tree/ieee1588-2-fix
 
 AES67 audio / LTC timecode over the network:
 based on AES67Teensy by SavilleBelcher

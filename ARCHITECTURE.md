@@ -22,16 +22,26 @@ Subsystems and what drives them:
   official ethernet kit connects thru its own dedicated pads, checked and
   its not in the standard numbered pin set.
 
-  PTP client is t41-ptp (IMS-AS-LUH), vendored as a real dependency, one
-  shared client feeding both genlock and aes67 timing, not two separate
-  clients. checked this properly by cloning both t41-ptp and AES67Teensy
-  and diffing the actual source - AES67Teensy's vendored copy still has
-  unresolved git merge conflict markers committed straight into
-  ptp-base.h/cpp, l3ptp.h and t41-ptp.h, wouldnt even compile as is, so
-  thats not usable. genlock's copy (bundled inside t41-tri-sync-ptp) is
-  clean, same as the original t41-ptp repo, MIT licensed, and its actually
-  general purpose (has its own standalone master/slave examples) not tied
-  to tri-sync specifically. so we use that one directly.
+  PTP client is t41-ptp (IMS-AS-LUH), one shared client feeding both
+  genlock and aes67 timing, not two separate clients. checked this
+  properly by cloning both t41-ptp and AES67Teensy and diffing the actual
+  source - AES67Teensy's vendored copy still has unresolved git merge
+  conflict markers committed straight into ptp-base.h/cpp, l3ptp.h and
+  t41-ptp.h, wouldnt even compile as is, so thats not usable.
+
+  turns out theres a second problem we only found once we actually wrote
+  the genlock code and it failed to compile: the standalone IMS-AS-LUH/
+  t41-ptp repo (what we first vendored via platformio.ini) is STALE
+  compared to the copy bundled inside t41-tri-sync-ptp itself. the bundled
+  one has an extended PTPBase::begin() (frameDuration, jumpThreshold, rate
+  limit, update rate, two callbacks, skipAtStart) specifically so PTP
+  clock corrections dont land in the middle of a genlock pulse and glitch
+  the signal - the standalone repos plain begin() cant do this at all.
+  so we now vendor the newer bundled copy directly into our own tree at
+  lib/t41-ptp (and lib/t41-tri-sync for the pulse generator), commit
+  4a121127f63f826a1db01534c0b7c4614c448026, instead of depending on the
+  standalone repo through platformio.ini - removed that line. MIT
+  license confirmed on both, checked directly in the repo.
 
   needs a specific QNEthernet fork per t41-ptp's own readme:
   HedgeHawk/QNEthernet branch ieee1588-2-fix. switched platformio.ini to
@@ -43,11 +53,29 @@ Subsystems and what drives them:
   "-include math.h" in build_flags rather than patching the vendored
   copy directly, since .pio/libdeps gets freshly redownloaded on every
   machine and a local patch wouldnt survive that.
-- Genlock: pins are NOT hardcoded in t41-tri-sync-ptp, i actually went and
-  checked the source for this one - begin() takes the two sync pins as
-  parameters, driven off the ethernet ptp hardware timer through
-  digitalWriteFast(), not a dedicated pwm peripheral, so no real pin
-  constraint here. using pins 2 and 3 for now. ptp locked.
+- Genlock: built, see src/genlock.cpp. pins are NOT hardcoded in
+  t41-tri-sync-ptp, checked the source for this - begin() takes the two
+  sync pins as parameters, driven off the ethernet ptp hardware timer
+  through digitalWriteFast(), not a dedicated pwm peripheral, so no real
+  pin constraint here. using pins 2 and 3, interrupt channel 2. a real
+  SMPTE ST0274-2008 tri-level sync generator, cites the actual spec
+  sections in its own source, not guesswork.
+
+  fps: originally only 30 or 60 compiled (#error for anything else).
+  checked a real broadcast timing reference (skyworks AN377, pulled the
+  actual clock rate table, not guessed) - 24, 25 and 30fps 1080p all use
+  the same 74.25MHz sample clock, the vendored code already had that
+  constant right for 30fps, the author just never added the other two
+  cases to the same branch. added TRISYNC_FPS==25 and ==24 to that
+  branch in lib/t41-tri-sync, tested all of 24/25/30/60 actually compile
+  not just assumed. GENLOCK_FPS in genlock.h picks which at compile time,
+  still not runtime switchable - see open items below.
+
+  still not handled: true fractional rates (23.976, 29.97, 59.94), which
+  us cinema/tv work uses constantly and are NOT the same as 24/30/60
+  exactly, would need restructuring TRISYNC_FPS from an integer #define
+  match to something that can represent the /1.001 factor. flagged, not
+  fixed, since it wasnt what was asked for this pass.
 - AES67 / LTC: i2s/sai with dma, per the AES67Teensy reference. only one
   direction active at a time, user picks in the web ui - either ltc in
   (local device -> streamed to network) or ltc out (network -> local
@@ -95,5 +123,8 @@ Open items, still not resolved:
 - interrupt priority order across genlock/ptp/audio/encoders/ethernet still
   needs setting once all the pieces actually exist - genlock should win.
 - audio shield i2s/i2c pin numbers, havent checked these against source yet.
+- genlock fps (24/25/30/60) is a compile time #define, switching for a
+  different production means a reflash right now, not a web ui setting.
+  true fractional rates (23.976/29.97/59.94) not supported at all yet.
 
 See CREDITS.md for what this is built on.
