@@ -17,10 +17,28 @@ audio/encoders keep their timing even while the web server is busy.
 
 Subsystems and what drives them:
 
-- Ethernet + PTP: native teensy 4.1 ethernet mac via QNEthernet (ptp fork,
-  see below which one), hardware timestamping in the mac itself not
-  software timed. no pins needed, official ethernet kit connects thru its
-  own dedicated pads, checked and its not in the standard numbered pin set.
+- Ethernet + PTP: native teensy 4.1 ethernet mac via QNEthernet, hardware
+  timestamping in the mac itself not software timed. no pins needed,
+  official ethernet kit connects thru its own dedicated pads, checked and
+  its not in the standard numbered pin set.
+
+  PTP client is t41-ptp (IMS-AS-LUH), vendored as a real dependency, one
+  shared client feeding both genlock and aes67 timing, not two separate
+  clients. checked this properly by cloning both t41-ptp and AES67Teensy
+  and diffing the actual source - AES67Teensy's vendored copy still has
+  unresolved git merge conflict markers committed straight into
+  ptp-base.h/cpp, l3ptp.h and t41-ptp.h, wouldnt even compile as is, so
+  thats not usable. genlock's copy (bundled inside t41-tri-sync-ptp) is
+  clean, same as the original t41-ptp repo, MIT licensed, and its actually
+  general purpose (has its own standalone master/slave examples) not tied
+  to tri-sync specifically. so we use that one directly.
+
+  needs a specific QNEthernet fork per t41-ptp's own readme:
+  HedgeHawk/QNEthernet branch ieee1588-2-fix. our platformio.ini currently
+  points at vanilla ssilverman/QNEthernet (whats network_stack.cpp,
+  fleet.cpp and web_interface.cpp are all built against). need to switch
+  to the HedgeHawk fork when we build this and re-check those 3 files
+  still compile and behave right against it, not assume its a clean swap.
 - Genlock: pins are NOT hardcoded in t41-tri-sync-ptp, i actually went and
   checked the source for this one - begin() takes the two sync pins as
   parameters, driven off the ethernet ptp hardware timer through
@@ -70,16 +88,11 @@ Subsystems and what drives them:
   view is the baseline, per device control if it turns out to be easy.
 
 Open items, still not resolved:
-- turns out t41-tri-sync-ptp and AES67Teensy dont actually share one t41-ptp
-  library at all, both of them vendor their own copy (t41-tri-sync-ptp
-  bundles it straight in src/ptp/, AES67Teensy vendors a separately pinned
-  copy plus two different QNEthernet ptp variants in its own lib/ folder).
-  so this was never really a fork compatibility question, its that we need
-  ONE ptp client of our own that both genlock and aes67 read time from,
-  using both projects as reference not literal dependencies. same pattern
-  as everything else in this repo.
 - interrupt priority order across genlock/ptp/audio/encoders/ethernet still
   needs setting once all the pieces actually exist - genlock should win.
 - audio shield i2s/i2c pin numbers, havent checked these against source yet.
+- need to switch platformio.ini's QNEthernet dependency to the HedgeHawk
+  ptp fork and re-verify the existing network/fleet/web code against it
+  when we actually start the ptp module.
 
 See CREDITS.md for what this is built on.

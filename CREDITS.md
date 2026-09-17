@@ -1,22 +1,28 @@
 CineTracker builds on work from other people, credit where its due:
 
+PTP time sync, used directly (not just as a reference):
+t41-ptp by IMS-AS-LUH (Leibniz Universitat Hannover, IMS/AS group)
+https://github.com/IMS-AS-LUH/t41-ptp
+MIT license, checked directly. one shared PTP client built on this feeds
+both genlock and aes67 timing. needs the HedgeHawk QNEthernet fork,
+https://github.com/HedgeHawk/QNEthernet/tree/ieee1588-2-fix
+
 Genlock / tri level sync generation, PTP locked:
-based on t41-tri-sync-ptp by IMS-AS-LUH (Leibniz Universitat Hannover,
-IMS/AS group)
+based on t41-tri-sync-ptp by IMS-AS-LUH
 https://github.com/IMS-AS-LUH/t41-tri-sync-ptp
-which itself is based on:
-- t41-ptp, https://github.com/IMS-AS-LUH/t41-ptp
-- a QNEthernet PTP fork, https://github.com/HedgeHawk/QNEthernet/tree/ieee1588-2-fix
-- the paper "PTP-Synchronized Tri-Level Sync Generation for Networked
-  Multi-Sensor Systems" by Riggers, Schleusner, Renke and Blume (2024)
+which is also where we got the reference tri-level sync output circuit
+(the actual pcb build was outsourced separately). also based on the
+paper "PTP-Synchronized Tri-Level Sync Generation for Networked
+Multi-Sensor Systems" by Riggers, Schleusner, Renke and Blume (2024)
 
 AES67 audio / LTC timecode over the network:
 based on AES67Teensy by SavilleBelcher
 https://github.com/SavilleBelcher/AES67Teensy
-which itself is based on:
-- a modified QNEthernet, https://github.com/ssilverman/QNEthernet/tree/ieee1588-2
-- t41-ptp, https://github.com/IMS-AS-LUH/t41-ptp
-- optionally teensy-4-usbAudio, https://github.com/alex6679/teensy-4-usbAudio
+note: their vendored copy of t41-ptp has unresolved merge conflicts
+committed into it and wouldnt compile, so we use the clean t41-ptp
+above instead of anything from their lib/ folder. not using
+teensy-4-usbAudio either, https://github.com/alex6679/teensy-4-usbAudio,
+that was one of their optional paths and we want analog i2s not usb
 
 FreeD protocol: the FreeD camera tracking protocol spec, and the virtual
 production community around it.
@@ -31,10 +37,10 @@ headers even though the repo has no standalone LICENSE file, which threw
 off automatic license detection for a bit until we actually checked the
 files directly).
 
-QNEthernet itself (used by both the genlock and AES67 paths above) is
+QNEthernet itself (the HedgeHawk fork our PTP dependency needs) is
 AGPL-3.0-or-later, which is why all of CineTracker ends up AGPL too,
-rather than the MIT license t41-tri-sync-ptp and AES67Teensy's own code
-uses.
+rather than the MIT license t41-ptp, t41-tri-sync-ptp and AES67Teensy's
+own code uses.
 
 all of the above are used under their own licenses. if youre one of the
 people/projects above and something here is wrong or missing, open an
