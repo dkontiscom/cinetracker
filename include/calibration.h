@@ -56,16 +56,17 @@ struct LensProfile {
 };
 
 struct EncoderCalibration {
-  uint16_t min_angle;
-  uint16_t mid_angle;
-  uint16_t max_angle;
+  // unwrapped multi turn positions not raw 14bit values see math_engine h
+  int32_t min_angle;
+  int32_t mid_angle;
+  int32_t max_angle;
 
   uint8_t direction;
   uint8_t enabled;
   uint8_t calibrated;
   uint8_t encoder_id;
 
-  uint16_t total_range;
+  int32_t total_range;
   float scale_factor;
 
   uint16_t noise_floor;
@@ -134,16 +135,16 @@ void calibration_abort_session(CalibrationSession *session);
 int calibration_select_preset(CalibrationSession *session, int preset_index, LensProfile *profile);
 int calibration_set_lens_profile(CalibrationSession *session, const LensProfile *profile);
 int calibration_detect_encoders(CalibrationSession *session, uint8_t *detected_mask);
-int calibration_set_point(CalibrationSession *session, uint8_t encoder_id, uint16_t angle);
+int calibration_set_point(CalibrationSession *session, uint8_t encoder_id, int32_t angle);
 int calibration_collect_samples(CalibrationSession *session, uint8_t encoder_id,
                                  const uint16_t *samples, size_t count);
 
 int calibration_validate(const CalibrationData *cal, char *error_report, size_t report_size);
 int calibration_test_accuracy(const CalibrationData *cal, uint8_t encoder_id, uint8_t *score);
 
-float calibration_angle_to_mm(const CalibrationData *cal, uint8_t encoder_id, uint16_t angle);
-float calibration_angle_to_fstop(const CalibrationData *cal, uint16_t angle);
-uint16_t calibration_mm_to_angle(const CalibrationData *cal, uint8_t encoder_id, float mm);
+float calibration_angle_to_mm(const CalibrationData *cal, uint8_t encoder_id, int32_t angle);
+float calibration_angle_to_fstop(const CalibrationData *cal, int32_t angle);
+int32_t calibration_mm_to_angle(const CalibrationData *cal, uint8_t encoder_id, float mm);
 
 int calibration_export_json(const CalibrationData *cal, char *buffer, size_t size);
 int calibration_import_json(CalibrationData *cal, const char *json);

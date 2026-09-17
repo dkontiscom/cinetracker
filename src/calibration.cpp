@@ -52,19 +52,15 @@ static const char *STATE_INSTRUCTIONS[] = {
 #define SAMPLE_BUFFER_SIZE 1024
 static uint16_t g_sample_buffer[SAMPLE_BUFFER_SIZE];
 
-// wrap math uses 16384 the count of positions not AS5048_MAX_ANGLE which
-// is the highest value 16383 same distinction angle_distance() makes
-static uint16_t calculate_angle_range(uint16_t min_angle, uint16_t max_angle, uint8_t direction) {
-  if (direction == 0) {
-    if (max_angle >= min_angle) return max_angle - min_angle;
-    return (16384 - min_angle) + max_angle;
-  } else {
-    if (min_angle >= max_angle) return min_angle - max_angle;
-    return (16384 - max_angle) + min_angle;
-  }
+// min/mid/max are continuous unwrapped positions now not raw wrapped 14bit
+// values no modulo math needed the direction just says which came out
+// numerically bigger a plain magnitude is the real total range either way
+static int32_t calculate_angle_range(int32_t min_angle, int32_t max_angle, uint8_t direction) {
+  (void)direction;
+  return (max_angle > min_angle) ? (max_angle - min_angle) : (min_angle - max_angle);
 }
 
-static float calc_scale_factor_range(uint16_t angle_range, float min_physical, float max_physical) {
+static float calc_scale_factor_range(int32_t angle_range, float min_physical, float max_physical) {
   if (angle_range == 0) return 0.0f;
   return (max_physical - min_physical) / angle_range;
 }
@@ -246,17 +242,17 @@ int calibration_detect_encoders(CalibrationSession *session, uint8_t *detected_m
   return count;
 }
 
-int calibration_set_point(CalibrationSession *session, uint8_t encoder_id, uint16_t angle) {
+int calibration_set_point(CalibrationSession *session, uint8_t encoder_id, int32_t angle) {
   if (!session || encoder_id >= 3) return CAL_ERROR_INVALID_PARAM;
 
   EncoderCalibration *enc = &session->temp_encoders[encoder_id];
-  int16_t delta = 0;
+  int32_t delta = 0;
 
   switch (session->state) {
     case CAL_STATE_FOCUS_SET_MIN:
       if (encoder_id != 0) return CAL_ERROR_INVALID_PARAM;
       enc->min_angle = angle;
-      Serial.printf("Calibration: Focus MIN = %u\n", angle);
+      Serial.printf("Calibration: Focus MIN = %ld\n", (long)angle);
       session->state = CAL_STATE_FOCUS_SET_MID;
       session->steps_completed++;
       break;
@@ -264,9 +260,10 @@ int calibration_set_point(CalibrationSession *session, uint8_t encoder_id, uint1
     case CAL_STATE_FOCUS_SET_MID:
       if (encoder_id != 0) return CAL_ERROR_INVALID_PARAM;
       enc->mid_angle = angle;
-      delta = angle_distance(enc->min_angle, angle);
+      // continuous unwrapped position now plain subtraction not angle_distance
+      delta = angle - enc->min_angle;
       enc->direction = (delta > 0) ? 0 : 1;
-      Serial.printf("Calibration: Focus MID = %u (direction=%s)\n", angle, enc->direction ? "CCW" : "CW");
+      Serial.printf("Calibration: Focus MID = %ld (direction=%s)\n", (long)angle, enc->direction ? "CCW" : "CW");
       session->state = CAL_STATE_FOCUS_SET_MAX;
       session->steps_completed++;
       break;
@@ -280,7 +277,7 @@ int calibration_set_point(CalibrationSession *session, uint8_t encoder_id, uint1
                                                    session->active_lens->focus_max_mm);
       enc->calibrated = 1;
       enc->quality_score = 85;
-      Serial.printf("Calibration: Focus MAX = %u (range=%u)\n", angle, enc->total_range);
+      Serial.printf("Calibration: Focus MAX = %ld (range=%ld)\n", (long)angle, (long)enc->total_range);
 
       if (session->temp_encoders[1].enabled) {
         session->state = CAL_STATE_IRIS_SET_MIN;
@@ -297,7 +294,7 @@ int calibration_set_point(CalibrationSession *session, uint8_t encoder_id, uint1
     case CAL_STATE_IRIS_SET_MIN:
       if (encoder_id != 1) return CAL_ERROR_INVALID_PARAM;
       enc->min_angle = angle;
-      Serial.printf("Calibration: Iris MIN = %u\n", angle);
+      Serial.printf("Calibration: Iris MIN = %ld\n", (long)angle);
       session->state = CAL_STATE_IRIS_SET_MID;
       session->steps_completed++;
       break;
@@ -305,9 +302,9 @@ int calibration_set_point(CalibrationSession *session, uint8_t encoder_id, uint1
     case CAL_STATE_IRIS_SET_MID:
       if (encoder_id != 1) return CAL_ERROR_INVALID_PARAM;
       enc->mid_angle = angle;
-      delta = angle_distance(enc->min_angle, angle);
+      delta = angle - enc->min_angle;
       enc->direction = (delta > 0) ? 0 : 1;
-      Serial.printf("Calibration: Iris MID = %u (direction=%s)\n", angle, enc->direction ? "CCW" : "CW");
+      Serial.printf("Calibration: Iris MID = %ld (direction=%s)\n", (long)angle, enc->direction ? "CCW" : "CW");
       session->state = CAL_STATE_IRIS_SET_MAX;
       session->steps_completed++;
       break;
@@ -321,7 +318,7 @@ int calibration_set_point(CalibrationSession *session, uint8_t encoder_id, uint1
                                                    session->active_lens->iris_max_fstop);
       enc->calibrated = 1;
       enc->quality_score = 85;
-      Serial.printf("Calibration: Iris MAX = %u (range=%u)\n", angle, enc->total_range);
+      Serial.printf("Calibration: Iris MAX = %ld (range=%ld)\n", (long)angle, (long)enc->total_range);
 
       if (session->temp_encoders[2].enabled) {
         session->state = CAL_STATE_ZOOM_SET_MIN;
@@ -335,7 +332,7 @@ int calibration_set_point(CalibrationSession *session, uint8_t encoder_id, uint1
     case CAL_STATE_ZOOM_SET_MIN:
       if (encoder_id != 2) return CAL_ERROR_INVALID_PARAM;
       enc->min_angle = angle;
-      Serial.printf("Calibration: Zoom MIN = %u\n", angle);
+      Serial.printf("Calibration: Zoom MIN = %ld\n", (long)angle);
       session->state = CAL_STATE_ZOOM_SET_MID;
       session->steps_completed++;
       break;
@@ -343,9 +340,9 @@ int calibration_set_point(CalibrationSession *session, uint8_t encoder_id, uint1
     case CAL_STATE_ZOOM_SET_MID:
       if (encoder_id != 2) return CAL_ERROR_INVALID_PARAM;
       enc->mid_angle = angle;
-      delta = angle_distance(enc->min_angle, angle);
+      delta = angle - enc->min_angle;
       enc->direction = (delta > 0) ? 0 : 1;
-      Serial.printf("Calibration: Zoom MID = %u (direction=%s)\n", angle, enc->direction ? "CCW" : "CW");
+      Serial.printf("Calibration: Zoom MID = %ld (direction=%s)\n", (long)angle, enc->direction ? "CCW" : "CW");
       session->state = CAL_STATE_ZOOM_SET_MAX;
       session->steps_completed++;
       break;
@@ -359,7 +356,7 @@ int calibration_set_point(CalibrationSession *session, uint8_t encoder_id, uint1
                                                    session->active_lens->zoom_max_mm);
       enc->calibrated = 1;
       enc->quality_score = 85;
-      Serial.printf("Calibration: Zoom MAX = %u (range=%u)\n", angle, enc->total_range);
+      Serial.printf("Calibration: Zoom MAX = %ld (range=%ld)\n", (long)angle, (long)enc->total_range);
 
       session->state = CAL_STATE_VALIDATE;
       session->steps_completed++;
@@ -413,7 +410,7 @@ int calibration_validate(const CalibrationData *cal, char *error_report, size_t 
     }
 
     if (enc->total_range < 100) {
-      snprintf(temp, sizeof(temp), "Encoder %d range too small (%u)\n", i, enc->total_range);
+      snprintf(temp, sizeof(temp), "Encoder %d range too small (%ld)\n", i, (long)enc->total_range);
       if (error_report) strncat(error_report, temp, report_size - strlen(error_report) - 1);
       errors++;
     }
@@ -423,8 +420,8 @@ int calibration_validate(const CalibrationData *cal, char *error_report, size_t 
       if (error_report) strncat(error_report, temp, report_size - strlen(error_report) - 1);
     }
 
-    Serial.printf("  Encoder %d: Range=%u, Noise=%u, Quality=%u%%\n",
-                  i, enc->total_range, enc->noise_floor, enc->quality_score);
+    Serial.printf("  Encoder %d: Range=%ld, Noise=%u, Quality=%u%%\n",
+                  i, (long)enc->total_range, enc->noise_floor, enc->quality_score);
   }
 
   if (cal->lens.name[0] == '\0') {
@@ -456,20 +453,14 @@ int calibration_test_accuracy(const CalibrationData *cal, uint8_t encoder_id, ui
   return CAL_OK;
 }
 
-float calibration_angle_to_mm(const CalibrationData *cal, uint8_t encoder_id, uint16_t angle) {
+float calibration_angle_to_mm(const CalibrationData *cal, uint8_t encoder_id, int32_t angle) {
   if (!cal || encoder_id >= 3) return 0.0f;
 
   const EncoderCalibration *enc = &cal->encoders[encoder_id];
   if (!enc->calibrated) return 0.0f;
 
-  int32_t normalized;
-  if (enc->direction == 0) {
-    normalized = angle - enc->min_angle;
-    if (normalized < 0) normalized += 16384;
-  } else {
-    normalized = enc->min_angle - angle;
-    if (normalized < 0) normalized += 16384;
-  }
+  // continuous unwrapped space now no modulo compensation needed at all
+  int32_t normalized = (enc->direction == 0) ? (angle - enc->min_angle) : (enc->min_angle - angle);
 
   if (normalized < 0) normalized = 0;
   if (normalized > enc->total_range) normalized = enc->total_range;
@@ -487,11 +478,11 @@ float calibration_angle_to_mm(const CalibrationData *cal, uint8_t encoder_id, ui
   return physical_min + scaled;
 }
 
-float calibration_angle_to_fstop(const CalibrationData *cal, uint16_t angle) {
+float calibration_angle_to_fstop(const CalibrationData *cal, int32_t angle) {
   return calibration_angle_to_mm(cal, 1, angle);
 }
 
-uint16_t calibration_mm_to_angle(const CalibrationData *cal, uint8_t encoder_id, float mm) {
+int32_t calibration_mm_to_angle(const CalibrationData *cal, uint8_t encoder_id, float mm) {
   if (!cal || encoder_id >= 3) return 0;
 
   const EncoderCalibration *enc = &cal->encoders[encoder_id];
@@ -510,14 +501,10 @@ uint16_t calibration_mm_to_angle(const CalibrationData *cal, uint8_t encoder_id,
 
   float angle_offset = (mm - physical_min) / enc->scale_factor;
 
-  uint16_t result;
-  if (enc->direction == 0) {
-    result = ((uint16_t)(enc->min_angle + angle_offset)) & 0x3FFF;
-  } else {
-    result = ((uint16_t)(enc->min_angle - angle_offset)) & 0x3FFF;
-  }
-
-  return result;
+  // no wrap mask anymore the result is a real unwrapped setpoint not a
+  // raw 14bit value
+  return (enc->direction == 0) ? (int32_t)(enc->min_angle + angle_offset)
+                                : (int32_t)(enc->min_angle - angle_offset);
 }
 
 int calibration_export_json(const CalibrationData *cal, char *buffer, size_t size) {
@@ -546,16 +533,16 @@ int calibration_export_json(const CalibrationData *cal, char *buffer, size_t siz
         "    {\n"
         "      \"id\": %d,\n"
         "      \"calibrated\": %s,\n"
-        "      \"min_angle\": %u,\n"
-        "      \"max_angle\": %u,\n"
+        "      \"min_angle\": %ld,\n"
+        "      \"max_angle\": %ld,\n"
         "      \"direction\": \"%s\",\n"
-        "      \"range\": %u,\n"
+        "      \"range\": %ld,\n"
         "      \"noise\": %u\n"
         "    }%s\n",
         i, enc->calibrated ? "true" : "false",
-        enc->min_angle, enc->max_angle,
+        (long)enc->min_angle, (long)enc->max_angle,
         enc->direction ? "CCW" : "CW",
-        enc->total_range, enc->noise_floor,
+        (long)enc->total_range, enc->noise_floor,
         (i < 2) ? "," : "");
   }
 

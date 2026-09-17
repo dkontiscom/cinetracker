@@ -172,6 +172,67 @@ Subsystems and what drives them:
   in the main loop. pin 13 is also the teensy's built in led btw (classic
   arduino spi/led pin overlap thing) - doesnt matter for us since we're
   using external status leds on 4 and 5 not the builtin one.
+
+  multi turn: the as5048a/b are single turn absolute encoders, they only
+  ever report where the shaft is within one 360 degree revolution with
+  zero memory of how many full turns happened. cinetracker mounts the
+  encoder to the lens ring through a swappable gear pair the user picks
+  themselves for whatever mounting spot and speed a given shot needs, so
+  the gear ratio between lens ring and encoder shaft isnt fixed and isnt
+  ours to control - which means a focus pull can genuinely spin the
+  encoder more than 360 degrees even though the lens ring itself never
+  does. below 360 degrees this only shows up as a filter glitch for a few
+  samples crossing the raw 0/16383 point. past 360 degrees its worse than
+  a glitch - the same raw angle now maps to more than one real physical
+  position and no amount of filtering can tell them apart, the
+  information just isnt in a single raw reading.
+
+  fix is EncoderState.unwrapped_angle in math_engine.cpp, a plain int32
+  running total. every sample adds angle_distance(prev_raw, new_raw) onto
+  it instead of letting the wrapped 14bit value reset every revolution -
+  same accumulate-the-delta structure as numpy.unwrap uses for phase data
+  (confirmed against numpy's own docs), chosen over filtering the sin/cos
+  decomposition (the alternative real approach, confirmed against VESC
+  firmware's own encoder docs) because a lens ring is mechanically
+  bounded, never spins forever, so the accumulator cant run away the way
+  a continuously spinning motor shaft's would. the filters (ema/median/
+  kalman) now run on this unwrapped value instead of the raw wrapped one,
+  which also kills the sub-360-degree glitch as a side effect - one fix
+  covers both cases.
+
+  calibration has to capture unwrapped positions too, not just live
+  tracking. handle_cal_point() in web_interface.cpp reads the live
+  ctx->encoders[...].unwrapped_angle (continuously running since boot,
+  same array process_encoder_sample updates every loop iteration) instead
+  of taking a fresh one-shot encoder_read_angle() at each SET button
+  press - otherwise any turns the user makes physically rotating the lens
+  ring between two button presses would be invisible and the calibrated
+  range would be wrong. EncoderCalibration.min_angle/mid_angle/max_angle
+  in calibration.h are int32 unwrapped positions now not raw 14bit values,
+  and calculate_angle_range()/calibration_angle_to_mm() dropped their old
+  modulo wraparound math entirely since theres nothing to wrap anymore in
+  continuous space.
+
+  this only stays valid from calibration start through however long the
+  device stays powered - a single turn absolute encoder has no way to
+  know about turns that happened while it was off, thats a hard limit of
+  the sensor not a bug. not a new problem for this project though: a
+  fresh 3 point calibration is already required every time a lens gets
+  mounted (the physical min/max mm are lens specific anyway), same as
+  real lens control systems already require a "set marks" touch per lens.
+  turn count is just never trusted past that boundary, nothing more.
+
+  found and fixed two related bugs while building this: network_stack.cpp
+  and math_engine_apply_calibration() both assumed cal_max is always
+  numerically bigger than cal_min, which is only true for one rotation
+  direction - for a lens calibrated the other way FreeD output was
+  already silently broken (cal_max - cal_min going negative into an
+  unsigned range, producing garbage normalized values). direction was
+  always the right flag to check here, it just wasnt being checked
+  consistently everywhere cal_min/cal_max got used. fixed in
+  math_engine.cpp (handle_boundary_overshoot, process_encoder_sample,
+  math_engine_apply_calibration, math_engine_validate_calibration) and
+  network_stack.cpp (all three freed normalization blocks).
 - Status LEDs (genlock lock / ptp sync): pins 4 and 5 reserved, not built yet.
 - Web UI / fleet discovery: runs in loop(), non blocking. read only fleet
   view is the baseline, per device control if it turns out to be easy.
@@ -206,5 +267,11 @@ Open items, still not resolved:
   loop() not the hw timer) hasnt been proven on a real bus yet either.
 - bom changed: 2x as5048a + 1x as5048b instead of 3x as5048a, and
   pcm5102a + pcm1808 instead of the pjrc audio shield, not ordered yet.
+- multi turn unwrap math verified by compiling and by hand tracing the
+  arithmetic, not tested against a real gear pair on a bench yet. the
+  unwrapped_angle accumulator is a plain int32 with no overflow guard -
+  fine for any realistic single powered-on session, not addressed beyond
+  that since a fresh calibration already resets the trusted reference
+  point anyway.
 
 See CREDITS.md for what this is built on.

@@ -19,18 +19,21 @@ enum FilterType {
 
 struct EncoderState {
   uint16_t raw_angle;
-  uint16_t filtered_angle;
-  uint16_t normalized_angle;
+  // raw_angle never wraps into this its the live count since boot deltas
+  // between calibration points are taken from here not the wrapped value
+  int32_t unwrapped_angle;
+  int32_t filtered_angle;
+  int32_t normalized_angle;
   int16_t velocity;
 
   float mm_value;
   float last_mm_value;
 
-  uint16_t cal_min;
-  uint16_t cal_max;
-  uint16_t cal_range;
-  uint16_t original_cal_min;
-  uint16_t original_cal_max;
+  int32_t cal_min;
+  int32_t cal_max;
+  int32_t cal_range;
+  int32_t original_cal_min;
+  int32_t original_cal_max;
 
   float mm_min;
   float mm_max;
@@ -43,7 +46,7 @@ struct EncoderState {
   bool ema_initialized;
   float ema_state;
 
-  uint16_t median_buffer[MEDIAN_FILTER_SIZE];
+  int32_t median_buffer[MEDIAN_FILTER_SIZE];
   uint8_t median_index;
 
   bool kalman_initialized;
@@ -68,17 +71,17 @@ uint16_t normalize_angle_14bit(uint16_t angle);
 int16_t angle_distance(uint16_t from, uint16_t to);
 uint16_t apply_deadband(uint16_t current, uint16_t previous, uint16_t threshold);
 
-uint16_t ema_filter(EncoderState *state, uint16_t input);
-uint16_t median_filter(EncoderState *state, uint16_t input);
-uint16_t kalman_filter(EncoderState *state, uint16_t measurement);
+int32_t ema_filter(EncoderState *state, int32_t input);
+int32_t median_filter(EncoderState *state, int32_t input);
+int32_t kalman_filter(EncoderState *state, int32_t measurement);
 
-void handle_boundary_overshoot(EncoderState *state, uint16_t angle);
+void handle_boundary_overshoot(EncoderState *state, int32_t angle);
 void math_process_angle(EncoderState *state, uint16_t raw_angle);
 float process_encoder_sample(EncoderState *state, uint16_t raw_angle);
 
 uint8_t auto_detect_direction(EncoderState *state, const uint16_t *samples, size_t count);
 uint16_t calculate_noise_floor(const uint16_t *samples, size_t count);
-float calculate_scale_factor(uint16_t angle_range, float mm_range);
+float calculate_scale_factor(int32_t angle_range, float mm_range);
 
 void math_engine_init_state(EncoderState *state, uint8_t encoder_id);
 void math_engine_reset_state(EncoderState *state);
@@ -86,7 +89,7 @@ void math_engine_set_filter(EncoderState *state, uint8_t filter_type);
 void math_engine_configure_kalman(EncoderState *state, float process_noise, float measurement_noise);
 
 bool math_engine_validate_calibration(const EncoderState *state);
-void math_engine_apply_calibration(EncoderState *state, uint16_t cal_min, uint16_t cal_max,
+void math_engine_apply_calibration(EncoderState *state, int32_t cal_min, int32_t cal_max,
                                     float mm_min, float mm_max, uint8_t direction);
 
 float math_engine_get_position_mm(const EncoderState *state);

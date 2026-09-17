@@ -148,12 +148,12 @@ static void handle_status(WebContext *ctx, EthernetClient &client) {
   snprintf(body, sizeof(body),
       "{\"mode\":\"%s\",\"streaming\":%s,\"connected\":%s,"
       "\"focus_mm\":%.2f,\"iris_fstop\":%.2f,\"zoom_mm\":%.2f,"
-      "\"focus_angle\":%u,\"iris_angle\":%u,\"zoom_angle\":%u,"
+      "\"focus_angle\":%ld,\"iris_angle\":%ld,\"zoom_angle\":%ld,"
       "\"frames_sent\":%lu,\"errors\":%lu,\"uptime\":%lu,\"fps\":%.1f}",
       mode, g_streaming ? "true" : "false", connected ? "true" : "false",
       math_engine_get_position_mm(&encoders[0]), math_engine_get_position_mm(&encoders[1]),
-      math_engine_get_position_mm(&encoders[2]), encoders[0].filtered_angle, encoders[1].filtered_angle,
-      encoders[2].filtered_angle, (unsigned long)stats.packets_sent, (unsigned long)stats.packets_dropped,
+      math_engine_get_position_mm(&encoders[2]), (long)encoders[0].filtered_angle, (long)encoders[1].filtered_angle,
+      (long)encoders[2].filtered_angle, (unsigned long)stats.packets_sent, (unsigned long)stats.packets_dropped,
       (unsigned long)network_get_uptime_seconds(), network_get_actual_fps());
 
   send_json(client, 200, "OK", body);
@@ -164,13 +164,13 @@ static void handle_encoders(WebContext *ctx, EthernetClient &client) {
   char body[400];
   snprintf(body, sizeof(body),
       "{\"encoders\":["
-      "{\"id\":0,\"name\":\"focus\",\"angle\":%u,\"mm\":%.2f,\"enabled\":%s},"
-      "{\"id\":1,\"name\":\"iris\",\"angle\":%u,\"fstop\":%.2f,\"enabled\":%s},"
-      "{\"id\":2,\"name\":\"zoom\",\"angle\":%u,\"mm\":%.2f,\"enabled\":%s}"
+      "{\"id\":0,\"name\":\"focus\",\"angle\":%ld,\"mm\":%.2f,\"enabled\":%s},"
+      "{\"id\":1,\"name\":\"iris\",\"angle\":%ld,\"fstop\":%.2f,\"enabled\":%s},"
+      "{\"id\":2,\"name\":\"zoom\",\"angle\":%ld,\"mm\":%.2f,\"enabled\":%s}"
       "]}",
-      e[0].filtered_angle, math_engine_get_position_mm(&e[0]), e[0].enabled ? "true" : "false",
-      e[1].filtered_angle, math_engine_get_position_mm(&e[1]), e[1].enabled ? "true" : "false",
-      e[2].filtered_angle, math_engine_get_position_mm(&e[2]), e[2].enabled ? "true" : "false");
+      (long)e[0].filtered_angle, math_engine_get_position_mm(&e[0]), e[0].enabled ? "true" : "false",
+      (long)e[1].filtered_angle, math_engine_get_position_mm(&e[1]), e[1].enabled ? "true" : "false",
+      (long)e[2].filtered_angle, math_engine_get_position_mm(&e[2]), e[2].enabled ? "true" : "false");
   send_json(client, 200, "OK", body);
 }
 
@@ -198,16 +198,18 @@ static void handle_cal_start(WebContext *ctx, const char *query, EthernetClient 
   send_json(client, 200, "OK", "{\"success\":true}");
 }
 
-// ignores whatever the browser thinks the step is trusts session state instead
+// reads the live continuously unwrapped position not a fresh raw read so
+// a multi turn gear ratio between calibration points is never lost see
+// architecture md for why this cant be a one shot encoder_read_angle
 static void handle_cal_point(WebContext *ctx, EthernetClient &client) {
   CalibrationSession *s = ctx->cal_session;
-  uint16_t angle;
-  if (!encoder_read_angle(s->current_encoder, &angle)) {
+  EncoderState *enc = &ctx->encoders[s->current_encoder];
+  if (enc->sample_count == 0) {
     send_json(client, 200, "OK", "{\"success\":false,\"message\":\"encoder read failed\"}");
     return;
   }
 
-  int result = calibration_set_point(s, s->current_encoder, angle);
+  int result = calibration_set_point(s, s->current_encoder, enc->unwrapped_angle);
   char body[64];
   snprintf(body, sizeof(body), "{\"success\":%s}", result == CAL_OK ? "true" : "false");
   send_json(client, 200, "OK", body);

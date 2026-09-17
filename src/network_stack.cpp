@@ -180,30 +180,41 @@ void network_build_freed_packet(FreedPacket *packet, const EncoderState encoder_
   packet->header = 0xD1;
   packet->camera_id = camera_id;
 
+  // cal_max isnt always the bigger number direction says which side is
+  // physical min so use cal_range (already a plain magnitude) not a
+  // fresh max-min subtraction and flip the offset the same way
+  // math_engine's process_encoder_sample does
   int32_t zoom_norm = 0;
   if (encoder_states[2].enabled) {
-    uint32_t range = encoder_states[2].cal_max - encoder_states[2].cal_min;
+    int32_t range = encoder_states[2].cal_range;
     if (range > 0) {
-      zoom_norm = ((uint32_t)(encoder_states[2].filtered_angle - encoder_states[2].cal_min) *
-                   FREED_NORMALIZED_MAX) / range;
+      int32_t offset = encoder_states[2].direction == 0
+          ? (encoder_states[2].filtered_angle - encoder_states[2].cal_min)
+          : (encoder_states[2].cal_min - encoder_states[2].filtered_angle);
+      zoom_norm = (offset * FREED_NORMALIZED_MAX) / range;
     }
   }
   freed_encode_24bit(zoom_norm, packet->zoom);
 
   int32_t focus_norm = 0;
   if (encoder_states[0].enabled) {
-    uint32_t range = encoder_states[0].cal_max - encoder_states[0].cal_min;
+    int32_t range = encoder_states[0].cal_range;
     if (range > 0) {
-      focus_norm = ((uint32_t)(encoder_states[0].filtered_angle - encoder_states[0].cal_min) *
-                    FREED_NORMALIZED_MAX) / range;
+      int32_t offset = encoder_states[0].direction == 0
+          ? (encoder_states[0].filtered_angle - encoder_states[0].cal_min)
+          : (encoder_states[0].cal_min - encoder_states[0].filtered_angle);
+      focus_norm = (offset * FREED_NORMALIZED_MAX) / range;
     }
   }
   freed_encode_24bit(focus_norm, packet->focus);
 
   if (encoder_states[1].enabled) {
-    uint32_t range = encoder_states[1].cal_max - encoder_states[1].cal_min;
+    int32_t range = encoder_states[1].cal_range;
     if (range > 0) {
-      int32_t iris_norm = ((encoder_states[1].filtered_angle - encoder_states[1].cal_min) * 255) / range;
+      int32_t offset = encoder_states[1].direction == 0
+          ? (encoder_states[1].filtered_angle - encoder_states[1].cal_min)
+          : (encoder_states[1].cal_min - encoder_states[1].filtered_angle);
+      int32_t iris_norm = (offset * 255) / range;
       packet->spare[0] = iris_norm & 0xFF;
     }
   }

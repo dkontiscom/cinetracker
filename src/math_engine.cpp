@@ -20,28 +20,28 @@ uint16_t apply_deadband(uint16_t current, uint16_t previous, uint16_t threshold)
   return (diff > threshold) ? current : previous;
 }
 
-uint16_t ema_filter(EncoderState *state, uint16_t input) {
+int32_t ema_filter(EncoderState *state, int32_t input) {
   const float alpha = 1.0f / (1 << EMA_ALPHA_SHIFT);
 
   if (!state->ema_initialized) {
     // first read just seeds it no real filtering yet
-    state->ema_state = input;
+    state->ema_state = (float)input;
     state->ema_initialized = true;
     return input;
   }
 
   state->ema_state += alpha * ((float)input - state->ema_state);
-  return (uint16_t)state->ema_state;
+  return (int32_t)state->ema_state;
 }
 
-uint16_t median_filter(EncoderState *state, uint16_t input) {
+int32_t median_filter(EncoderState *state, int32_t input) {
   state->median_buffer[state->median_index] = input;
   state->median_index = (state->median_index + 1) % MEDIAN_FILTER_SIZE;
 
-  uint16_t sorted[MEDIAN_FILTER_SIZE];
+  int32_t sorted[MEDIAN_FILTER_SIZE];
   memcpy(sorted, state->median_buffer, sizeof(sorted));
 
-#define SWAP(a, b) if (sorted[a] > sorted[b]) { uint16_t tmp = sorted[a]; sorted[a] = sorted[b]; sorted[b] = tmp; }
+#define SWAP(a, b) if (sorted[a] > sorted[b]) { int32_t tmp = sorted[a]; sorted[a] = sorted[b]; sorted[b] = tmp; }
   SWAP(0, 1); SWAP(3, 4);
   SWAP(0, 2); SWAP(1, 2);
   SWAP(0, 3); SWAP(2, 4);
@@ -52,7 +52,7 @@ uint16_t median_filter(EncoderState *state, uint16_t input) {
   return sorted[2];
 }
 
-uint16_t kalman_filter(EncoderState *state, uint16_t measurement) {
+int32_t kalman_filter(EncoderState *state, int32_t measurement) {
   if (!state->kalman_initialized) {
     state->kalman_x = (float)measurement;
     state->kalman_p = KALMAN_P_INITIAL;
@@ -66,21 +66,26 @@ uint16_t kalman_filter(EncoderState *state, uint16_t measurement) {
   state->kalman_x += k * ((float)measurement - state->kalman_x);
   state->kalman_p *= (1.0f - k);
 
-  return (uint16_t)state->kalman_x;
+  return (int32_t)state->kalman_x;
 }
 
-// window rides with him past the edge freezes when he turns back
-void handle_boundary_overshoot(EncoderState *state, uint16_t current_angle) {
-  if (current_angle > state->cal_max) {
-    uint16_t overshoot = current_angle - state->cal_max;
+// cal_min/cal_max arent numerically ordered direction decides which one is
+// the physical low end so the window has to move on whichever side got
+// passed not just whichever field happens to hold the bigger number
+void handle_boundary_overshoot(EncoderState *state, int32_t current_angle) {
+  int32_t lo = (state->cal_min < state->cal_max) ? state->cal_min : state->cal_max;
+  int32_t hi = (state->cal_min < state->cal_max) ? state->cal_max : state->cal_min;
+
+  if (current_angle > hi) {
+    int32_t overshoot = current_angle - hi;
     state->cal_max += overshoot;
     state->cal_min += overshoot;
     state->overshoot_detected = true;
     return;
   }
 
-  if (current_angle < state->cal_min) {
-    uint16_t overshoot = state->cal_min - current_angle;
+  if (current_angle < lo) {
+    int32_t overshoot = lo - current_angle;
     state->cal_min -= overshoot;
     state->cal_max -= overshoot;
     state->overshoot_detected = true;
@@ -91,21 +96,24 @@ void handle_boundary_overshoot(EncoderState *state, uint16_t current_angle) {
 void math_process_angle(EncoderState *state, uint16_t raw_angle) {
   raw_angle = apply_deadband(raw_angle, state->raw_angle, ENCODER_DEADBAND);
 
+  // this is the actual unwrap step delta rides along the real turns the
+  // gear can do so a multi turn gear ratio never loses track of position
   int16_t delta = angle_distance(state->raw_angle, raw_angle);
+  state->unwrapped_angle += delta;
   state->raw_angle = normalize_angle_14bit(raw_angle);
 
   switch (state->filter_type) {
     case FILTER_EMA:
-      state->filtered_angle = ema_filter(state, state->raw_angle);
+      state->filtered_angle = ema_filter(state, state->unwrapped_angle);
       break;
     case FILTER_MEDIAN:
-      state->filtered_angle = median_filter(state, state->raw_angle);
+      state->filtered_angle = median_filter(state, state->unwrapped_angle);
       break;
     case FILTER_KALMAN:
-      state->filtered_angle = kalman_filter(state, state->raw_angle);
+      state->filtered_angle = kalman_filter(state, state->unwrapped_angle);
       break;
     default:
-      state->filtered_angle = state->raw_angle;
+      state->filtered_angle = state->unwrapped_angle;
       break;
   }
 
@@ -131,7 +139,11 @@ float process_encoder_sample(EncoderState *state, uint16_t raw_angle) {
   math_process_angle(state, raw_angle);
 
   if (state->cal_range > 0) {
-    float angle_offset = (float)(state->normalized_angle - state->cal_min);
+    // direction says which of cal_min/cal_max is the physical low end not
+    // which one is numerically smaller same reasoning as the overshoot fix
+    float angle_offset = (state->direction == 0)
+        ? (float)(state->normalized_angle - state->cal_min)
+        : (float)(state->cal_min - state->normalized_angle);
     state->mm_value = state->mm_min + angle_offset * state->mm_scale;
 
     if (state->mm_value < state->mm_min) state->mm_value = state->mm_min;
@@ -182,7 +194,7 @@ uint16_t calculate_noise_floor(const uint16_t *samples, size_t count) {
   return (uint16_t)sqrtf(sum_sq_diff / count);
 }
 
-float calculate_scale_factor(uint16_t angle_range, float mm_range) {
+float calculate_scale_factor(int32_t angle_range, float mm_range) {
   if (angle_range == 0) return 0.0f;
   return mm_range / angle_range;
 }
@@ -208,8 +220,8 @@ void math_engine_init_state(EncoderState *state, uint8_t encoder_id) {
 void math_engine_reset_state(EncoderState *state) {
   uint8_t encoder_id = state->encoder_id;
   uint8_t filter_type = state->filter_type;
-  uint16_t cal_min = state->cal_min;
-  uint16_t cal_max = state->cal_max;
+  int32_t cal_min = state->cal_min;
+  int32_t cal_max = state->cal_max;
   float mm_min = state->mm_min;
   float mm_max = state->mm_max;
   uint8_t direction = state->direction;
@@ -235,16 +247,18 @@ void math_engine_configure_kalman(EncoderState *state, float process_noise, floa
 }
 
 bool math_engine_validate_calibration(const EncoderState *state) {
-  if (state->cal_max <= state->cal_min) return false;
+  // cal_max < cal_min is the normal case for the reverse direction not an
+  // error only a zero range (nothing moved between min and max) is bad
+  if (state->cal_max == state->cal_min) return false;
   if (state->mm_max <= state->mm_min) return false;
   return true;
 }
 
-void math_engine_apply_calibration(EncoderState *state, uint16_t cal_min, uint16_t cal_max,
+void math_engine_apply_calibration(EncoderState *state, int32_t cal_min, int32_t cal_max,
                                     float mm_min, float mm_max, uint8_t direction) {
   state->cal_min = cal_min;
   state->cal_max = cal_max;
-  state->cal_range = cal_max - cal_min;
+  state->cal_range = (cal_max > cal_min) ? (cal_max - cal_min) : (cal_min - cal_max);
   state->mm_min = mm_min;
   state->mm_max = mm_max;
   state->direction = direction;
