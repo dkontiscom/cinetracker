@@ -31,11 +31,31 @@ Subsystems and what drives them:
   (local device -> streamed to network) or ltc out (network -> local
   device), never both at once, not a general audio router. needs a codec
   with both adc and dac, switched in firmware, not true full duplex.
-  AES67Teensy itself is 16bit/48khz today, 24bit (the actual broadcast std)
-  still needs checking against a real codec datasheet before we pick
-  hardware, not confirmed either way yet. pins also not finalized, the
-  audio shield's i2s pinout is fixed by the shield board itself so dont
-  want to guess at it, will check properly when we actually build this.
+  AES67Teensy itself is 16bit/48khz today, checked their RTPAudio.h directly
+  and its because they built it on the stock AudioRecordQueue/AudioPlayQueue
+  classes which are hardcoded int16, not because the codec or aes67 itself
+  needs 16bit. we checked the actual sgtl5000 datasheet too and the chip is
+  24bit capable at the hardware level.
+
+  hardware to buy: PJRC "Audio board for use with Teensy 4.0-4.1", currently
+  Rev D2 (same as the Rev D everyone references, just a jan 2023 refresh,
+  still sgtl5000). confirmed against the real pjrc product page, this is the
+  right part, no alternate codec board needed.
+
+  for actually driving it at 24bit: using OpenAudio_ArduinoLibrary by
+  chip audette. checked its real teensy 4.x sai register config directly
+  (WNW/W0W set to 32bit word slots, genuine wide i2s transfer not just
+  internal float math) so we know it actually works, not just taking the
+  readme's word for it. github's api said license: null on that repo at
+  first look which worried us, but that only checks for a standalone
+  LICENSE file - the actual source files carry a full MIT header, checked
+  directly. so this is a real dependency, not just a reference.
+
+  one real gotcha found in the sgtl5000 datasheet: its 24bit register mode
+  only works at a specific clock setting (SCLKFREQ=0), worth remembering
+  when we actually build this. pins still not finalized, the shield's i2s
+  pinout is fixed by the board itself so dont want to guess at it, will
+  check properly when we get there.
 - FIZ encoders: 3x as5048a, each gets its own spi bus, cs pins checked
   against the real teensy 4.1 core source (SPI.cpp hardware tables) not
   guessed this time:
@@ -50,10 +70,14 @@ Subsystems and what drives them:
   view is the baseline, per device control if it turns out to be easy.
 
 Open items, still not resolved:
-- t41-tri-sync-ptp and AES67Teensy depend on two different QNEthernet ptp
-  forks (HedgeHawk vs ssilverman, different branches). need to check if
-  they're actually compatible before we try combining genlock+ptp and
-  aes67 in the same firmware.
+- turns out t41-tri-sync-ptp and AES67Teensy dont actually share one t41-ptp
+  library at all, both of them vendor their own copy (t41-tri-sync-ptp
+  bundles it straight in src/ptp/, AES67Teensy vendors a separately pinned
+  copy plus two different QNEthernet ptp variants in its own lib/ folder).
+  so this was never really a fork compatibility question, its that we need
+  ONE ptp client of our own that both genlock and aes67 read time from,
+  using both projects as reference not literal dependencies. same pattern
+  as everything else in this repo.
 - interrupt priority order across genlock/ptp/audio/encoders/ethernet still
   needs setting once all the pieces actually exist - genlock should win.
 - audio shield i2s/i2c pin numbers, havent checked these against source yet.

@@ -21,6 +21,16 @@ which itself is based on:
 FreeD protocol: the FreeD camera tracking protocol spec, and the virtual
 production community around it.
 
+24bit I2S on the audio shield: the stock teensy audio library caps at
+16bit, so for real 24bit audio out to the sgtl5000 we use
+OpenAudio_ArduinoLibrary by Chip Audette
+https://github.com/chipaudette/OpenAudio_ArduinoLibrary
+which itself extends the original PJRC Teensy Audio Library by
+Paul Stoffregen. both MIT (the license text is right in the source file
+headers even though the repo has no standalone LICENSE file, which threw
+off automatic license detection for a bit until we actually checked the
+files directly).
+
 QNEthernet itself (used by both the genlock and AES67 paths above) is
 AGPL-3.0-or-later, which is why all of CineTracker ends up AGPL too,
 rather than the MIT license t41-tri-sync-ptp and AES67Teensy's own code
