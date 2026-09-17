@@ -406,6 +406,10 @@ static void dispatch(WebContext *ctx, const char *method, char *path, const char
   }
 }
 
+bool web_is_streaming() {
+  return g_streaming;
+}
+
 int web_interface_init() {
   g_server.begin();
   Serial.printf("Web: listening on port %d\n", WEB_SERVER_PORT);

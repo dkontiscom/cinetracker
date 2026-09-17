@@ -16,3 +16,4 @@ struct WebContext {
 
 int web_interface_init();
 void web_interface_process(WebContext *ctx);
+bool web_is_streaming();
