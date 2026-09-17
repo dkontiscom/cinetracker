@@ -14,10 +14,10 @@
 
 #define ENCODER_SPI_BAUDRATE 8000000
 
-// pins are guess for now fix wen board pinout done
-#define ENCODER_CS_FOCUS 2
-#define ENCODER_CS_IRIS 3
-#define ENCODER_CS_ZOOM 4
+// spi hw default cs pins checked against core source not guessed
+#define ENCODER_CS_FOCUS 10
+#define ENCODER_CS_IRIS 0
+#define ENCODER_CS_ZOOM 44
 
 uint16_t as5048_calculate_parity(uint16_t value);
 
