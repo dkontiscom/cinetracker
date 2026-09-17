@@ -34,11 +34,15 @@ Subsystems and what drives them:
   to tri-sync specifically. so we use that one directly.
 
   needs a specific QNEthernet fork per t41-ptp's own readme:
-  HedgeHawk/QNEthernet branch ieee1588-2-fix. our platformio.ini currently
-  points at vanilla ssilverman/QNEthernet (whats network_stack.cpp,
-  fleet.cpp and web_interface.cpp are all built against). need to switch
-  to the HedgeHawk fork when we build this and re-check those 3 files
-  still compile and behave right against it, not assume its a clean swap.
+  HedgeHawk/QNEthernet branch ieee1588-2-fix. switched platformio.ini to
+  it and rebuilt everything - network_stack.cpp, fleet.cpp and
+  web_interface.cpp all compiled unchanged against it, real confirmation
+  not just an assumption. found one real bug doing this: the HedgeHawk
+  fork itself is missing #include <math.h> in lwip_t41.c (round() used
+  without it, hard compile error not a warning). fixed with
+  "-include math.h" in build_flags rather than patching the vendored
+  copy directly, since .pio/libdeps gets freshly redownloaded on every
+  machine and a local patch wouldnt survive that.
 - Genlock: pins are NOT hardcoded in t41-tri-sync-ptp, i actually went and
   checked the source for this one - begin() takes the two sync pins as
   parameters, driven off the ethernet ptp hardware timer through
@@ -91,8 +95,5 @@ Open items, still not resolved:
 - interrupt priority order across genlock/ptp/audio/encoders/ethernet still
   needs setting once all the pieces actually exist - genlock should win.
 - audio shield i2s/i2c pin numbers, havent checked these against source yet.
-- need to switch platformio.ini's QNEthernet dependency to the HedgeHawk
-  ptp fork and re-verify the existing network/fleet/web code against it
-  when we actually start the ptp module.
 
 See CREDITS.md for what this is built on.
