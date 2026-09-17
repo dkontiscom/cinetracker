@@ -1,4 +1,5 @@
 #include "calibration.h"
+#include "storage.h"
 
 #include <math.h>
 #include <string.h>
@@ -51,13 +52,15 @@ static const char *STATE_INSTRUCTIONS[] = {
 #define SAMPLE_BUFFER_SIZE 1024
 static uint16_t g_sample_buffer[SAMPLE_BUFFER_SIZE];
 
+// wrap math uses 16384 the count of positions not AS5048_MAX_ANGLE which
+// is the highest value 16383 same distinction angle_distance() makes
 static uint16_t calculate_angle_range(uint16_t min_angle, uint16_t max_angle, uint8_t direction) {
   if (direction == 0) {
     if (max_angle >= min_angle) return max_angle - min_angle;
-    return (AS5048_MAX_ANGLE - min_angle) + max_angle;
+    return (16384 - min_angle) + max_angle;
   } else {
     if (min_angle >= max_angle) return min_angle - max_angle;
-    return (AS5048_MAX_ANGLE - max_angle) + min_angle;
+    return (16384 - max_angle) + min_angle;
   }
 }
 
@@ -462,10 +465,10 @@ float calibration_angle_to_mm(const CalibrationData *cal, uint8_t encoder_id, ui
   int32_t normalized;
   if (enc->direction == 0) {
     normalized = angle - enc->min_angle;
-    if (normalized < 0) normalized += AS5048_MAX_ANGLE;
+    if (normalized < 0) normalized += 16384;
   } else {
     normalized = enc->min_angle - angle;
-    if (normalized < 0) normalized += AS5048_MAX_ANGLE;
+    if (normalized < 0) normalized += 16384;
   }
 
   if (normalized < 0) normalized = 0;

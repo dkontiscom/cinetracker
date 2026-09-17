@@ -39,6 +39,7 @@ static uint32_t g_packets_sent = 0;
 static uint32_t g_packets_received = 0;
 static uint32_t g_packets_lost = 0;
 static uint32_t g_underruns = 0;
+static uint32_t g_jitter_overwrites = 0;
 static uint16_t g_expected_seq = 0;
 static bool g_have_expected_seq = false;
 
@@ -124,9 +125,11 @@ static void process_rx() {
 
   uint16_t seq = (packet[2] << 8) | packet[3];
 
+  // signed so a reordered/late packet (seq behind expected) shows up as a
+  // small negative number instead of wrapping a uint16 into a huge one
   if (g_have_expected_seq && seq != g_expected_seq) {
-    uint16_t gap = seq - g_expected_seq;
-    g_packets_lost += gap;
+    int16_t gap = (int16_t)(seq - g_expected_seq);
+    if (gap > 0) g_packets_lost += gap;
   }
   g_expected_seq = seq + 1;
   g_have_expected_seq = true;
@@ -136,6 +139,7 @@ static void process_rx() {
   if (payload_len > AES67_SAMPLES_PER_PACKET * 3) payload_len = AES67_SAMPLES_PER_PACKET * 3;
 
   int slot = seq % JITTER_DEPTH;
+  if (g_jitter[slot].valid) g_jitter_overwrites++;
   memcpy(g_jitter[slot].payload, packet + 12, payload_len);
   g_jitter[slot].valid = true;
 
@@ -298,4 +302,8 @@ uint32_t aes67_packets_lost() {
 
 uint32_t aes67_underruns() {
   return g_underruns;
+}
+
+uint32_t aes67_jitter_overwrites() {
+  return g_jitter_overwrites;
 }

@@ -1,4 +1,5 @@
 #include "lens_profiles.h"
+#include "storage.h"
 
 #include <string.h>
 #include <strings.h>

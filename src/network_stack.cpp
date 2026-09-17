@@ -164,11 +164,12 @@ static void freed_encode_24bit(int32_t value, uint8_t *buffer) {
   buffer[2] = value & 0xFF;
 }
 
+// vizrt spec is 40 hex minus the sum of the preceding bytes not a plain sum
 static uint8_t freed_calculate_checksum(const FreedPacket *packet) {
-  uint8_t checksum = 0;
+  uint8_t sum = 0;
   const uint8_t *bytes = (const uint8_t *)packet;
-  for (int i = 0; i < 28; i++) checksum += bytes[i];
-  return checksum;
+  for (int i = 0; i < 28; i++) sum += bytes[i];
+  return (uint8_t)(0x40 - sum);
 }
 
 void network_build_freed_packet(FreedPacket *packet, const EncoderState encoder_states[3],

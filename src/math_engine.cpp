@@ -92,9 +92,6 @@ void math_process_angle(EncoderState *state, uint16_t raw_angle) {
   raw_angle = apply_deadband(raw_angle, state->raw_angle, ENCODER_DEADBAND);
 
   int16_t delta = angle_distance(state->raw_angle, raw_angle);
-  if (delta > 8192) state->total_rotations++;
-  else if (delta < -8192) state->total_rotations--;
-
   state->raw_angle = normalize_angle_14bit(raw_angle);
 
   switch (state->filter_type) {

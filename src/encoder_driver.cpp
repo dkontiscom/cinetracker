@@ -57,24 +57,28 @@ static uint16_t as5048_read_register(const EncoderBus &bus, uint16_t command) {
 
 // iris as5048b over i2c register pairs are high byte then low 6 bits same
 // combine as the real ams_as5048b library not the spi 16bit framing
-static uint8_t as5048b_read_reg8(uint8_t reg) {
+// return value is whether the i2c transaction actually succeeded callers
+// must check it a disconnected chip must not look like a real angle of 0
+static bool as5048b_read_reg8(uint8_t reg, uint8_t *out) {
   Wire.beginTransmission(AS5048B_I2C_ADDRESS);
   Wire.write(reg);
-  if (Wire.endTransmission(false) != 0) return 0;
-  Wire.requestFrom((int)AS5048B_I2C_ADDRESS, 1);
-  if (Wire.available() < 1) return 0;
-  return Wire.read();
+  if (Wire.endTransmission(false) != 0) return false;
+  if (Wire.requestFrom((int)AS5048B_I2C_ADDRESS, 1) < 1) return false;
+  if (Wire.available() < 1) return false;
+  *out = Wire.read();
+  return true;
 }
 
-static uint16_t as5048b_read_reg16(uint8_t reg_msb) {
+static bool as5048b_read_reg16(uint8_t reg_msb, uint16_t *out) {
   Wire.beginTransmission(AS5048B_I2C_ADDRESS);
   Wire.write(reg_msb);
-  if (Wire.endTransmission(false) != 0) return 0;
-  Wire.requestFrom((int)AS5048B_I2C_ADDRESS, 2);
-  if (Wire.available() < 2) return 0;
+  if (Wire.endTransmission(false) != 0) return false;
+  if (Wire.requestFrom((int)AS5048B_I2C_ADDRESS, 2) < 2) return false;
+  if (Wire.available() < 2) return false;
   uint8_t msb = Wire.read();
   uint8_t lsb = Wire.read();
-  return (((uint16_t)msb) << 6) | (lsb & 0x3F);
+  *out = (((uint16_t)msb) << 6) | (lsb & 0x3F);
+  return true;
 }
 
 static bool as5048b_present() {
@@ -128,17 +132,18 @@ uint8_t encoder_detect_presence() {
     uint16_t min_angle, max_angle;
 
     if (i == 1) {
-      if (!as5048b_present()) {
+      if (!as5048b_present() || !as5048b_read_reg16(AS5048B_REG_ANGLE_MSB, &angle)) {
         Serial.printf("  %s encoder not detected\n", names[i]);
         continue;
       }
-      angle = as5048b_read_reg16(AS5048B_REG_ANGLE_MSB);
       min_angle = angle;
       max_angle = angle;
       for (int j = 0; j < 100; j++) {
-        uint16_t sample = as5048b_read_reg16(AS5048B_REG_ANGLE_MSB);
-        if (sample < min_angle) min_angle = sample;
-        if (sample > max_angle) max_angle = sample;
+        uint16_t sample;
+        if (as5048b_read_reg16(AS5048B_REG_ANGLE_MSB, &sample)) {
+          if (sample < min_angle) min_angle = sample;
+          if (sample > max_angle) max_angle = sample;
+        }
         delayMicroseconds(100);
       }
     } else {
@@ -192,10 +197,12 @@ void encoder_process() {
   if (g_iris_since_read < g_iris_period_us) return;
   g_iris_since_read = 0;
 
-  uint16_t angle = as5048b_read_reg16(AS5048B_REG_ANGLE_MSB);
-  g_latest_angle[1] = angle;
-  g_latest_valid[1] = true;
-  g_iris_sample_count++;
+  uint16_t angle;
+  if (as5048b_read_reg16(AS5048B_REG_ANGLE_MSB, &angle)) {
+    g_latest_angle[1] = angle;
+    g_latest_valid[1] = true;
+    g_iris_sample_count++;
+  }
 }
 
 bool encoder_read_angle(uint8_t encoder_id, uint16_t *angle) {
@@ -207,8 +214,7 @@ bool encoder_read_angle(uint8_t encoder_id, uint16_t *angle) {
 
   bool ok;
   if (encoder_id == 1) {
-    *angle = as5048b_read_reg16(AS5048B_REG_ANGLE_MSB);
-    ok = true;
+    ok = as5048b_read_reg16(AS5048B_REG_ANGLE_MSB, angle);
   } else {
     uint16_t response = as5048_read_register(g_spi_buses[g_spi_slot(encoder_id)], AS5048_CMD_ANGLE | AS5048_READ_FLAG);
     ok = !(response & AS5048_EF_ERROR);
@@ -238,8 +244,10 @@ int encoder_get_diagnostics(uint8_t encoder_id, uint16_t *agc, uint16_t *magnitu
   if (encoder_id >= 3 || !agc || !magnitude) return -1;
 
   if (encoder_id == 1) {
-    *agc = as5048b_read_reg8(AS5048B_REG_AGC);
-    *magnitude = as5048b_read_reg16(AS5048B_REG_MAGNITUDE_MSB);
+    uint8_t agc_val;
+    if (!as5048b_read_reg8(AS5048B_REG_AGC, &agc_val)) return -1;
+    if (!as5048b_read_reg16(AS5048B_REG_MAGNITUDE_MSB, magnitude)) return -1;
+    *agc = agc_val;
     return 0;
   }
 
@@ -264,7 +272,9 @@ int encoder_collect_calibration_samples(uint8_t encoder_id, uint16_t *samples, s
 
   if (encoder_id == 1) {
     for (size_t i = 0; i < count; i++) {
-      samples[i] = as5048b_read_reg16(AS5048B_REG_ANGLE_MSB);
+      uint16_t sample = 0;
+      as5048b_read_reg16(AS5048B_REG_ANGLE_MSB, &sample);
+      samples[i] = sample;
       delayMicroseconds(1000);
     }
   } else {

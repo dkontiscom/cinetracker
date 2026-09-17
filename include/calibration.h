@@ -155,4 +155,3 @@ uint8_t calibration_get_progress(const CalibrationSession *session);
 void apply_calibration(EncoderState *encoder, const EncoderCalibration *cal);
 
 bool encoder_read_angle(uint8_t encoder_id, uint16_t *angle);
-int storage_save_calibration(const CalibrationData *cal);

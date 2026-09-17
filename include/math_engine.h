@@ -55,7 +55,6 @@ struct EncoderState {
   uint8_t filter_type;
 
   uint32_t sample_count;
-  int32_t total_rotations;
   uint16_t max_velocity;
   uint32_t update_timestamp;
 

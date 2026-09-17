@@ -34,3 +34,4 @@ uint32_t aes67_packets_sent();
 uint32_t aes67_packets_received();
 uint32_t aes67_packets_lost();
 uint32_t aes67_underruns();
+uint32_t aes67_jitter_overwrites();

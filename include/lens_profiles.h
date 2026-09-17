@@ -42,10 +42,6 @@ struct StoredLensProfile {
   uint32_t use_count;
 };
 
-int storage_load_lens_profile(int slot, StoredLensProfile *out);
-int storage_save_lens_profile(const StoredLensProfile *profile, int slot);
-int storage_delete_lens_profile(int slot);
-
 int profiles_init();
 int profiles_list(ProfileSummary *summaries, int max_count, const ProfileFilter *filter);
 int profiles_get_summary(int slot, ProfileSummary *summary);
