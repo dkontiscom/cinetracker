@@ -14,6 +14,7 @@
 
 #define ENCODER_SPI_BAUDRATE 8000000
 
+// pins are guess for now fix wen board pinout done
 #define ENCODER_CS_FOCUS 2
 #define ENCODER_CS_IRIS 3
 #define ENCODER_CS_ZOOM 4

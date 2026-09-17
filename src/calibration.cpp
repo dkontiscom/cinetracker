@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdio.h>
 
+// numbers off datasheets/spec sheets some are guesses
 static const LensPreset LENS_PRESETS[] = {
     {"Zeiss CP.3 25mm T2.1", 250, 65535, 21, 220, 25, 25},
     {"Canon CN-E 50mm T1.3", 450, 65535, 13, 220, 50, 50},
@@ -380,6 +381,7 @@ int calibration_collect_samples(CalibrationSession *session, uint8_t encoder_id,
   memcpy(session->sample_buffer, samples, copy_count * sizeof(uint16_t));
   session->sample_count = copy_count;
 
+  // used to calc repeatability here too was literaly the same number deleted it
   enc->noise_floor = calculate_noise_floor(samples, count);
   enc->sample_count = count;
 

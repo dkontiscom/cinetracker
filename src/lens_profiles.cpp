@@ -163,6 +163,7 @@ int profiles_quick_load(int slot) {
     return -1;
   }
 
+  // doesnt push cal to the encoders yet needs the driver hooked up
   g_active_profile_slot = slot;
 
   Serial.printf("Profiles: Loaded profile '%s'\n", stored.profile.name);

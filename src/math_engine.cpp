@@ -24,6 +24,7 @@ uint16_t ema_filter(EncoderState *state, uint16_t input) {
   const float alpha = 1.0f / (1 << EMA_ALPHA_SHIFT);
 
   if (!state->ema_initialized) {
+    // first read just seeds it no real filtering yet
     state->ema_state = input;
     state->ema_initialized = true;
     return input;
@@ -68,6 +69,7 @@ uint16_t kalman_filter(EncoderState *state, uint16_t measurement) {
   return (uint16_t)state->kalman_x;
 }
 
+// window rides with him past the edge freezes when he turns back
 void handle_boundary_overshoot(EncoderState *state, uint16_t current_angle) {
   if (current_angle > state->cal_max) {
     uint16_t overshoot = current_angle - state->cal_max;

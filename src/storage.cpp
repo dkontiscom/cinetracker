@@ -2,9 +2,11 @@
 
 #include <LittleFS.h>
 
+// littlefs on spare program flash no sd card involved
 static LittleFS_Program g_fs;
 static bool g_fs_ready = false;
 
+// returns false if fs not mounted check it
 static bool write_file(const char *path, const void *data, size_t size) {
   File f = g_fs.open(path, FILE_WRITE_BEGIN);
   if (!f) return false;

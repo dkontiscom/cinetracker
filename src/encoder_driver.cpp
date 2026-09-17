@@ -39,6 +39,7 @@ static uint16_t as5048_transfer(const EncoderBus &bus, uint16_t tx) {
   return rx;
 }
 
+// chip give u last read not this one its always one behind
 static uint16_t as5048_read_register(const EncoderBus &bus, uint16_t command) {
   as5048_transfer(bus, as5048_calculate_parity(command));
   return as5048_transfer(bus, AS5048_CMD_NOP);
@@ -127,6 +128,7 @@ void encoder_stop_sampling() {
 bool encoder_read_angle(uint8_t encoder_id, uint16_t *angle) {
   if (encoder_id >= 3 || !angle) return false;
 
+  // pulls it out the isr mask so they dont fight the bus
   uint8_t saved_mask = g_active_mask;
   g_active_mask = saved_mask & ~(1 << encoder_id);
 
