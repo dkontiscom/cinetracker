@@ -1,17 +1,17 @@
-Basic architecture, Teensy 4.1 build. This will get more detailed as we actually
-build each part, this is the starting point.
+Basic architecture, Teensy 4.1 build. this will get more detailed as we
+actually build each part, this is just the starting point.
 
-Priorities, in order: genlock, timecode (LTC over AES67), FIZ encoder data and
-its FreeD output. Same latency and framerate targets as the old RP2040 version
-(sub-ms encoder latency, up to 240fps FreeD). Everything else (fleet UI,
-diagnostics, RTC, status LEDs) is secondary and must not get in the way of
-those three.
+Priorities, in order: genlock, timecode (LTC over AES67), FIZ encoder data
+and its FreeD output. same latency and framerate targets as the old RP2040
+version (sub ms encoder latency, up to 240fps FreeD). everything else
+(fleet UI, diagnostics, RTC, status LEDs) is secondary and shouldnt get in
+the way of those three.
 
-Main design rule: anything time-critical runs off a hardware timer, DMA or
+Main design rule: anything time critical runs off a hardware timer, DMA or
 interrupt, not off the main loop(). Teensy 4.1 only has one core (RT1062,
 Cortex-M7, 600MHz, has an FPU unlike the old RP2040's M0+ cores), so loop()
-is reserved for the web server, JSON building, storage writes - things that
-can tolerate being delayed by a few hundred microseconds. Interrupts always
+is reserved for the web server, JSON building, storage writes, things that
+can tolerate being delayed by a few hundred microseconds. interrupts always
 preempt loop() on this chip, so as long as the ISRs stay short, genlock/PTP/
 audio/encoders keep their timing even while the web server is busy.
 
