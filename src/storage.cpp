@@ -51,30 +51,6 @@ int storage_save_calibration(const CalibrationData *cal) {
   return write_file("calibration.bin", cal, sizeof(CalibrationData)) ? 0 : -1;
 }
 
-int storage_load_lens_profile(int slot, StoredLensProfile *out) {
-  if (!g_fs_ready || !out || slot < 0 || slot >= PROFILE_MAX_SLOTS) return -1;
-
-  char path[32];
-  snprintf(path, sizeof(path), "profile%d.bin", slot);
-  return read_file(path, out, sizeof(StoredLensProfile)) ? 0 : -1;
-}
-
-int storage_save_lens_profile(const StoredLensProfile *profile, int slot) {
-  if (!g_fs_ready || !profile || slot < 0 || slot >= PROFILE_MAX_SLOTS) return -1;
-
-  char path[32];
-  snprintf(path, sizeof(path), "profile%d.bin", slot);
-  return write_file(path, profile, sizeof(StoredLensProfile)) ? 0 : -1;
-}
-
-int storage_delete_lens_profile(int slot) {
-  if (!g_fs_ready || slot < 0 || slot >= PROFILE_MAX_SLOTS) return -1;
-
-  char path[32];
-  snprintf(path, sizeof(path), "profile%d.bin", slot);
-  return g_fs.remove(path) ? 0 : -1;
-}
-
 int storage_factory_reset(uint32_t confirm) {
   if (confirm != 0xDEADBEEF) return -1;
 

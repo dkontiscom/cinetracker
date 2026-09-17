@@ -6,7 +6,6 @@
 #include <ctype.h>
 
 #include "encoder_driver.h"
-#include "lens_profiles.h"
 #include "network_stack.h"
 #include "web_content.h"
 #include "fleet.h"
@@ -227,30 +226,6 @@ static void handle_cal_stop(WebContext *ctx, EthernetClient &client) {
   send_json(client, 200, "OK", "{\"success\":true}");
 }
 
-static void handle_profiles_list(EthernetClient &client) {
-  ProfileSummary summaries[PROFILE_MAX_SLOTS];
-  int count = profiles_list(summaries, PROFILE_MAX_SLOTS, NULL);
-
-  char body[800];
-  int len = snprintf(body, sizeof(body), "{\"profiles\":[");
-  for (int i = 0; i < count; i++) {
-    len += snprintf(body + len, sizeof(body) - len, "%s{\"id\":%d,\"name\":\"%s\"}", i > 0 ? "," : "",
-                     summaries[i].slot, summaries[i].name);
-  }
-  snprintf(body + len, sizeof(body) - len, "]}");
-  send_json(client, 200, "OK", body);
-}
-
-static void handle_profiles_load(WebContext *ctx, const char *body, EthernetClient &client) {
-  (void)ctx;
-  int id = -1;
-  json_get_int(body, "id", &id);
-  int result = (id >= 0) ? profiles_quick_load(id) : -1;
-  char resp[64];
-  snprintf(resp, sizeof(resp), "{\"success\":%s}", result == 0 ? "true" : "false");
-  send_json(client, 200, "OK", resp);
-}
-
 static void handle_network_get(EthernetClient &client) {
   IPAddress ip = Ethernet.localIP();
   IPAddress subnet = Ethernet.subnetMask();
@@ -434,10 +409,6 @@ static void dispatch(WebContext *ctx, const char *method, char *path, const char
     handle_cal_save(ctx, client);
   } else if (is_post && strcmp(path, "/api/calibration/stop") == 0) {
     handle_cal_stop(ctx, client);
-  } else if (is_get && strcmp(path, "/api/profiles") == 0) {
-    handle_profiles_list(client);
-  } else if (is_post && strcmp(path, "/api/profiles/load") == 0) {
-    handle_profiles_load(ctx, body, client);
   } else if (is_get && strcmp(path, "/api/network") == 0) {
     handle_network_get(client);
   } else if (is_post && strcmp(path, "/api/network") == 0) {

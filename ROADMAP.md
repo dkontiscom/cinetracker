@@ -6,10 +6,13 @@ Order of work (status as of 2026-09-17, none of this tested on real
 hardware yet, only build verified):
 
 1. [done, untested] Teensy 4.1 + native ethernet bring up, port the FIZ
-   encoder driver and math (calibration, lens profiles, filtering) from
-   the old codebase. web interface + fleet auto discovery also done here
-   even though that was originally item 6, built it early since it ties
-   everything else together for testing.
+   encoder driver and math (calibration, filtering) from the old codebase.
+   dropped the saved lens profile slots (named presets, JSON import/export)
+   from that port, real focus pullers just recalibrate fresh per lens so
+   it was dead weight, not something anyone would actually use. web
+   interface + fleet auto discovery also done here even though that was
+   originally item 6, built it early since it ties everything else
+   together for testing.
 2. [done, untested] PTP time sync over the network. vendored not remote
    dependency, see ARCHITECTURE.md for why.
 3. [done, untested] Genlock generation, locked to PTP. 24/25/30/60fps,

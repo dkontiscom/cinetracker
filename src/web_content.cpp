@@ -421,32 +421,6 @@ const char *web_content_index_html() {
             to { transform: translateY(0); opacity: 1; }
         }
 
-        /* Lens Profile List */
-        .profile-list {
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .profile-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem;
-            background: var(--bg-input);
-            border-radius: 8px;
-            margin-bottom: 0.5rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .profile-item:active {
-            background: var(--border);
-        }
-
-        .profile-item.selected {
-            border: 2px solid var(--primary);
-        }
-
         /* Responsive adjustments for very small screens */
         @media (max-width: 360px) {
             .encoder-grid {
@@ -485,7 +459,6 @@ const char *web_content_index_html() {
         <button class='tab-btn active' onclick='switchTab("monitor")'>Monitor</button>
         <button class='tab-btn' onclick='switchTab("calibrate")'>Calibrate</button>
         <button class='tab-btn' onclick='switchTab("settings")'>Settings</button>
-        <button class='tab-btn' onclick='switchTab("profiles")'>Profiles</button>
     </div>
 
     <!-- Monitor Tab -->
@@ -655,20 +628,6 @@ const char *web_content_index_html() {
         </div>
     </div>
 
-    <!-- Profiles Tab -->
-    <div id='tab-profiles' class='tab-content'>
-        <div class='card'>
-            <h2>Lens Profiles</h2>
-            <div class='profile-list' id='profile-list'>
-                <!-- Profiles loaded dynamically -->
-            </div>
-            <div class='btn-group' style='margin-top: 1rem;'>
-                <button class='btn btn-primary' onclick='loadSelectedProfile()'>Load Profile</button>
-                <button class='btn btn-secondary' onclick='showNewProfileDialog()'>New Profile</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Modal for dialogs -->
     <div class='modal' id='modal'>
         <div class='modal-content' id='modal-content'>
@@ -682,7 +641,6 @@ const char *web_content_index_html() {
         // Global state
         let currentTab = 'monitor';
         let isStreaming = false;
-        let selectedProfile = null;
         let calibrationData = {};
 
         // Tab switching
@@ -697,11 +655,6 @@ const char *web_content_index_html() {
             event.target.classList.add('active');
             document.getElementById('tab-' + tab).classList.add('active');
             currentTab = tab;
-
-            // Load tab-specific data
-            if (tab === 'profiles') {
-                loadProfiles();
-            }
         }
 
         // Real-time updates
@@ -850,62 +803,6 @@ const char *web_content_index_html() {
                     document.getElementById('aes67-stats').textContent =
                         `sent ${data.packets_sent}  received ${data.packets_received}  lost ${data.packets_lost}  underruns ${data.underruns}`;
                 });
-        }
-
-        // Profiles
-        function loadProfiles() {
-            fetch('/api/profiles')
-                .then(r => r.json())
-                .then(data => {
-                    const list = document.getElementById('profile-list');
-                    list.innerHTML = '';
-
-                    if (data.profiles && data.profiles.length > 0) {
-                        data.profiles.forEach((profile, i) => {
-                            const item = document.createElement('div');
-                            item.className = 'profile-item';
-                            item.innerHTML = `
-                                <div>
-                                    <div style='font-weight: 600'>${profile.name}</div>
-                                    <div style='font-size: 0.75rem; color: var(--text-dim)'>
-                                        ${profile.focus_min}-${profile.focus_max}mm
-                                    </div>
-                                </div>
-                                <button class='btn btn-secondary' style='width: auto; padding: 0.5rem 1rem'
-                                        onclick='deleteProfile(${profile.id})'>Delete</button>
-                            `;
-                            item.onclick = () => selectProfile(profile.id);
-                            list.appendChild(item);
-                        });
-                    } else {
-                        list.innerHTML = '<div style=\"text-align: center; color: var(--text-dim); padding: 2rem;\">No profiles saved</div>';
-                    }
-                });
-        }
-
-        function selectProfile(id) {
-            selectedProfile = id;
-            document.querySelectorAll('.profile-item').forEach(item => {
-                item.classList.remove('selected');
-            });
-            event.currentTarget.classList.add('selected');
-        }
-
-        function loadSelectedProfile() {
-            if (!selectedProfile) {
-                showToast('Please select a profile first', 'warning');
-                return;
-            }
-
-            fetch('/api/profiles/load', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: selectedProfile })
-            })
-            .then(r => r.json())
-            .then(data => {
-                showToast(data.message, data.success ? 'success' : 'error');
-            });
         }
 
         // Quick actions

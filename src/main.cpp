@@ -3,7 +3,6 @@
 
 #include "math_engine.h"
 #include "calibration.h"
-#include "lens_profiles.h"
 #include "encoder_driver.h"
 #include "storage.h"
 #include "network_stack.h"
