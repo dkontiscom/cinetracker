@@ -60,14 +60,7 @@ int network_validate_config(const NetworkConfig *config) {
   return 0;
 }
 
-int network_stack_init(const NetworkConfig *config) {
-  if (!config) return -1;
-  if (network_validate_config(config) != 0) {
-    Serial.println("Network: invalid config");
-    return -1;
-  }
-
-  g_config = *config;
+static int bring_up_ethernet() {
   g_dest_ip = IPAddress(g_config.dest_ip[0], g_config.dest_ip[1], g_config.dest_ip[2], g_config.dest_ip[3]);
 
   bool up;
@@ -94,6 +87,20 @@ int network_stack_init(const NetworkConfig *config) {
     return -1;
   }
 
+  return 0;
+}
+
+int network_stack_init(const NetworkConfig *config) {
+  if (!config) return -1;
+  if (network_validate_config(config) != 0) {
+    Serial.println("Network: invalid config");
+    return -1;
+  }
+
+  g_config = *config;
+
+  if (bring_up_ethernet() != 0) return -1;
+
   g_frame_interval_us = 1000000 / g_config.frame_rate;
   g_next_frame_time = micros() + g_frame_interval_us;
   g_have_last_frame = false;
@@ -108,6 +115,29 @@ int network_stack_init(const NetworkConfig *config) {
   Serial.printf("Network: dest %u.%u.%u.%u:%u camera %u fps %u\n",
                 g_config.dest_ip[0], g_config.dest_ip[1], g_config.dest_ip[2], g_config.dest_ip[3],
                 g_config.dest_port, g_config.camera_id, g_config.frame_rate);
+
+  return 0;
+}
+
+int network_reconfigure(const NetworkConfig *config) {
+  if (!config) return -1;
+  if (network_validate_config(config) != 0) {
+    Serial.println("Network: invalid config");
+    return -1;
+  }
+
+  g_udp.stop();
+  Ethernet.end();
+
+  g_config = *config;
+
+  if (bring_up_ethernet() != 0) return -1;
+
+  g_frame_interval_us = 1000000 / g_config.frame_rate;
+  g_stats.target_fps = g_config.frame_rate;
+
+  Serial.printf("Network: reconfigured, dhcp=%d ip %u.%u.%u.%u\n", g_config.dhcp_enabled, g_config.ip_address[0],
+                g_config.ip_address[1], g_config.ip_address[2], g_config.ip_address[3]);
 
   return 0;
 }
@@ -248,6 +278,14 @@ void network_set_frame_rate(uint8_t fps) {
   g_config.frame_rate = fps;
   g_frame_interval_us = 1000000 / fps;
   g_stats.target_fps = fps;
+}
+
+uint8_t network_get_camera_id() {
+  return g_config.camera_id;
+}
+
+uint8_t network_get_frame_rate() {
+  return g_config.frame_rate;
 }
 
 void network_get_statistics(NetworkStats *stats) {

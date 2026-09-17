@@ -50,6 +50,7 @@ void network_get_default_config(NetworkConfig *config);
 int network_validate_config(const NetworkConfig *config);
 
 int network_stack_init(const NetworkConfig *config);
+int network_reconfigure(const NetworkConfig *config);
 bool network_check_link_status();
 
 void network_build_freed_packet(FreedPacket *packet, const EncoderState encoder_states[3],
@@ -59,6 +60,8 @@ int network_process_frame(const EncoderState encoder_states[3]);
 
 void network_set_camera_id(uint8_t camera_id);
 void network_set_frame_rate(uint8_t fps);
+uint8_t network_get_camera_id();
+uint8_t network_get_frame_rate();
 
 void network_get_statistics(NetworkStats *stats);
 void network_reset_statistics();
