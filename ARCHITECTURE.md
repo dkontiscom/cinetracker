@@ -245,12 +245,15 @@ none found:
     Genlock output                bit0 2  bit1 3
     Status LEDs                   genlock/ptp lock 4, 5 (reserved not built)
     Audio (i2s)                   mclk 23  bclk 21  lrclk 20  dac data 7  adc data 8
+    Factory reset button          pin 6 (reserved not built)
     Ethernet                      native teensy 4.1 rj45, fixed by the board itself
                                   not something we assign, ptp uses it directly
 so pin 13 doubles as the teensy onboard led (fine, external leds used
 instead) and thats the only overlap on the whole board, everything else
 is a clean 1:1 assignment with nothing shared, and nothing sits on the
-sdcard/memory pads at all anymore.
+sdcard/memory pads at all anymore. reset button is a plain gpio to gnd
+with INPUT_PULLUP, active low, hold to confirm not a single tap so a
+bump on set cant trigger it by accident.
 
 Open items, still not resolved:
 - interrupt priority order across genlock/ptp/audio/encoders/ethernet still

@@ -29,7 +29,29 @@ hardware yet, only build verified):
 Smaller things planned alongside the above, roughly where they fit best:
 encoder health diagnostics in the UI [not started], status LEDs for
 genlock/PTP lock state [not started], battery backed RTC for timecode
-continuity across brief dropouts [not started].
+continuity across brief dropouts [not started], one clear ok/not-ok
+status readout in the web ui and on the physical leds instead of raw
+numbers someone has to interpret [not started], physical factory reset
+button (hold to confirm, pin 6) for when settings got messed up or the
+device moves to a different studio's network [not started]. explicitly
+not doing: a watchdog that silently reboots and recovers on its own -
+if the device gets stuck during a take we want that to be visible and
+force a manual reboot, not hidden from whoever's running the shot.
+config backup/restore and fleet-wide firmware update are also explicitly
+not planned - updates and recovery need to happen carefully by hand on
+each device, not automated across a fleet.
+
+7. [not started] Firmware updates from the web UI - upload a file, click
+   update, done. the normal teensy update path needs the teensy loader
+   app and a button press on the board, fine for us but not something to
+   ask a focus puller or dit to do. real ota (auto pushed over the
+   network with rollback) was considered and dropped, too much complexity
+   for what this actually needs - a person is standing at the device
+   either way. closest existing starting point found is FlasherX with its
+   ethernet fork (already built on QNEthernet, same library we use), not
+   a drop in though, needs real integration work and a better safety
+   story than "type this number to confirm" before it touches a unit at
+   a studio.
 
 This week (starting 2026-09-16) is a sprint to get the repo public ready
 with at least the basics working, which pieces count as "basics" is still
