@@ -11,6 +11,7 @@
 #include "fleet.h"
 #include "ptp_client.h"
 #include "genlock.h"
+#include "aes67.h"
 
 static EncoderState g_encoders[3];
 static CalibrationSession g_cal_session;
@@ -60,6 +61,15 @@ void setup() {
 
   web_interface_init();
 
+  Aes67Config aes67_config = {};
+  aes67_config.dest_ip[0] = 239;
+  aes67_config.dest_ip[1] = 69;
+  aes67_config.dest_ip[2] = 0;
+  aes67_config.dest_ip[3] = 1;
+  aes67_config.dest_port = 5004;
+  strncpy(aes67_config.stream_name, "cinetracker-ltc", sizeof(aes67_config.stream_name) - 1);
+  aes67_init(&aes67_config);
+
   char device_name[32];
   snprintf(device_name, sizeof(device_name), "cinetracker-%u", network_get_camera_id());
   fleet_init(device_name, network_get_camera_id());
@@ -84,6 +94,8 @@ void loop() {
   }
 
   web_interface_process(&g_web_ctx);
+  encoder_process();
   fleet_process();
   ptp_client_process();
+  aes67_process();
 }

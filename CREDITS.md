@@ -29,15 +29,21 @@ that was one of their optional paths and we want analog i2s not usb
 FreeD protocol: the FreeD camera tracking protocol spec, and the virtual
 production community around it.
 
-24bit I2S on the audio shield: the stock teensy audio library caps at
-16bit, so for real 24bit audio out to the sgtl5000 we use
-OpenAudio_ArduinoLibrary by Chip Audette
+24bit I2S audio: using OpenAudio_ArduinoLibrary by Chip Audette
 https://github.com/chipaudette/OpenAudio_ArduinoLibrary
-which itself extends the original PJRC Teensy Audio Library by
-Paul Stoffregen. both MIT (the license text is right in the source file
-headers even though the repo has no standalone LICENSE file, which threw
-off automatic license detection for a bit until we actually checked the
-files directly).
+for its 32bit float i2s streaming classes (AudioInputI2S_F32/
+AudioOutputI2S_F32/etc), which drive the raw i2s peripheral and dont
+care what chip is listening. which itself extends the original PJRC
+Teensy Audio Library by Paul Stoffregen. both MIT (the license text is
+right in the source file headers even though the repo has no standalone
+LICENSE file, which threw off automatic license detection for a bit
+until we actually checked the files directly).
+
+audio hardware: dropped the PJRC sgtl5000 audio shield (16bit unless you
+override its registers, and its onboard sd card conflicted with the
+Focus encoders spi pins). went with a PCM5102A dac + PCM1808 adc pair
+instead, bare chips no i2c no register hack needed, 24bit by how the
+hardware itself is wired.
 
 QNEthernet itself (the HedgeHawk fork our PTP dependency needs) is
 AGPL-3.0-or-later, which is why all of CineTracker ends up AGPL too,

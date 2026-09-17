@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include <SPI.h>
+#include <Wire.h>
 
 #define AS5048_CMD_NOP 0x0000
 #define AS5048_CMD_ANGLE 0x3FFF
@@ -14,10 +15,21 @@
 
 #define ENCODER_SPI_BAUDRATE 8000000
 
-// spi hw default cs pins checked against core source not guessed
+// focus as5048a spi zoom as5048a spi1 iris as5048b i2c see architecture md
+// spi2 pins arent usable theyre the sdcard pads not a normal header
 #define ENCODER_CS_FOCUS 10
-#define ENCODER_CS_IRIS 0
-#define ENCODER_CS_ZOOM 44
+#define ENCODER_CS_ZOOM 0
+
+// as5048b register map same 14bit values split high/low as the spi version
+// just addressed differently confirmed against the real datasheet and the
+// ams_as5048b arduino library not guessed
+#define AS5048B_I2C_ADDRESS 0x40
+#define AS5048B_REG_AGC 0xFA
+#define AS5048B_REG_DIAG 0xFB
+#define AS5048B_REG_MAGNITUDE_MSB 0xFC
+#define AS5048B_REG_MAGNITUDE_LSB 0xFD
+#define AS5048B_REG_ANGLE_MSB 0xFE
+#define AS5048B_REG_ANGLE_LSB 0xFF
 
 uint16_t as5048_calculate_parity(uint16_t value);
 
@@ -26,6 +38,11 @@ uint8_t encoder_detect_presence();
 
 int encoder_start_sampling(uint8_t encoder_mask, uint32_t sample_rate_hz);
 void encoder_stop_sampling();
+
+// call every loop iteration polls iris over i2c on its own timer instead
+// of inside the spi hw timer isr real reports of intervaltimer wedging
+// the i2c bus if wire is called from inside another interrupt
+void encoder_process();
 
 bool encoder_read_angle(uint8_t encoder_id, uint16_t *angle);
 bool encoder_get_latest_sample(uint8_t encoder_id, uint16_t *angle, uint32_t *sample_count);

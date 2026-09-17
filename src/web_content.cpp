@@ -614,6 +614,28 @@ const char *web_content_index_html() {
         </div>
 
         <div class='card'>
+            <h2>AES67 / LTC Timecode</h2>
+            <div class='form-group'>
+                <label>Direction</label>
+                <select id='aes67-direction'>
+                    <option value='off'>Off</option>
+                    <option value='ltc_in'>LTC In (local audio to network)</option>
+                    <option value='ltc_out'>LTC Out (network to local audio)</option>
+                </select>
+            </div>
+            <div class='form-group'>
+                <label>Destination IP</label>
+                <input type='text' id='aes67-dest-ip' value='239.69.0.1' inputmode='decimal'>
+            </div>
+            <div class='form-group'>
+                <label>Destination Port</label>
+                <input type='number' id='aes67-dest-port' value='5004' inputmode='numeric'>
+            </div>
+            <button class='btn btn-primary' onclick='saveAes67Settings()'>Save AES67 Settings</button>
+            <div id='aes67-stats' style='margin-top:10px;font-size:0.9em;color:#888'></div>
+        </div>
+
+        <div class='card'>
             <h2>System</h2>
             <div class='toggle-group'>
                 <span>Filter Enabled</span>
@@ -798,6 +820,38 @@ const char *web_content_index_html() {
             });
         }
 
+        // AES67 / LTC timecode
+        function saveAes67Settings() {
+            const settings = {
+                direction: document.getElementById('aes67-direction').value,
+                dest_ip: document.getElementById('aes67-dest-ip').value,
+                dest_port: parseInt(document.getElementById('aes67-dest-port').value)
+            };
+
+            fetch('/api/aes67', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(settings)
+            })
+            .then(r => r.json())
+            .then(data => {
+                showToast(data.success ? 'AES67 settings saved' : 'Failed to save', data.success ? 'success' : 'error');
+                loadAes67Status();
+            });
+        }
+
+        function loadAes67Status() {
+            fetch('/api/aes67')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('aes67-direction').value = data.direction;
+                    document.getElementById('aes67-dest-ip').value = data.dest_ip;
+                    document.getElementById('aes67-dest-port').value = data.dest_port;
+                    document.getElementById('aes67-stats').textContent =
+                        `sent ${data.packets_sent}  received ${data.packets_received}  lost ${data.packets_lost}  underruns ${data.underruns}`;
+                });
+        }
+
         // Profiles
         function loadProfiles() {
             fetch('/api/profiles')
@@ -926,6 +980,8 @@ const char *web_content_index_html() {
                     document.getElementById('filter-enabled').checked = config.filter_enabled !== false;
                     document.getElementById('led-enabled').checked = config.led_enabled !== false;
                 });
+
+            loadAes67Status();
 
             // Start status updates
             setInterval(updateStatus, 100);

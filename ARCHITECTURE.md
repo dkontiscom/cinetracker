@@ -76,55 +76,135 @@ Subsystems and what drives them:
   exactly, would need restructuring TRISYNC_FPS from an integer #define
   match to something that can represent the /1.001 factor. flagged, not
   fixed, since it wasnt what was asked for this pass.
-- AES67 / LTC: i2s/sai with dma, per the AES67Teensy reference. only one
-  direction active at a time, user picks in the web ui - either ltc in
-  (local device -> streamed to network) or ltc out (network -> local
-  device), never both at once, not a general audio router. needs a codec
-  with both adc and dac, switched in firmware, not true full duplex.
-  AES67Teensy itself is 16bit/48khz today, checked their RTPAudio.h directly
-  and its because they built it on the stock AudioRecordQueue/AudioPlayQueue
-  classes which are hardcoded int16, not because the codec or aes67 itself
-  needs 16bit. we checked the actual sgtl5000 datasheet too and the chip is
-  24bit capable at the hardware level.
+- AES67 / LTC: built, see src/aes67.cpp. mono only (its carrying LTC not
+  program audio), only one direction active at a time - AES67_LTC_IN
+  (local audio in -> RTP out to network) or AES67_LTC_OUT (RTP in from
+  network -> local audio out), never both, gated in aes67_process()
+  by whatever aes67_set_direction() was last called with. direction and
+  destination ip/port are now real web ui settings, GET/POST /api/aes67
+  in web_interface.cpp, card in the settings tab in web_content.cpp.
+  boots at AES67_OFF with the main.cpp default dest until changed.
 
-  hardware to buy: PJRC "Audio board for use with Teensy 4.0-4.1", currently
-  Rev D2 (same as the Rev D everyone references, just a jan 2023 refresh,
-  still sgtl5000). confirmed against the real pjrc product page, this is the
-  right part, no alternate codec board needed.
+  hardware: dropped the PJRC audio shield (sgtl5000 chip). it forced
+  16bit unless you went into its internals to override it, and it has
+  its own onboard sd card slot wired to the exact same pins (10/11/12/13)
+  as the Focus encoders spi bus - a real conflict, not a hypothetical
+  one, found by checking the real pjrc pin table not by guessing.
 
-  for actually driving it at 24bit: using OpenAudio_ArduinoLibrary by
-  chip audette. checked its real teensy 4.x sai register config directly
-  (WNW/W0W set to 32bit word slots, genuine wide i2s transfer not just
-  internal float math) so we know it actually works, not just taking the
-  readme's word for it. github's api said license: null on that repo at
-  first look which worried us, but that only checks for a standalone
-  LICENSE file - the actual source files carry a full MIT header, checked
-  directly. so this is a real dependency, not just a reference.
+  using a PCM5102A (dac, ltc out) + PCM1808 (adc, ltc in) pair instead.
+  both are bare chips with no i2c and no control registers at all - bit
+  depth/format is set by tying a couple pins to gnd/3v3 on the board
+  itself, so 24bit is just how the chip behaves, nothing to enable or
+  override in software. neither board has an sd card or anything else
+  on it. confirmed real teensy wiring for this pair from someone whos
+  actually built it: bck 21, lrclk 20, mclk 23, dac data 7, adc data 8 -
+  same i2s pin group the sgtl5000 shield used, still doesnt touch
+  10/11/12/13, so the Focus encoder pin conflict is gone by hardware
+  choice not by moving the encoder off its pins.
 
-  one real gotcha found in the sgtl5000 datasheet: its 24bit register mode
-  only works at a specific clock setting (SCLKFREQ=0), worth remembering
-  when we actually build this. pins still not finalized, the shield's i2s
-  pinout is fixed by the board itself so dont want to guess at it, will
-  check properly when we get there.
-- FIZ encoders: 3x as5048a, each gets its own spi bus, cs pins checked
-  against the real teensy 4.1 core source (SPI.cpp hardware tables) not
-  guessed this time:
-    - Focus: SPI  - sck 13, mosi 11, miso 12, cs 10
-    - Iris:  SPI1 - sck 27, mosi 26, miso 1,  cs 0
-    - Zoom:  SPI2 - sck 45, mosi 43, miso 42, cs 44
-  sampled via IntervalTimer at 1khz. pin 13 is also the teensy's built in
-  led btw (classic arduino spi/led pin overlap thing) - doesnt matter for
-  us since we're using external status leds on 4 and 5 not the builtin one.
+  24bit: using OpenAudio_ArduinoLibrary (AudioInputI2S_F32/
+  AudioOutputI2S_F32/AudioRecordQueue_F32/AudioPlayQueue_F32), a real
+  dependency in platformio.ini, MIT confirmed in the source file headers.
+  these classes just drive the raw i2s peripheral, they dont know or
+  care what chip is on the other end, so no codec control class is
+  needed at all with this pair - aes67_init() does AudioMemory_F32()
+  and starts the record queue, thats it.
+
+  RTP: plain L24 mono over RTP (RFC 3190 style), 48 samples/packet at
+  48khz (1ms packet time, matches the AES67Teensy reference), dynamic
+  payload type 98 - not IANA fixed for L24, just needs to match what we
+  advertise. announces itself via SAP (RFC 2974, the real well known
+  239.255.255.255:9875 multicast address, matches AES67Teensy) every
+  30s with a real SDP description, not a stub.
+
+  jitter buffer on rx: 4 packet ring, primes on the first 2 packets then
+  plays out on its own micros() pace independent of when packets actually
+  arrive. this is what actually keeps the output steady - without it
+  playout timing would follow network arrival jitter directly, which is
+  exactly what you cant have on a sync signal. the spec calls holding a
+  small buffer "link offset" and expects a receiver to do this, its not
+  in tension with aes67s latency numbers since those numbers already
+  assume a buffer is there.
+  on underrun (packet actually missing) it plays silence for that one 1ms
+  slot instead of stalling. professional ltc readers implement "freewheel"
+  for exactly this case - hold the last valid time through a brief gap
+  rather than lose lock - but how many ms a specific downstream reader
+  will actually freewheel through is not verified yet, depends on
+  whatever ends up reading this on the unreal/livelink side. open item,
+  not assumed fine.
+
+  i2s/i2c pins: no i2c on this board pair at all (see above). i2s pins
+  are fixed by the imxrt sai1 peripheral itself, checked by reading
+  output_i2s_f32.cpp directly, nothing we choose or could get wrong.
+- FIZ encoders: originally planned as 3x as5048a each on its own spi bus
+  (focus/iris/zoom on spi/spi1/spi2). spi2 turned out to be unusable -
+  its only two pin options on the teensy 4.1 are the same physical pads
+  as the onboard sd card and the psram/flash memory footprint, confirmed
+  against the real teensy SPI.h source (comment: "T4.1 has SPI2 pins on
+  memory connectors as well as SDCard") and independently against PJRC's
+  own forum thread titled "SPI2 Pins on Teensy 4.1?". those pads are also
+  reported as physically fragile (~1mm pitch, pads known to pull off the
+  board if the wire moves), so not something to build a camera-mounted
+  device around even setting the sd card sharing aside.
+
+  fix: zoom stays an as5048a but moves onto the spi1 bus (shares the
+  clock/data lines with... nothing else now, see below, distinguished by
+  its own cs pin, thats how spi bus sharing is designed to work). iris
+  switches to an as5048b instead, same sensor family, i2c interface
+  instead of spi, confirmed identical 14bit resolution to the spi part
+  from the real ams datasheet, so no precision lost by switching that
+  one axis. as5048b register addresses (0xfe/0xff for angle, split high
+  byte + low 6 bits) checked against the real datasheet and independently
+  against the sosandroid/AMS_AS5048B arduino library, both agree.
+
+  iris is deliberately NOT read inside the same hardware timer interrupt
+  as focus/zoom. real reported failure on the pjrc forum: IntervalTimer
+  interrupting an in progress Wire transfer wedges the i2c bus (scl stuck
+  high, sda stuck low). checked the actual teensy 4.x Wire source and
+  confirmed its blocking calls poll hardware registers directly rather
+  than waiting on their own interrupt to fire, so it wont deadlock, but
+  the community consensus (multiple independent threads) is still to
+  keep i2c out of a hardware isr entirely rather than rely on that. iris
+  gets its own timer in encoder_process(), called from loop() same as
+  aes67_process() and friends, not from the interrupt.
+
+  sampled at 1khz, focus/zoom via IntervalTimer, iris via elapsedMicros
+  in the main loop. pin 13 is also the teensy's built in led btw (classic
+  arduino spi/led pin overlap thing) - doesnt matter for us since we're
+  using external status leds on 4 and 5 not the builtin one.
 - Status LEDs (genlock lock / ptp sync): pins 4 and 5 reserved, not built yet.
 - Web UI / fleet discovery: runs in loop(), non blocking. read only fleet
   view is the baseline, per device control if it turns out to be easy.
 
+Full pin map, all interfaces, checked for overlaps against each other -
+none found:
+    Focus encoder (as5048a)  SPI   sck 13  mosi 11  miso 12  cs 10
+    Zoom encoder  (as5048a)  SPI1  sck 27  mosi 26  miso 1   cs 0
+    Iris encoder  (as5048b)  I2C   sda 18  scl 19
+    Genlock output                bit0 2  bit1 3
+    Status LEDs                   genlock/ptp lock 4, 5 (reserved not built)
+    Audio (i2s)                   mclk 23  bclk 21  lrclk 20  dac data 7  adc data 8
+    Ethernet                      native teensy 4.1 rj45, fixed by the board itself
+                                  not something we assign, ptp uses it directly
+so pin 13 doubles as the teensy onboard led (fine, external leds used
+instead) and thats the only overlap on the whole board, everything else
+is a clean 1:1 assignment with nothing shared, and nothing sits on the
+sdcard/memory pads at all anymore.
+
 Open items, still not resolved:
 - interrupt priority order across genlock/ptp/audio/encoders/ethernet still
   needs setting once all the pieces actually exist - genlock should win.
-- audio shield i2s/i2c pin numbers, havent checked these against source yet.
 - genlock fps (24/25/30/60) is a compile time #define, switching for a
   different production means a reflash right now, not a web ui setting.
   true fractional rates (23.976/29.97/59.94) not supported at all yet.
+- ltc dropout tolerance on the receiving end (freewheel) not verified
+  against any real downstream reader yet, only the theory checks out.
+- none of this tested on real hardware yet, pin map and both the spi and
+  the new i2c encoder path only verified against source and by compiling
+  not on a bench - the isr/i2c interrupt concern specifically was checked
+  by reading the actual Wire driver source but the fix (poll iris from
+  loop() not the hw timer) hasnt been proven on a real bus yet either.
+- bom changed: 2x as5048a + 1x as5048b instead of 3x as5048a, and
+  pcm5102a + pcm1808 instead of the pjrc audio shield, not ordered yet.
 
 See CREDITS.md for what this is built on.

@@ -15,7 +15,9 @@ hardware yet, only build verified):
 3. [done, untested] Genlock generation, locked to PTP. 24/25/30/60fps,
    25 default since were in europe. true fractional rates (23.976 etc)
    still not supported.
-4. [in progress] AES67 audio carrying LTC timecode, in and out.
+4. [done, untested] AES67 audio carrying LTC timecode, in and out.
+   direction + destination address wired to the web ui, real jitter
+   buffer on rx.
 5. [not started] Extend the FreeD packet with PTP + timecode timestamps,
    and get a modified Unreal LiveLink plugin reading it.
 6. [done, untested, moved up] Fleet web UI: auto discovery, read only

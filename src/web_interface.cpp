@@ -10,6 +10,7 @@
 #include "network_stack.h"
 #include "web_content.h"
 #include "fleet.h"
+#include "aes67.h"
 
 using namespace qindesign::network;
 
@@ -310,6 +311,58 @@ static void handle_freed_set(const char *body, EthernetClient &client) {
   send_json(client, 200, "OK", "{\"success\":true}");
 }
 
+static const char *aes67_direction_name(Aes67Direction dir) {
+  if (dir == AES67_LTC_IN) return "ltc_in";
+  if (dir == AES67_LTC_OUT) return "ltc_out";
+  return "off";
+}
+
+static Aes67Direction aes67_direction_from_name(const char *name) {
+  if (strcmp(name, "ltc_in") == 0) return AES67_LTC_IN;
+  if (strcmp(name, "ltc_out") == 0) return AES67_LTC_OUT;
+  return AES67_OFF;
+}
+
+static void handle_aes67_get(EthernetClient &client) {
+  uint8_t ip[4];
+  uint16_t port;
+  aes67_get_destination(ip, &port);
+
+  char body[300];
+  snprintf(body, sizeof(body),
+           "{\"direction\":\"%s\",\"dest_ip\":\"%u.%u.%u.%u\",\"dest_port\":%u,"
+           "\"packets_sent\":%lu,\"packets_received\":%lu,\"packets_lost\":%lu,\"underruns\":%lu}",
+           aes67_direction_name(aes67_get_direction()), ip[0], ip[1], ip[2], ip[3], port,
+           (unsigned long)aes67_packets_sent(), (unsigned long)aes67_packets_received(),
+           (unsigned long)aes67_packets_lost(), (unsigned long)aes67_underruns());
+  send_json(client, 200, "OK", body);
+}
+
+static void handle_aes67_set(const char *body, EthernetClient &client) {
+  char direction[16];
+  if (json_get_string(body, "direction", direction, sizeof(direction))) {
+    aes67_set_direction(aes67_direction_from_name(direction));
+  }
+
+  char ip_str[32];
+  uint8_t ip[4];
+  uint16_t port;
+  aes67_get_destination(ip, &port);
+
+  bool have_ip = json_get_string(body, "dest_ip", ip_str, sizeof(ip_str));
+  if (have_ip) parse_ip(ip_str, ip);
+
+  int port_val;
+  bool have_port = json_get_int(body, "dest_port", &port_val);
+  if (have_port) port = (uint16_t)port_val;
+
+  if (have_ip || have_port) {
+    aes67_set_destination(ip, port);
+  }
+
+  send_json(client, 200, "OK", "{\"success\":true}");
+}
+
 static void handle_stream_start(EthernetClient &client) {
   g_streaming = true;
   send_json(client, 200, "OK", "{\"success\":true,\"message\":\"streaming started\"}");
@@ -399,6 +452,10 @@ static void dispatch(WebContext *ctx, const char *method, char *path, const char
     handle_encoders_reset(ctx, client);
   } else if (is_get && strcmp(path, "/api/fleet") == 0) {
     handle_fleet(client);
+  } else if (is_get && strcmp(path, "/api/aes67") == 0) {
+    handle_aes67_get(client);
+  } else if (is_post && strcmp(path, "/api/aes67") == 0) {
+    handle_aes67_set(body, client);
   } else if (is_post && strcmp(path, "/api/system/reboot") == 0) {
     handle_reboot(client);
   } else {
