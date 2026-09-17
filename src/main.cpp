@@ -9,6 +9,7 @@
 #include "network_stack.h"
 #include "web_interface.h"
 #include "fleet.h"
+#include "ptp_client.h"
 
 static EncoderState g_encoders[3];
 static CalibrationSession g_cal_session;
@@ -54,6 +55,7 @@ void setup() {
   NetworkConfig net_config;
   network_get_default_config(&net_config);
   network_stack_init(&net_config);
+  ptp_client_init();
 
   web_interface_init();
 
@@ -82,4 +84,5 @@ void loop() {
 
   web_interface_process(&g_web_ctx);
   fleet_process();
+  ptp_client_process();
 }
