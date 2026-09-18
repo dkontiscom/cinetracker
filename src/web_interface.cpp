@@ -245,10 +245,11 @@ static void handle_network_get(EthernetClient &client) {
 }
 
 static void handle_network_set(const char *body, EthernetClient &client) {
+  // starts from the live config not defaults otherwise a field left out
+  // of this request would silently reset to its default instead of
+  // staying whatever it was already set to
   NetworkConfig config;
-  network_get_default_config(&config);
-  config.camera_id = network_get_camera_id();
-  config.frame_rate = network_get_frame_rate();
+  network_get_current_config(&config);
   config.dhcp_enabled = false;
 
   char ip_str[32];
@@ -273,6 +274,8 @@ static void handle_network_set(const char *body, EthernetClient &client) {
   if (json_get_int(body, "port", &port)) config.dest_port = (uint16_t)port;
 
   int result = network_reconfigure(&config);
+  if (result == 0) storage_save_network_config(&config);
+
   char resp[100];
   snprintf(resp, sizeof(resp), "{\"success\":%s,\"message\":\"%s\"}", result == 0 ? "true" : "false",
            result == 0 ? "network updated" : "reconfigure failed");
@@ -288,8 +291,18 @@ static void handle_freed_get(EthernetClient &client) {
 
 static void handle_freed_set(const char *body, EthernetClient &client) {
   int camera_id, frame_rate;
-  if (json_get_int(body, "camera_id", &camera_id)) network_set_camera_id((uint8_t)camera_id);
+  bool camera_id_changed = json_get_int(body, "camera_id", &camera_id);
+  if (camera_id_changed) network_set_camera_id((uint8_t)camera_id);
   if (json_get_int(body, "frame_rate", &frame_rate)) network_set_frame_rate((uint8_t)frame_rate);
+
+  // camera id doubles as the device id fleet conflict detection depends
+  // on it so it needs to survive a reboot not just the ip/gateway stuff
+  if (camera_id_changed) {
+    NetworkConfig config;
+    network_get_current_config(&config);
+    storage_save_network_config(&config);
+  }
+
   send_json(client, 200, "OK", "{\"success\":true}");
 }
 

@@ -34,7 +34,9 @@ if the device gets stuck during a take we want that to be visible and
 force a manual reboot, not hidden from whoever's running the shot.
 config backup/restore and fleet-wide firmware update are also explicitly
 not planned - updates and recovery need to happen carefully by hand on
-each device, not automated across a fleet.
+each device, not automated across a fleet. a separate human friendly
+device display name is also explicitly not wanted, camera id is the
+only device identity that matters.
 
 7. [not started] Firmware updates from the web UI - upload a file, click
    update, done. the normal teensy update path needs the teensy loader
@@ -49,7 +51,15 @@ each device, not automated across a fleet.
    a studio.
 8. [done, untested] Status LEDs (genlock/ptp lock, freed streaming active)
    and a physical factory reset button (hold 5s to confirm) for wrong
-   settings or moving to a different studio's network.
+   settings or moving to a different studio's network. also added an
+   unexpected reboot flag (crash/power loss vs a deliberate reset) shown
+   as a web ui banner until acknowledged, same visible-not-silent idea as
+   skipping the watchdog above.
+9. [done, untested] Network config and camera id now survive a reboot.
+   FreeD frame_rate metadata and AES67 direction/destination still dont,
+   only network + device id were asked for so far. genlock fps is still
+   a compile time #define, not a runtime setting yet, persistence for it
+   is blocked on that happening first.
 
 This week (starting 2026-09-16) is a sprint to get the repo public ready
 with at least the basics working, which pieces count as "basics" is still

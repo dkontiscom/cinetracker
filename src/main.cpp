@@ -69,7 +69,9 @@ void setup() {
   encoder_start_sampling(detected_mask, 1000);
 
   NetworkConfig net_config;
-  network_get_default_config(&net_config);
+  if (storage_load_network_config(&net_config) != 0) {
+    network_get_default_config(&net_config);
+  }
   network_stack_init(&net_config);
   genlock_init();
 

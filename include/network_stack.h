@@ -47,6 +47,7 @@ struct NetworkStats {
 };
 
 void network_get_default_config(NetworkConfig *config);
+void network_get_current_config(NetworkConfig *config);
 int network_validate_config(const NetworkConfig *config);
 
 int network_stack_init(const NetworkConfig *config);

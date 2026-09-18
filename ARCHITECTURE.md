@@ -253,6 +253,19 @@ Subsystems and what drives them:
   of whether the last one was ever acknowledged.
 - Web UI / fleet discovery: runs in loop(), non blocking. read only fleet
   view is the baseline, per device control if it turns out to be easy.
+- Settings persistence: network config (dhcp/ip/gateway/subnet/dest ip/
+  dest port) and camera id (doubles as the device id fleet conflict
+  detection uses) now survive a reboot, saved to network.bin as one
+  NetworkConfig blob whenever handle_network_set or handle_freed_set
+  actually changes something. found and fixed a real bug while wiring
+  this up: handle_network_set started from network_get_default_config()
+  not the live config, so changing just one field (say the port) would
+  silently reset every other field to its hardcoded default instead of
+  leaving it alone. now starts from network_get_current_config() (new
+  getter, just returns the live g_config) so partial updates behave
+  correctly. FreeD frame_rate and AES67 direction/destination are NOT
+  persisted yet, only network + camera id were asked for. device display
+  name explicitly not wanted, see roadmap.
 
 Full pin map, all interfaces, checked for overlaps against each other -
 none found:

@@ -292,6 +292,11 @@ void network_set_frame_rate(uint8_t fps) {
   g_stats.target_fps = fps;
 }
 
+void network_get_current_config(NetworkConfig *config) {
+  if (!config) return;
+  *config = g_config;
+}
+
 uint8_t network_get_camera_id() {
   return g_config.camera_id;
 }

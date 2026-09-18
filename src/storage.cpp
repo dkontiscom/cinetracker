@@ -60,6 +60,16 @@ int storage_factory_reset(uint32_t confirm) {
   return storage_init();
 }
 
+int storage_load_network_config(NetworkConfig *config) {
+  if (!g_fs_ready || !config) return -1;
+  return read_file("network.bin", config, sizeof(NetworkConfig)) ? 0 : -1;
+}
+
+int storage_save_network_config(const NetworkConfig *config) {
+  if (!g_fs_ready || !config) return -1;
+  return write_file("network.bin", config, sizeof(NetworkConfig)) ? 0 : -1;
+}
+
 int storage_load_clean_shutdown(bool *clean) {
   if (!g_fs_ready || !clean) return -1;
   uint8_t val = 0;
