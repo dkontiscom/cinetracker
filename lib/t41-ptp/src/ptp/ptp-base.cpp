@@ -445,6 +445,14 @@ NanoTime PTPBase::getDelay()
     return currentDelay;
 }
 
+bool PTPBase::getMasterIdentity(uint8_t id[8], uint8_t &domain) const
+{
+    if(!masterSeen) return false;
+    memcpy(id, masterClockID, 8);
+    domain = masterDomain;
+    return true;
+}
+
 void PTPBase::parsePTPMessage(const uint8_t *buf, int size, const timespec &recv_ts)
 {
     const uint8_t messageType = buf[0] & 0x0f;
@@ -466,6 +474,14 @@ void PTPBase::parsePTPMessage(const uint8_t *buf, int size, const timespec &recv
             parseDelayResponseMessage(buf,recv_ts);
         }else if(slave && messageType==10){
             parseDelayResponseFollowUpMessage(buf);
+        }else if(slave && messageType==11 && size >= 61){
+            // Announce: grandmasterIdentity is bytes 53-60, the true grandmaster
+            // not just the upstream master a Sync's sourcePortIdentity names
+            // (they differ behind a boundary clock). cinetracker addition, the
+            // servo itself never needed Announce so upstream doesnt parse it
+            memcpy(masterClockID, buf + 53, 8);
+            masterDomain = domainNumer;
+            masterSeen = true;
         }
     }
 }

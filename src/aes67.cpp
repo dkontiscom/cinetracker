@@ -1,4 +1,5 @@
 #include "aes67.h"
+#include "ptp_client.h"
 
 #include <Audio.h>
 #include <AudioStream_F32.h>
@@ -44,6 +45,25 @@ static uint16_t g_expected_seq = 0;
 static bool g_have_expected_seq = false;
 
 static uint32_t g_last_announce_ms = 0;
+
+// sdp origin: sess-id has to be stable for the life of the session and
+// sess-version has to go up only when the description changes (rfc 4566).
+// both used to be millis(), so every 30s announce looked like a brand new
+// session to receivers and the old ones lingered for up to an hour
+static uint64_t g_sess_id = 0;
+static uint32_t g_sdp_version = 1;
+static uint8_t g_announced_master[8];
+static uint8_t g_announced_domain = 0;
+static bool g_announced_master_seen = false;
+
+static uint32_t fnv1a(const uint8_t *data, size_t len) {
+  uint32_t h = 2166136261u;
+  for (size_t i = 0; i < len; i++) {
+    h ^= data[i];
+    h *= 16777619u;
+  }
+  return h;
+}
 
 // small reorder/jitter buffer for rx only tx already paced by the i2s input clock
 #define JITTER_DEPTH 4
@@ -180,32 +200,63 @@ static void process_playout() {
 }
 
 static void send_sap_announce() {
-  char sdp[256];
+  uint8_t master[8] = {0};
+  uint8_t domain = 0;
+  bool master_seen = ptp_client_master_identity(master, &domain);
+
+  // the grandmaster appearing (or changing) changes the description, so
+  // the version has to move with it - a receiver keyed on the origin
+  // line then sees an update, not a duplicate to ignore
+  if (master_seen != g_announced_master_seen ||
+      (master_seen && (memcmp(master, g_announced_master, 8) != 0 || domain != g_announced_domain))) {
+    g_sdp_version++;
+    g_announced_master_seen = master_seen;
+    memcpy(g_announced_master, master, 8);
+    g_announced_domain = domain;
+  }
+
+  // aes67 requires a=ts-refclk and a=mediaclk (rfc 7273), dante controller
+  // may hide a stream without them. no master seen yet means no honest
+  // refclk to give, so its left out until one shows up rather than
+  // claiming "traceable" for a master we know nothing about
+  char refclk[80] = "";
+  if (master_seen) {
+    snprintf(refclk, sizeof(refclk),
+             "a=ts-refclk:ptp=IEEE1588-2008:%02X-%02X-%02X-%02X-%02X-%02X-%02X-%02X:%u\r\n",
+             master[0], master[1], master[2], master[3], master[4], master[5], master[6], master[7], domain);
+  }
+
+  char sdp[320];
   IPAddress local = Ethernet.localIP();
   int len = snprintf(sdp, sizeof(sdp),
       "v=0\r\n"
-      "o=- %lu %lu IN IP4 %u.%u.%u.%u\r\n"
+      "o=- %llu %lu IN IP4 %u.%u.%u.%u\r\n"
       "s=%s\r\n"
       "c=IN IP4 %u.%u.%u.%u/32\r\n"
       "t=0 0\r\n"
       "m=audio %u RTP/AVP %d\r\n"
       "a=rtpmap:%d L24/%d/1\r\n"
-      "a=ptime:1\r\n",
-      (unsigned long)millis(), (unsigned long)millis(), local[0], local[1], local[2], local[3],
+      "a=ptime:1\r\n"
+      "a=recvonly\r\n"
+      "%s"
+      "a=mediaclk:direct=0\r\n",
+      (unsigned long long)g_sess_id, (unsigned long)g_sdp_version, local[0], local[1], local[2], local[3],
       g_config.stream_name, g_config.dest_ip[0], g_config.dest_ip[1], g_config.dest_ip[2],
       g_config.dest_ip[3], g_config.dest_port, AES67_PAYLOAD_TYPE, AES67_PAYLOAD_TYPE,
-      AES67_SAMPLE_RATE);
+      AES67_SAMPLE_RATE, refclk);
+  if (len <= 0 || (size_t)len >= sizeof(sdp)) return;
 
-  uint8_t sap_header[8] = {0x20, 0x00, 0, 0, 0, 0, 0, 0};
-  sap_header[4] = local[0];
-  sap_header[5] = local[1];
-  sap_header[6] = local[2];
-  sap_header[7] = local[3];
+  // rfc 2974 msg id hash, bytes 2-3: receivers use it to tell a repeat of
+  // the same announcement from a changed one without parsing the sdp
+  uint16_t hash = (uint16_t)fnv1a((const uint8_t *)sdp, (size_t)len);
+  uint8_t sap_header[8] = {0x20, 0x00, (uint8_t)(hash >> 8), (uint8_t)(hash & 0xFF),
+                           local[0], local[1], local[2], local[3]};
 
   g_sap_socket.beginPacket(g_sap_ip, AES67_SAP_PORT);
   g_sap_socket.write(sap_header, sizeof(sap_header));
+  // 15 chars plus its own nul, thats the whole payload-type field - a
+  // second "\0" used to follow it so the sdp started with a 0x00 byte
   g_sap_socket.write((const uint8_t *)"application/sdp", 16);
-  g_sap_socket.write((const uint8_t *)"\0", 1);
   g_sap_socket.write((const uint8_t *)sdp, len);
   g_sap_socket.endPacket();
 }
@@ -232,6 +283,12 @@ int aes67_init(const Aes67Config *config) {
   g_config = *config;
   g_dest_ip = IPAddress(g_config.dest_ip[0], g_config.dest_ip[1], g_config.dest_ip[2], g_config.dest_ip[3]);
   g_ssrc = micros();
+
+  // mac as a 48 bit number: unique per device, stable across boots
+  uint8_t mac[6];
+  Ethernet.macAddress(mac);
+  g_sess_id = 0;
+  for (int i = 0; i < 6; i++) g_sess_id = (g_sess_id << 8) | mac[i];
 
   AudioMemory_F32(16);
 
@@ -266,6 +323,8 @@ Aes67Direction aes67_get_direction() {
 int aes67_set_destination(const uint8_t ip[4], uint16_t port) {
   bool changed = memcmp(g_config.dest_ip, ip, 4) != 0 || port != g_config.dest_port;
   if (!changed) return 0;
+  // the c= and m= lines change with it, so the sdp version has to too
+  g_sdp_version++;
 
   // stop() only removes the pcb - the group membership lives on the netif
   // and is ref counted (checked in QNEthernetUDP.cpp), so the old group has

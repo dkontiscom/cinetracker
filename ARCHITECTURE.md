@@ -530,6 +530,32 @@ Subsystems and what drives them:
   changed. still open from the same audit and adjacent to this: the
   socket's receive queue depth is 1, so any loop iteration over 1ms
   drops packets before the jitter buffer ever sees them.
+
+  the sap/sdp announcement body, three problems fixed together. the
+  payload-type field was written as "application/sdp" plus its nul (16
+  bytes, correct) and then a second "\0", so the sdp itself started
+  with a 0x00 byte instead of v=0 - any real parser rejects that. the
+  o= line used millis() for both sess-id and sess-version, so every 30s
+  announce was a brand new session to a receiver and stale ones
+  lingered up to an hour: now sess-id is the mac as a 48 bit number
+  (unique per device, stable across boots) and sess-version only moves
+  when the description actually changes (destination, or the
+  grandmaster appearing or changing), with the rfc 2974 msg-id-hash in
+  the sap header filled in so receivers can tell a repeat from an
+  update without parsing. and aes67 requires a=ts-refclk and
+  a=mediaclk (rfc 7273), which were missing - dante controller may hide
+  a stream without them. that needed the grandmaster identity, which
+  the vendored ptp library never exposed: it doesnt parse Announce on
+  the slave side at all (the servo only needs Sync/FollowUp/DelayResp),
+  so a small local addition captures grandmasterIdentity (bytes 53-60)
+  and domain from Announce and a getter hands them out. Announce
+  specifically, not the Sync's sourcePortIdentity - those name the same
+  clock when the grandmaster is on the lan, but differ behind a
+  boundary clock, and refclk wants the grandmaster. until a master has
+  been seen the attribute is left out rather than claiming "traceable"
+  for a clock we know nothing about, and the version bumps when it
+  appears. a=recvonly added too, matching what dante's own sdp carries.
+  the buffer grew 256->320 for the extra lines.
 - Status LEDs: built, see src/status_leds.cpp. pin 4 genlock/ptp lock, pin 5
   freed streaming active - not two copies of the same signal, each pin is
   its own real status now.

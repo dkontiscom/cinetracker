@@ -22,6 +22,10 @@ public:
     void announceMessage();
     void ppsInterruptTriggered(NanoTime pps_ts, NanoTime local_ts);
     int getLockCount();
+    // grandmaster identity + domain from the last Announce seen, false until
+    // one has arrived. cinetracker addition, the aes67 sdp needs it for a
+    // real a=ts-refclk line
+    bool getMasterIdentity(uint8_t id[8], uint8_t &domain) const;
 
 protected:
     virtual void initSockets()=0;
@@ -54,6 +58,9 @@ private:
     void updatePPS();
 
     uint8_t clockID[8];
+    uint8_t masterClockID[8]={0};
+    uint8_t masterDomain=0;
+    bool masterSeen=false;
     bool initialised=false;
     uint16_t delayRequestSequenceID = 0;
 	int lockcount=0;
