@@ -323,6 +323,16 @@ Subsystems and what drives them:
   fixed buffer first and only copying it into the real one if it actually
   fits, always leaving room for the closing "]}" - no more accumulating
   a length against shrinking remaining space at all.
+
+  also found: fleet.cpp caches camera_id (and the device_name derived
+  from it, "cinetracker-<id>") once in fleet_init() at boot, but camera
+  id can change live from the web ui with no reboot. changing it kept
+  broadcasting the old id to peers and checking fleet_camera_id_conflict()
+  against the old one too, so conflict detection silently used a stale id
+  until the next reboot. fixed with fleet_set_camera_id(), called from
+  handle_freed_set() right alongside network_set_camera_id() so both
+  update together, no reboot required, same as everything else that
+  isnt genlock.
 - Status LEDs: built, see src/status_leds.cpp. pin 4 genlock/ptp lock, pin 5
   freed streaming active - not two copies of the same signal, each pin is
   its own real status now.

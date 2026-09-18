@@ -15,6 +15,7 @@ struct FleetPeer {
 };
 
 int fleet_init(const char *device_name, uint8_t camera_id);
+void fleet_set_camera_id(uint8_t camera_id);
 void fleet_process();
 int fleet_get_peers(FleetPeer *out, int max_count);
 bool fleet_camera_id_conflict();

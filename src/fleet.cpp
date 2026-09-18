@@ -50,6 +50,16 @@ int fleet_init(const char *device_name, uint8_t camera_id) {
   return 0;
 }
 
+// camera id can change live from the web ui with no reboot, main.cpp's
+// device_name is just "cinetracker-<camera_id>" derived from the same
+// number at boot, so both go stale together unless this keeps them in
+// sync - otherwise this device keeps announcing its old id to peers and
+// fleet_camera_id_conflict() keeps checking against the wrong one too
+void fleet_set_camera_id(uint8_t camera_id) {
+  g_camera_id = camera_id;
+  snprintf(g_device_name, sizeof(g_device_name), "cinetracker-%u", camera_id);
+}
+
 static void send_announce() {
   char msg[64];
   int len = snprintf(msg, sizeof(msg), "CINETRACKER|%s|%u", g_device_name, g_camera_id);

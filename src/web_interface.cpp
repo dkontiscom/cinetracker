@@ -369,7 +369,12 @@ static void handle_freed_set(const char *body, EthernetClient &client) {
   int camera_id, frame_rate;
   bool camera_id_changed = json_get_int(body, "camera_id", &camera_id);
   bool frame_rate_changed = json_get_int(body, "frame_rate", &frame_rate);
-  if (camera_id_changed) network_set_camera_id((uint8_t)camera_id);
+  if (camera_id_changed) {
+    network_set_camera_id((uint8_t)camera_id);
+    // fleet.cpp caches this at boot for its announce broadcast and
+    // conflict check, both go stale unless told about a live change too
+    fleet_set_camera_id((uint8_t)camera_id);
+  }
   if (frame_rate_changed) network_set_frame_rate((uint8_t)frame_rate);
 
   // camera id doubles as the device id fleet conflict detection depends
