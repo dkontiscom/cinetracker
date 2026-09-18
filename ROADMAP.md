@@ -66,8 +66,9 @@ gap, the take is unusable either way.
    as a web ui banner until acknowledged, same visible-not-silent idea as
    skipping the watchdog above.
 9. [done, untested] Network config, camera id, FreeD frame_rate metadata,
-   AES67 direction/destination, and now genlock fps too (see item 3) all
-   survive a reboot. every currently web-settable value is persisted.
+   AES67 direction/destination, genlock fps (see item 3), and now the
+   filter on/off switch too all survive a reboot. every currently
+   web-settable value is persisted.
 
 This week (starting 2026-09-16) is a sprint to get the repo public ready
 with at least the basics working, which pieces count as "basics" is still

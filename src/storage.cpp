@@ -90,6 +90,16 @@ int storage_save_genlock_fps(uint8_t fps) {
   return write_file("genlock.bin", &fps, sizeof(fps)) ? 0 : -1;
 }
 
+int storage_load_filter_enabled(bool *enabled) {
+  if (!g_fs_ready || !enabled) return -1;
+  return read_file("filter.bin", enabled, sizeof(*enabled)) ? 0 : -1;
+}
+
+int storage_save_filter_enabled(bool enabled) {
+  if (!g_fs_ready) return -1;
+  return write_file("filter.bin", &enabled, sizeof(enabled)) ? 0 : -1;
+}
+
 int storage_load_clean_shutdown(bool *clean) {
   if (!g_fs_ready || !clean) return -1;
   uint8_t val = 0;

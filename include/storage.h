@@ -21,6 +21,9 @@ int storage_save_aes67_settings(const Aes67Settings *settings);
 int storage_load_genlock_fps(uint8_t *fps);
 int storage_save_genlock_fps(uint8_t fps);
 
+int storage_load_filter_enabled(bool *enabled);
+int storage_save_filter_enabled(bool enabled);
+
 // clean_shutdown is written false at the start of every boot and true only
 // right before a deliberate reset so the next boot can tell a crash apart
 // from a normal restart see main cpp and reset_button cpp

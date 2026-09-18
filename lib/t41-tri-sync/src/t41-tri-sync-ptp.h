@@ -16,9 +16,10 @@
  *                   [Default: 5000000]
  *
  * Configure the ptp controller with the ptp.begin() function.
- * See the full example for more details. Example call with rate limit of 1000 per update and 4 Hz:
- *  ptp.begin(trisync::FRAMEDURATION, trisync::DEFAULTJUMPTHRESHOLD, 1000, 4,
-              &trisync::block_incomming_interrupt, &trisync::update_interupt_counter);
+ * See the full example for more details. Example call with rate limit of 1000 per update and 4 Hz,
+ * for a build templated on a 25fps TriSync instance:
+ *  ptp.begin(TriSync<25>::FRAMEDURATION, TriSync<25>::DEFAULTJUMPTHRESHOLD, 1000, 4,
+              &TriSync<25>::block_incomming_interrupt, &TriSync<25>::update_interrupt_counter);
  */
 
 #include "t41-ptp.h"

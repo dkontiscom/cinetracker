@@ -658,14 +658,7 @@ const char *web_content_index_html() {
             <div class='toggle-group'>
                 <span>Filter Enabled</span>
                 <label class='toggle'>
-                    <input type='checkbox' id='filter-enabled' checked>
-                    <span class='toggle-slider'></span>
-                </label>
-            </div>
-            <div class='toggle-group'>
-                <span>LED Indicator</span>
-                <label class='toggle'>
-                    <input type='checkbox' id='led-enabled' checked>
+                    <input type='checkbox' id='filter-enabled' checked onchange='setFilterEnabled()'>
                     <span class='toggle-slider'></span>
                 </label>
             </div>
@@ -986,6 +979,19 @@ const char *web_content_index_html() {
                 });
         }
 
+        function setFilterEnabled() {
+            const enabled = document.getElementById('filter-enabled').checked;
+            fetch('/api/filter', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ enabled })
+            })
+            .then(r => r.json())
+            .then(data => {
+                showToast(enabled ? 'Filtering enabled' : 'Filtering disabled', data.success ? 'success' : 'error');
+            });
+        }
+
         // System functions
         function confirmReboot() {
             if (confirm('Are you sure you want to reboot the system?')) {
@@ -1060,6 +1066,12 @@ const char *web_content_index_html() {
                 .then(config => {
                     document.getElementById('camera-id').value = config.camera_id || 1;
                     document.getElementById('frame-rate-select').value = config.frame_rate || 24;
+                });
+
+            fetch('/api/filter')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('filter-enabled').checked = data.enabled !== false;
                 });
 
             loadAes67Status();

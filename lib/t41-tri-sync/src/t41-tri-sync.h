@@ -52,7 +52,7 @@ public:
     // 24/25/30 lists 74.25 MHz) not assumed from the fps number alone
     static constexpr uint32_t SAMPLES_PER_MS = (FPS == 60 || FPS == 50) ? 148500 : 74250;
 
-    static constexpr double FRAMEDURATION = NS_PER_S / FPS;
+    static constexpr double FRAMEDURATION = static_cast<double>(NS_PER_S) / FPS;
     static constexpr int64_t DEFAULTJUMPTHRESHOLD = NS_PER_S / (1.6 * FPS);
     static constexpr double PULSE_PERIOD_NS = NS_PER_S / static_cast<double>(LINES_PER_FRAME * FPS);
 

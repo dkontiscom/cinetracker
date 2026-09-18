@@ -415,13 +415,15 @@ static void handle_aes67_get(EthernetClient &client) {
   uint16_t port;
   aes67_get_destination(ip, &port);
 
-  char body[300];
+  char body[350];
   snprintf(body, sizeof(body),
            "{\"direction\":\"%s\",\"dest_ip\":\"%u.%u.%u.%u\",\"dest_port\":%u,"
-           "\"packets_sent\":%lu,\"packets_received\":%lu,\"packets_lost\":%lu,\"underruns\":%lu}",
+           "\"packets_sent\":%lu,\"packets_received\":%lu,\"packets_lost\":%lu,\"underruns\":%lu,"
+           "\"jitter_overwrites\":%lu}",
            aes67_direction_name(aes67_get_direction()), ip[0], ip[1], ip[2], ip[3], port,
            (unsigned long)aes67_packets_sent(), (unsigned long)aes67_packets_received(),
-           (unsigned long)aes67_packets_lost(), (unsigned long)aes67_underruns());
+           (unsigned long)aes67_packets_lost(), (unsigned long)aes67_underruns(),
+           (unsigned long)aes67_jitter_overwrites());
   send_json(client, 200, "OK", body);
 }
 
@@ -496,6 +498,31 @@ static void handle_encoders_reset(WebContext *ctx, EthernetClient &client) {
     ctx->encoders[i].cal_max = ctx->encoders[i].original_cal_max;
     ctx->encoders[i].overshoot_detected = false;
   }
+  send_json(client, 200, "OK", "{\"success\":true}");
+}
+
+// one shared on/off switch for all 3 encoders, same as it ever was - never
+// exposed a choice of which filter, just ema or none, matching the old
+// on/off semantics rather than inventing a new per-filter-type picker
+static void handle_filter_get(WebContext *ctx, EthernetClient &client) {
+  bool enabled = ctx->encoders[0].filter_type != FILTER_NONE;
+  char body[40];
+  snprintf(body, sizeof(body), "{\"enabled\":%s}", enabled ? "true" : "false");
+  send_json(client, 200, "OK", body);
+}
+
+static void handle_filter_set(WebContext *ctx, const char *body, EthernetClient &client) {
+  bool enabled = true;
+  if (!json_get_bool(body, "enabled", &enabled)) {
+    send_json(client, 200, "OK", "{\"success\":false,\"message\":\"missing enabled\"}");
+    return;
+  }
+
+  for (int i = 0; i < 3; i++) {
+    math_engine_set_filter(&ctx->encoders[i], enabled ? FILTER_EMA : FILTER_NONE);
+  }
+  storage_save_filter_enabled(enabled);
+
   send_json(client, 200, "OK", "{\"success\":true}");
 }
 
@@ -583,6 +610,10 @@ static void dispatch(WebContext *ctx, const char *method, char *path, const char
     handle_stream_stop(client);
   } else if (is_post && strcmp(path, "/api/encoders/reset") == 0) {
     handle_encoders_reset(ctx, client);
+  } else if (is_get && strcmp(path, "/api/filter") == 0) {
+    handle_filter_get(ctx, client);
+  } else if (is_post && strcmp(path, "/api/filter") == 0) {
+    handle_filter_set(ctx, body, client);
   } else if (is_get && strcmp(path, "/api/fleet") == 0) {
     handle_fleet(client);
   } else if (is_get && strcmp(path, "/api/aes67") == 0) {

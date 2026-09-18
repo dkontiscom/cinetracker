@@ -346,6 +346,28 @@ Subsystems and what drives them:
   NetworkConfig the write side already uses) and pointing the page at
   /api/network + /api/freed, the two endpoints that actually back these
   fields, instead of the one that never existed.
+
+  four smaller leftovers from that same pass, mopped up after: aes67
+  status now also exposes jitter_overwrites (was already tracked,
+  just never sent out). t41-tri-sync.h's FRAMEDURATION had the same
+  int-division truncation class as the CYCLES_PER_NS bug found earlier
+  (NS_PER_S / FPS both integers before the double assignment) - fixed
+  locally same as before, still not upstreaming it, same call as last
+  time. t41-tri-sync-ptp.h's usage-example comment still showed the old
+  pre-template trisync:: api and a stale update_interupt_counter typo,
+  updated to match the real TriSync<FPS>:: template and the real
+  spelling. and the settings page's filter/led toggles: checked the pico
+  source, led_enabled was hardcoded true there too, never real in any
+  generation, removed. filter_enabled genuinely reflected live state on
+  the pico (filter_type > 0) and maps directly onto math_engine's
+  already-built ema/median/kalman filtering here, which was already
+  defaulting to ema for every encoder but had no way to turn off from
+  the web ui in any generation, even the pico's own write side for it
+  was a stub that did nothing. built for real this time: /api/filter
+  get+post, one shared on/off switch across all 3 encoders (ema or
+  none, matching the old semantics, never exposed a per-filter-type
+  choice), persisted the same way genlock fps is (filter.bin), applied
+  at boot before sampling starts and live via math_engine_set_filter().
 - Status LEDs: built, see src/status_leds.cpp. pin 4 genlock/ptp lock, pin 5
   freed streaming active - not two copies of the same signal, each pin is
   its own real status now.

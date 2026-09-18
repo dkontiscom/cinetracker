@@ -43,6 +43,18 @@ static void load_saved_calibration() {
   Serial.println("Main: restored calibration from storage");
 }
 
+// math_engine_init_state already defaults every encoder to FILTER_EMA, this
+// only needs to act when a saved setting actually turned it off
+static void load_saved_filter_setting() {
+  bool enabled = true;
+  if (storage_load_filter_enabled(&enabled) != 0 || enabled) return;
+
+  for (int i = 0; i < 3; i++) {
+    math_engine_set_filter(&g_encoders[i], FILTER_NONE);
+  }
+  Serial.println("Main: filtering disabled by saved setting");
+}
+
 void setup() {
   Serial.begin(115200);
   // 2s cap not infinite wait so it still boots with no usb cable plugged in
@@ -65,6 +77,7 @@ void setup() {
   memset(&g_cal_session, 0, sizeof(g_cal_session));
   memset(&g_cal_data, 0, sizeof(g_cal_data));
   load_saved_calibration();
+  load_saved_filter_setting();
 
   encoder_start_sampling(detected_mask, 1000);
 
