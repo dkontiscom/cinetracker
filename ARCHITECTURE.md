@@ -403,6 +403,14 @@ Subsystems and what drives them:
   on their handler's response or already guard with a || fallback, this
   was the one real gap. fixed by adding a message field, matching the
   same style handle_network_set already uses.
+
+  two small cleanups from the open questions that pass raised: removed
+  CalibrationSession.timeout_ms/start_time/step_start_time - set
+  throughout the wizard but nothing ever read them back, dead fields
+  suggesting a timeout feature that was never actually built. and
+  removed /api/encoders (handle_encoders) entirely - zero frontend
+  consumer, and /api/status already sends the same live per-encoder
+  angle/mm/fstop data the monitor tab actually uses.
 - Status LEDs: built, see src/status_leds.cpp. pin 4 genlock/ptp lock, pin 5
   freed streaming active - not two copies of the same signal, each pin is
   its own real status now.

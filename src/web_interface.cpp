@@ -198,29 +198,6 @@ static void handle_status(WebContext *ctx, EthernetClient &client) {
   send_json(client, 200, "OK", body);
 }
 
-static void handle_encoders(WebContext *ctx, EthernetClient &client) {
-  EncoderState *e = ctx->encoders;
-
-  float phys[3];
-  bool valid[3], inf[3];
-  for (int i = 0; i < 3; i++) {
-    get_phys_display(ctx->cal_data, i, e[i].filtered_angle, &phys[i], &valid[i], &inf[i]);
-  }
-
-  char body[500];
-  snprintf(body, sizeof(body),
-      "{\"encoders\":["
-      "{\"id\":0,\"name\":\"focus\",\"angle\":%ld,\"mm\":%.2f,\"mm_valid\":%s,\"mm_infinite\":%s,\"enabled\":%s},"
-      "{\"id\":1,\"name\":\"iris\",\"angle\":%ld,\"fstop\":%.2f,\"fstop_valid\":%s,\"enabled\":%s},"
-      "{\"id\":2,\"name\":\"zoom\",\"angle\":%ld,\"mm\":%.2f,\"mm_valid\":%s,\"enabled\":%s}"
-      "]}",
-      (long)e[0].filtered_angle, phys[0], valid[0] ? "true" : "false", inf[0] ? "true" : "false",
-      e[0].enabled ? "true" : "false",
-      (long)e[1].filtered_angle, phys[1], valid[1] ? "true" : "false", e[1].enabled ? "true" : "false",
-      (long)e[2].filtered_angle, phys[2], valid[2] ? "true" : "false", e[2].enabled ? "true" : "false");
-  send_json(client, 200, "OK", body);
-}
-
 static void handle_cal_status(WebContext *ctx, EthernetClient &client) {
   CalibrationSession *s = ctx->cal_session;
 
@@ -607,8 +584,6 @@ static void dispatch(WebContext *ctx, const char *method, char *path, const char
     send_html(client, web_content_index_html());
   } else if (is_get && strcmp(path, "/api/status") == 0) {
     handle_status(ctx, client);
-  } else if (is_get && strcmp(path, "/api/encoders") == 0) {
-    handle_encoders(ctx, client);
   } else if (is_get && strcmp(path, "/api/calibration/status") == 0) {
     handle_cal_status(ctx, client);
   } else if (is_post && strcmp(path, "/api/calibration/start") == 0) {

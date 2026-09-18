@@ -66,8 +66,6 @@ int calibration_start_session(CalibrationSession *session, CalibrationData *resu
   session->result = result;
   session->sample_buffer = g_sample_buffer;
   session->sample_capacity = SAMPLE_BUFFER_SIZE;
-  session->start_time = millis();
-  session->timeout_ms = 30000;
   session->encoder_wanted_mask = encoder_wanted_mask;
 
   session->total_steps = 0;
@@ -146,7 +144,6 @@ int calibration_detect_encoders(CalibrationSession *session, uint8_t *detected_m
     if (session->encoder_wanted_mask & (1 << id)) {
       session->state = ENCODER_MIN_STATE[id];
       session->current_encoder = id;
-      session->step_start_time = millis();
       return CAL_OK;
     }
   }
@@ -247,7 +244,6 @@ int calibration_set_point(CalibrationSession *session, uint8_t encoder_id, int32
   }
 
   session->progress_percent = (session->total_steps > 0) ? (session->steps_completed * 100) / session->total_steps : 0;
-  session->step_start_time = millis();
   return CAL_OK;
 }
 

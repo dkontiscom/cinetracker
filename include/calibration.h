@@ -95,10 +95,6 @@ struct CalibrationSession {
 
   char error_message[256];
   int error_code;
-
-  uint32_t start_time;
-  uint32_t step_start_time;
-  uint32_t timeout_ms;
 };
 
 int calibration_start_session(CalibrationSession *session, CalibrationData *result, uint8_t encoder_wanted_mask);
