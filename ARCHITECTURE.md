@@ -596,6 +596,33 @@ Subsystems and what drives them:
   polled over i2c from the loop, so loop rate is its sample rate and a
   stall still costs it, thats inherent to i2c-from-the-loop not
   something the move can fix.
+
+  storage, from the same pass. two real holes: teensy littlefs opens for
+  write with no truncate (checked in LittleFS.h, FILE_WRITE_BEGIN is
+  RDWR|CREAT), so a file could only ever grow and a struct that shrank
+  left a stale tail that read back as valid data. and nothing checked
+  size or layout on read, so a file written by a previous struct layout
+  was read straight into the new one as garbage with no error - the
+  struct shapes changed twice in two days, this was a real footgun even
+  with nothing on hardware yet. now every file is a small header (magic,
+  layout version, payload size) then the payload, the file is removed
+  before every write so it cant carry a tail, and the payload is read
+  into scratch and only copied to the caller on a full match - a
+  struct never gets a partial fill (calibration could previously come
+  back with valid=1 and garbage from a short read). per-file layout
+  versions start at 1, bump the one whose struct changed, and
+  static_asserts keep every struct inside the scratch buffer. a missing
+  file (first boot, after a factory reset) stays quiet, an existing file
+  that doesnt match logs. filter.bin now goes through a byte like
+  bootflag already did, reading flash straight into a bool is undefined
+  for anything but 0 and 1. and main.cpp never looked at network_stack_
+  init's return: a saved config failing validation (frame_rate 0, dest
+  0 - the web ui could save either from an empty field) left ethernet
+  down for good with no way in but the reset button. now validated
+  before init and replaced with defaults in ram only if rejected -
+  validate-first rather than retry-on-failure so a missing cable doesnt
+  pay the 10s dhcp wait twice. the bad file is left in place, the next
+  save from the web ui replaces it.
 - Status LEDs: built, see src/status_leds.cpp. pin 4 genlock/ptp lock, pin 5
   freed streaming active - not two copies of the same signal, each pin is
   its own real status now.

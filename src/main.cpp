@@ -81,6 +81,16 @@ void setup() {
   if (storage_load_network_config(&net_config) != 0) {
     network_get_default_config(&net_config);
   }
+  // a saved config that fails validation (frame_rate 0, dest 0) used to
+  // leave ethernet down for good with no way in but the reset button, the
+  // init return was never looked at. validated here rather than retrying
+  // init on failure so a missing cable doesnt pay the 10s dhcp wait twice.
+  // defaults in ram only - the file is left alone so its still there to
+  // look at, and the next save from the web ui replaces it
+  if (network_validate_config(&net_config) != 0) {
+    Serial.println("Main: saved network config rejected, running on defaults");
+    network_get_default_config(&net_config);
+  }
   network_stack_init(&net_config);
 
   uint8_t genlock_fps;
