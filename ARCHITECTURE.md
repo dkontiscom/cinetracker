@@ -394,6 +394,15 @@ Subsystems and what drives them:
   before its ever formatted in. buffers grown to match the worst case
   of an all-quotes 31 character name doubling in length (entry 100->150,
   body 1400->2000), still comfortably safe.
+
+  last one from this pass: saveFreeDSettings() showed the literal text
+  "undefined" as its success toast, since handle_freed_set() only ever
+  sent {"success":true} and the js reads data.message. checked the same
+  pattern (showToast(data.message...)) at every other call site in
+  web_content.cpp - the rest either already have a real message field
+  on their handler's response or already guard with a || fallback, this
+  was the one real gap. fixed by adding a message field, matching the
+  same style handle_network_set already uses.
 - Status LEDs: built, see src/status_leds.cpp. pin 4 genlock/ptp lock, pin 5
   freed streaming active - not two copies of the same signal, each pin is
   its own real status now.

@@ -395,7 +395,7 @@ static void handle_freed_set(const char *body, EthernetClient &client) {
     storage_save_network_config(&config);
   }
 
-  send_json(client, 200, "OK", "{\"success\":true}");
+  send_json(client, 200, "OK", "{\"success\":true,\"message\":\"freed settings updated\"}");
 }
 
 static const char *aes67_direction_name(Aes67Direction dir) {
