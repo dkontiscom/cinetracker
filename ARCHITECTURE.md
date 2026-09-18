@@ -475,6 +475,25 @@ Subsystems and what drives them:
   has the other problems the fourth audit found (double nul before the
   sdp, millis() as session id, missing a=ts-refclk/a=mediaclk), those
   are separate and still open.
+
+  second of the four: a calibration saved from the web ui never reached
+  the stream until reboot. apply_calibration() - the thing that pushes
+  cal_min/cal_max/range into the live EncoderState freed reads from -
+  was only ever called from main.cpp at boot. save wrote flash and the
+  status page's cal_data, and the wire kept the old range (or the
+  0..16383 default on a first ever calibration) until a power cycle. it
+  was the flip side of what made the abort fix in the third pass safe:
+  the live state being independent of cal_data cut both ways. fixed
+  with one calibration_apply_all() that both boot and save go through so
+  they cant drift - a ring not calibrated in the saved data goes
+  disabled (freed streams 0 for it), which is exactly the state a
+  reboot would have produced and what a lens with no iris or zoom ring
+  is meant to do. two things had to move with it: calibration_end_
+  session now refuses a save when the wizard isnt complete (it used to
+  return ok, save nothing, and quietly drop the session to idle - with a
+  live apply hanging off "ok" that would have applied stale data), and
+  apply_calibration clears the overshoot flag so a fresh window starts
+  clean.
 - Status LEDs: built, see src/status_leds.cpp. pin 4 genlock/ptp lock, pin 5
   freed streaming active - not two copies of the same signal, each pin is
   its own real status now.

@@ -876,7 +876,8 @@ const char *web_content_index_html() {
             fetch('/api/calibration/save', { method: 'POST' })
                 .then(r => r.json())
                 .then(data => {
-                    showToast(data.success ? 'Calibration saved' : 'Save failed', data.success ? 'success' : 'error');
+                    const fallback = data.success ? 'Calibration saved' : 'Save failed';
+                    showToast(data.message || fallback, data.success ? 'success' : 'error');
                     updateCalStatus();
                 });
         }

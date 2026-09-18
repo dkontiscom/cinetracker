@@ -272,10 +272,18 @@ static void handle_cal_point(WebContext *ctx, const char *body, EthernetClient &
   send_json(client, 200, "OK", out);
 }
 
+// saving used to write flash and the status page's cal_data but never the
+// live encoder states freed actually streams from - apply_calibration()
+// only ever ran at boot, so a fresh calibration didnt reach the wire
+// until a power cycle (and a first ever one kept streaming the 0..16383
+// default). now the same apply-all boot uses runs right after the save
 static void handle_cal_save(WebContext *ctx, EthernetClient &client) {
   int result = calibration_end_session(ctx->cal_session, true);
-  char body[64];
-  snprintf(body, sizeof(body), "{\"success\":%s}", result == CAL_OK ? "true" : "false");
+  if (result == CAL_OK) calibration_apply_all(ctx->encoders, ctx->cal_data);
+
+  char body[96];
+  snprintf(body, sizeof(body), "{\"success\":%s,\"message\":\"%s\"}", result == CAL_OK ? "true" : "false",
+           result == CAL_OK ? "calibration saved and live" : "calibration not complete, nothing saved");
   send_json(client, 200, "OK", body);
 }
 

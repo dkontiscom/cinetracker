@@ -34,11 +34,7 @@ static void check_clean_shutdown() {
 static void load_saved_calibration() {
   if (storage_load_calibration(&g_cal_data) != 0) return;
 
-  for (int i = 0; i < 3; i++) {
-    if (g_cal_data.encoders[i].calibrated) {
-      apply_calibration(&g_encoders[i], &g_cal_data.encoders[i]);
-    }
-  }
+  calibration_apply_all(g_encoders, &g_cal_data);
 
   Serial.println("Main: restored calibration from storage");
 }

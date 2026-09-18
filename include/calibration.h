@@ -123,5 +123,8 @@ const char *calibration_get_instructions(CalibrationState state);
 uint8_t calibration_get_progress(const CalibrationSession *session);
 
 void apply_calibration(EncoderState *encoder, const EncoderCalibration *cal);
+// pushes a whole CalibrationData into the live encoder states, the one
+// place both boot and a web ui save go through so they cant drift apart
+void calibration_apply_all(EncoderState encoders[3], const CalibrationData *cal);
 
 bool encoder_read_angle(uint8_t encoder_id, uint16_t *angle);

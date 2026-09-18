@@ -81,7 +81,13 @@ int calibration_end_session(CalibrationSession *session, bool save) {
 
   Serial.printf("Calibration: Ending session (save=%d)\n", save);
 
-  if (save && session->state == CAL_STATE_COMPLETE) {
+  // a save that cant happen must say so and leave the session where it
+  // is, not report ok and quietly drop the wizard back to idle - the
+  // caller applies the result to the live encoders on success, so
+  // "success" has to mean something was actually saved
+  if (save && session->state != CAL_STATE_COMPLETE) return CAL_ERROR_INVALID_PARAM;
+
+  if (save) {
     memcpy(session->result->encoders, session->temp_encoders, sizeof(session->temp_encoders));
 
     session->result->valid = 1;
@@ -383,8 +389,27 @@ void apply_calibration(EncoderState *encoder, const EncoderCalibration *cal) {
   encoder->enabled = 1;
   encoder->calibrated = 1;
   encoder->noise_floor = cal->noise_floor;
+  encoder->overshoot_detected = false;
 
   Serial.printf("  Range: %ld-%ld (%ld counts)\n", (long)encoder->cal_min, (long)encoder->cal_max,
                 (long)encoder->cal_range);
   Serial.printf("  Direction: %s\n", encoder->direction ? "CCW" : "CW");
+}
+
+// a ring not calibrated in this data goes disabled, which is exactly what
+// a reboot would give it (math_engine_init_state leaves enabled at 0 and
+// load_saved_calibration only applies calibrated ones) - so a save that
+// skipped iris on a lens with no iris ring streams 0 for it right away,
+// same as it would after a power cycle. the live position counter is
+// left alone on purpose, it's the running unwrapped angle not calibration
+void calibration_apply_all(EncoderState encoders[3], const CalibrationData *cal) {
+  if (!encoders || !cal) return;
+  for (int i = 0; i < 3; i++) {
+    if (cal->encoders[i].calibrated) {
+      apply_calibration(&encoders[i], &cal->encoders[i]);
+    } else {
+      encoders[i].enabled = 0;
+      encoders[i].calibrated = 0;
+    }
+  }
 }
