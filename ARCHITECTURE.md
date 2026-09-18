@@ -439,7 +439,8 @@ Subsystems and what drives them:
   comparison itself parenthesized, and the build check that "confirmed"
   it was defeated by platformio deciding what to recompile by content
   hash not timestamp, so the touched file never rebuilt - caught by the
-  fourth audit, still pending, the real fix is && not parens), and one real
+  fourth audit and fixed then, as && which is what was meant all along,
+  bit-identical for two bools but short-circuiting and warning free), and one real
   logic bug (slave && messageType==3 || messageType==9 parsing as
   (slave && messageType==3) || messageType==9, meaning it'd also match
   messageType==9 regardless of role) fixed to the clearly intended
@@ -666,6 +667,33 @@ Subsystems and what drives them:
   are printed from the main loop (never from the isr) with the error
   register value and a running count - visible not silent, but no
   diagnostics ui, that was explicitly not wanted.
+
+  genlock interrupt priority: IRQ_ENET_TIMER was left at the teensy
+  default of 128, same as i2s dma, ethernet rx and the encoder sampling
+  timer, so the sync pulse edge could be delayed by any of their
+  handlers. now NVIC_SET_PRIORITY 0, the top - the pulse edge is the one
+  thing here that must not wait for anyone. ptp deliberately stays
+  below it: qnethernet never sets a priority on IRQ_ENET (checked in
+  lwip_t41.c, it just attaches the vector) and doesnt need to, the
+  timestamps ptp lives on are captured in hardware by the mac, rx
+  interrupt latency doesnt move them. noInterrupts() still masks
+  priority 0, teensy uses primask not basepri, so critical sections are
+  unaffected.
+
+  last vendored ptp fix from the pass: after sending a delay request
+  (and, in master mode, a sync) the library spun in a while loop waiting
+  for the hardware tx timestamp of that frame with no exit whatsoever.
+  if the link dropped in the instant between deciding to send and the
+  frame leaving the mac, the frame never entered the tx ring, the
+  timestamp never came, and the whole device hung - and with no watchdog
+  (by design, see roadmap) that was a power cycle. "visible failure" needs
+  the device still running to be visible at all. now a bounded wait, 5ms
+  (the hardware timestamp normally lands within microseconds, so this only
+  ever trips on a genuinely lost frame), that logs and skips the round on
+  timeout, the next exchange simply retries. both sites go through one
+  helper so the timeout logic exists once. only the delay request site
+  runs in this projects slave only use, the sync one is fixed identically
+  for master mode.
 - Status LEDs: built, see src/status_leds.cpp. pin 4 genlock/ptp lock, pin 5
   freed streaming active - not two copies of the same signal, each pin is
   its own real status now.

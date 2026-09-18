@@ -250,7 +250,7 @@ void PTPBase::updateController()
     }
     const NanoTime offsetCorrection = -currentOffset;
 
-    if (skipAtStart && updateCounter < 5 && (abs(offsetCorrection) > 1000 & t1lastvalid) && t2lastvalid){
+    if (skipAtStart && updateCounter < 5 && abs(offsetCorrection) > 1000 && t1lastvalid && t2lastvalid){
         currentNSPS = driftEstimationLP;
         triInterruptBlocker();
         qindesign::network::EthernetIEEE1588.offsetTimer(offsetCorrection);
@@ -660,6 +660,27 @@ void PTPBase::announceMessage()
     sendPTPMessage(buf,size,true);
 }
 
+// cinetracker addition: the tx timestamp wait had no exit at all. if the
+// link drops between deciding to send and the frame leaving the mac, the
+// frame never enters the tx ring, the timestamp never comes, and this
+// spun forever - the whole device hung, and with no watchdog (by design)
+// that meant a power cycle. the hardware timestamp normally lands within
+// microseconds, so a bounded wait only ever trips on a genuinely lost
+// frame, and the caller just skips that round
+static bool waitTxTimestamp(timespec &send_ts, const char *what)
+{
+    elapsedMicros waited;
+    while (!qindesign::network::EthernetIEEE1588.readAndClearTxTimestamp(send_ts))
+    {
+        if (waited > 5000)
+        {
+            Serial.printf("PTP: %s tx timestamp timeout, skipping this round\n", what);
+            return false;
+        }
+    }
+    return true;
+}
+
 void PTPBase::syncMessage()
 {
     if(!initialised || !master){
@@ -683,13 +704,7 @@ void PTPBase::syncMessage()
     {
         Serial.print("Wait for T1s Delay send timestamp");
     }
-    while (!qindesign::network::EthernetIEEE1588.readAndClearTxTimestamp(send_ts))
-    {
-        if (logging >= 2)
-        {
-            Serial.print(".");
-        }
-    }
+    if (!waitTxTimestamp(send_ts, "sync")) return;
     if (logging >= 2)
     {
         Serial.println(" finished");
@@ -758,13 +773,7 @@ void PTPBase::delayRequestMessage()
     {
         Serial.print("Wait for T3 Delay send timestamp");
     }
-    while (!qindesign::network::EthernetIEEE1588.readAndClearTxTimestamp(send_ts))
-    {
-        if (logging >= 2)
-        {
-            Serial.print(".");
-        }
-    }
+    if (!waitTxTimestamp(send_ts, "delay request")) return;
     if (logging >= 2)
     {
         Serial.println(" finished");

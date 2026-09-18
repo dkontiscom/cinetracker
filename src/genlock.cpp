@@ -14,11 +14,17 @@ bool genlock_fps_supported(uint8_t fps) {
 }
 
 // one macro instead of the same block repeated per rate so a copy paste
-// slip cant end up wiring the wrong templates fps to a given case
+// slip cant end up wiring the wrong templates fps to a given case.
+// priority 0 is the top: the sync pulse edge is the one thing here that
+// must not be delayed by anyone else's handler (i2s dma, ethernet rx, the
+// encoder sampling timer, all at the teensy default 128). ptp is fine
+// below it - its timestamps are captured in hardware by the mac, rx isr
+// latency doesnt move them. noInterrupts() still masks it, its primask
 #define GENLOCK_CASE(RATE)                                                                  \
   case RATE: {                                                                              \
     TriSync<RATE>::begin(GENLOCK_INTERRUPT_CHANNEL, GENLOCK_PIN_BIT0, GENLOCK_PIN_BIT1);     \
     attachInterruptVector(IRQ_ENET_TIMER, TriSync<RATE>::pulse);                            \
+    NVIC_SET_PRIORITY(IRQ_ENET_TIMER, 0);                                                   \
     NVIC_ENABLE_IRQ(IRQ_ENET_TIMER);                                                        \
     result = ptp_client_init(TriSync<RATE>::FRAMEDURATION, TriSync<RATE>::DEFAULTJUMPTHRESHOLD, \
                               800, 4, &TriSync<RATE>::block_incomming_interrupt,             \
