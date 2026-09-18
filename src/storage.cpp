@@ -80,6 +80,16 @@ int storage_save_aes67_settings(const Aes67Settings *settings) {
   return write_file("aes67.bin", settings, sizeof(Aes67Settings)) ? 0 : -1;
 }
 
+int storage_load_genlock_fps(uint8_t *fps) {
+  if (!g_fs_ready || !fps) return -1;
+  return read_file("genlock.bin", fps, sizeof(*fps)) ? 0 : -1;
+}
+
+int storage_save_genlock_fps(uint8_t fps) {
+  if (!g_fs_ready) return -1;
+  return write_file("genlock.bin", &fps, sizeof(fps)) ? 0 : -1;
+}
+
 int storage_load_clean_shutdown(bool *clean) {
   if (!g_fs_ready || !clean) return -1;
   uint8_t val = 0;

@@ -365,6 +365,31 @@ static void handle_aes67_set(const char *body, EthernetClient &client) {
   send_json(client, 200, "OK", "{\"success\":true}");
 }
 
+static void handle_genlock_get(EthernetClient &client) {
+  char body[64];
+  snprintf(body, sizeof(body), "{\"fps\":%u}", genlock_get_fps());
+  send_json(client, 200, "OK", body);
+}
+
+// fps only takes effect after a reboot the ptp client and the tri sync
+// interrupt handler are both set up once at boot not designed to be
+// safely reconfigured while genlock is actively running see
+// architecture md for why this wasnt made a live hot swap
+static void handle_genlock_set(const char *body, EthernetClient &client) {
+  int fps;
+  if (!json_get_int(body, "fps", &fps) || !genlock_fps_supported((uint8_t)fps)) {
+    send_json(client, 200, "OK", "{\"success\":false,\"message\":\"unsupported fps\"}");
+    return;
+  }
+
+  storage_save_genlock_fps((uint8_t)fps);
+  storage_set_clean_shutdown(true);
+  send_json(client, 200, "OK", "{\"success\":true,\"message\":\"rebooting to apply\"}");
+  client.flush();
+  delay(100);
+  SCB_AIRCR = 0x05FA0004;
+}
+
 static void handle_stream_start(EthernetClient &client) {
   g_streaming = true;
   send_json(client, 200, "OK", "{\"success\":true,\"message\":\"streaming started\"}");
@@ -460,6 +485,10 @@ static void dispatch(WebContext *ctx, const char *method, char *path, const char
     handle_aes67_get(client);
   } else if (is_post && strcmp(path, "/api/aes67") == 0) {
     handle_aes67_set(body, client);
+  } else if (is_get && strcmp(path, "/api/genlock") == 0) {
+    handle_genlock_get(client);
+  } else if (is_post && strcmp(path, "/api/genlock") == 0) {
+    handle_genlock_set(body, client);
   } else if (is_post && strcmp(path, "/api/system/reboot") == 0) {
     handle_reboot(client);
   } else if (is_post && strcmp(path, "/api/system/ack_reboot") == 0) {

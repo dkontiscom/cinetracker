@@ -15,9 +15,11 @@ hardware yet, only build verified):
    together for testing.
 2. [done, untested] PTP time sync over the network. vendored not remote
    dependency, see ARCHITECTURE.md for why.
-3. [done, untested] Genlock generation, locked to PTP. 24/25/30/60fps,
-   25 default since were in europe. true fractional rates (23.976 etc)
-   still not supported.
+3. [done, untested] Genlock generation, locked to PTP. 24/25/30/50/60fps,
+   25 default since were in europe, now a real web ui setting (reboot to
+   apply, not a live hot swap - the ptp client is only safely init'd once)
+   instead of a compile time #define, no more reflash to change it. true
+   fractional rates (23.976 etc) explicitly not wanted, not deferred.
 4. [done, untested] AES67 audio carrying LTC timecode, in and out.
    direction + destination address wired to the web ui, real jitter
    buffer on rx.
@@ -55,11 +57,9 @@ only device identity that matters.
    unexpected reboot flag (crash/power loss vs a deliberate reset) shown
    as a web ui banner until acknowledged, same visible-not-silent idea as
    skipping the watchdog above.
-9. [done, untested] Network config, camera id, FreeD frame_rate metadata
-   and AES67 direction/destination all now survive a reboot. genlock fps
-   is still a compile time #define, not a runtime setting yet,
-   persistence for it is blocked on that happening first - the only
-   settings piece still not done.
+9. [done, untested] Network config, camera id, FreeD frame_rate metadata,
+   AES67 direction/destination, and now genlock fps too (see item 3) all
+   survive a reboot. every currently web-settable value is persisted.
 
 This week (starting 2026-09-16) is a sprint to get the repo public ready
 with at least the basics working, which pieces count as "basics" is still

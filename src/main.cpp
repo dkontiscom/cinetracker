@@ -73,7 +73,12 @@ void setup() {
     network_get_default_config(&net_config);
   }
   network_stack_init(&net_config);
-  genlock_init();
+
+  uint8_t genlock_fps;
+  if (storage_load_genlock_fps(&genlock_fps) != 0) {
+    genlock_fps = GENLOCK_DEFAULT_FPS;
+  }
+  genlock_init(genlock_fps);
 
   web_interface_init();
 

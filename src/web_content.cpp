@@ -612,6 +612,22 @@ const char *web_content_index_html() {
         </div>
 
         <div class='card'>
+            <h2>Genlock</h2>
+            <div class='form-group'>
+                <label>Frame Rate (tri-level sync, not the FreeD metadata rate above)</label>
+                <select id='genlock-fps'>
+                    <option value='24'>24 fps</option>
+                    <option value='25'>25 fps</option>
+                    <option value='30'>30 fps</option>
+                    <option value='50'>50 fps</option>
+                    <option value='60'>60 fps</option>
+                </select>
+            </div>
+            <div style='font-size:0.85em;color:#888;margin-bottom:10px'>Changing this reboots the device to apply it</div>
+            <button class='btn btn-primary' onclick='saveGenlockSettings()'>Save Genlock Settings</button>
+        </div>
+
+        <div class='card'>
             <h2>System</h2>
             <div id='unexpected-reboot-banner' style='display:none;background:var(--danger);color:#fff;padding:10px;border-radius:8px;margin-bottom:10px'>
                 Device restarted unexpectedly last time (crash or power loss not a normal reboot)
@@ -817,6 +833,35 @@ const char *web_content_index_html() {
                 });
         }
 
+        // Genlock
+        function saveGenlockSettings() {
+            if (!confirm('Changing genlock frame rate reboots the device. Continue?')) return;
+
+            const fps = parseInt(document.getElementById('genlock-fps').value);
+            fetch('/api/genlock', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fps: fps })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('Genlock fps saved, rebooting...', 'warning');
+                    setTimeout(() => { location.reload(); }, 5000);
+                } else {
+                    showToast(data.message || 'Failed to save', 'error');
+                }
+            });
+        }
+
+        function loadGenlockStatus() {
+            fetch('/api/genlock')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('genlock-fps').value = data.fps;
+                });
+        }
+
         // Quick actions
         function resetOvershoot() {
             fetch('/api/encoders/reset', { method: 'POST' })
@@ -907,6 +952,7 @@ const char *web_content_index_html() {
                 });
 
             loadAes67Status();
+            loadGenlockStatus();
             checkUnexpectedReboot();
 
             // Start status updates

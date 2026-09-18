@@ -61,21 +61,64 @@ Subsystems and what drives them:
   SMPTE ST0274-2008 tri-level sync generator, cites the actual spec
   sections in its own source, not guesswork.
 
-  fps: originally only 30 or 60 compiled (#error for anything else).
-  checked a real broadcast timing reference (skyworks AN377, pulled the
-  actual clock rate table, not guessed) - 24, 25 and 30fps 1080p all use
-  the same 74.25MHz sample clock, the vendored code already had that
-  constant right for 30fps, the author just never added the other two
-  cases to the same branch. added TRISYNC_FPS==25 and ==24 to that
-  branch in lib/t41-tri-sync, tested all of 24/25/30/60 actually compile
-  not just assumed. GENLOCK_FPS in genlock.h picks which at compile time,
-  still not runtime switchable - see open items below.
+  fps: originally only 30 or 60 compiled (#error for anything else), and
+  even after we added 24/25 it was still a single TRISYNC_FPS #define -
+  one rate baked into the binary at compile time, changing it meant
+  editing that line and reflashing over usb with the teensy loader.
 
-  still not handled: true fractional rates (23.976, 29.97, 59.94), which
-  us cinema/tv work uses constantly and are NOT the same as 24/30/60
-  exactly, would need restructuring TRISYNC_FPS from an integer #define
-  match to something that can represent the /1.001 factor. flagged, not
-  fixed, since it wasnt what was asked for this pass.
+  fixed properly now: lib/t41-tri-sync/src/t41-tri-sync.h was restructured
+  from a namespace (one compiled instance) into a template<int FPS> class
+  TriSync. every formula and function body is untouched from the original
+  single rate version, just moved from #if branches to a template
+  parameter, so the actual generated code for e.g. TriSync<25> is the
+  same as the old TRISYNC_FPS==25 build would have produced - this was
+  specifically chosen over rewriting the timing math to be runtime
+  computed, to avoid touching the one subsystem where precision matters
+  most. genlock.cpp instantiates TriSync<24/25/30/50/60> all in the same
+  firmware and picks which ones pulse() gets attached to IRQ_ENET_TIMER
+  based on a runtime fps value, loaded from storage at boot (genlock.bin,
+  defaults to GENLOCK_DEFAULT_FPS if nothing saved yet).
+
+  50fps was new this pass, checked its clock rate against the same real
+  skyworks AN377 table rather than assumed by proximity to 25 or 60:
+  1920x1080p at 50 and 60 both list 148.5MHz (they need double the pixel
+  throughput of 24/25/30p at 1080 lines), not 74.25MHz like 24/25/30 -
+  grouping 50 with 24/25 by "both sound european" would have been wrong.
+
+  48fps was requested too but left out: checked a real commercial
+  tri-level genlock product's supported rate list and it doesnt appear
+  at all - where "48" shows up in real broadcast gear its actually
+  47.952 (48000/1001), the ntsc-fractional family, not a plain integer
+  rate. no legitimate SAMPLES_PER_MS value exists for exact 48.00fps to
+  build from without guessing, so its not included.
+
+  web ui: GET/POST /api/genlock, one field (fps). changing it saves to
+  storage and reboots the device - not a live hot swap. the ptp client
+  (ptp_client.cpp) only ever calls g_ptp.begin() once, on the first link
+  up event, guarded by a g_started flag, and FRAMEDURATION/
+  DEFAULTJUMPTHRESHOLD get baked into that one call - it was never built
+  to be safely reconfigured while running, and this pass didnt add that
+  capability either, on purpose. reboot to apply is a real behavior
+  change from before but still fully removes the "need a reflash" pain,
+  which was the actual complaint.
+
+  still not handled: true fractional rates (23.976, 29.97, 59.94) -
+  explicitly not wanted, not just deferred, they were checked and turn
+  out to be mainly a US NTSC-legacy production convention still used
+  internationally for film/streaming work, not something tied to any
+  particular broadcaster today, but the decision to skip them stands
+  regardless of that context.
+
+  a real bug was found and fixed in the vendored math itself, upstream's
+  own original code not something the template refactor introduced:
+  CYCLES_PER_NS in t41-tri-sync.h was `TRISYNC_MHZ / 1000` with
+  TRISYNC_MHZ a plain int macro (600) - integer division, evaluates to 0
+  not 0.6. only used for the very first delayCycles() call at the top of
+  pulse() (the "initial wait for a clean following pulse form"), so it
+  was waiting ~0 cycles instead of the apparently intended ~120. fixed by
+  changing the divisor to 1000.0 to force floating point division,
+  nothing else touched. worth upstreaming to IMS-AS-LUH/t41-tri-sync-ptp,
+  see credits.md.
 - AES67 / LTC: built, see src/aes67.cpp. mono only (its carrying LTC not
   program audio), only one direction active at a time - AES67_LTC_IN
   (local audio in -> RTP out to network) or AES67_LTC_OUT (RTP in from
