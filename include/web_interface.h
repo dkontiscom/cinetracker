@@ -7,6 +7,9 @@
 #define WEB_SERVER_PORT 80
 #define WEB_MAX_CLIENTS 4
 #define WEB_REQUEST_BUFFER_SIZE 1024
+// a client silent this long mid request is gone, not slow - drop it so it
+// cant hold one of the few slots for good
+#define WEB_CLIENT_TIMEOUT_MS 5000
 
 struct WebContext {
   EncoderState *encoders;

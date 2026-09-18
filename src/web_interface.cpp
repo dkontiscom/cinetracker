@@ -20,6 +20,7 @@ struct ClientSlot {
   char buffer[WEB_REQUEST_BUFFER_SIZE];
   size_t buffer_len;
   bool active;
+  uint32_t last_activity_ms;
 };
 
 static EthernetServer g_server{WEB_SERVER_PORT};
@@ -42,13 +43,17 @@ static bool ci_starts_with(const char *s, const char *prefix) {
   return true;
 }
 
-static int get_content_length(const char *headers) {
-  const char *p = headers;
-  while (*p) {
-    if (ci_starts_with(p, "content-length:")) {
-      return atoi(p + 15);
+// only inside the headers and only at a line start - the old scan ran over
+// the whole buffer and matched mid line, so a body containing the text (or
+// an x-content-length header) could set the length. negative clamps to 0,
+// it used to wrap through size_t into a length nothing could ever satisfy
+static int get_content_length(const char *headers, size_t headers_end) {
+  for (size_t i = 0; i + 15 < headers_end; i++) {
+    if (i > 0 && headers[i - 1] != '\n') continue;
+    if (ci_starts_with(headers + i, "content-length:")) {
+      int len = atoi(headers + i + 15);
+      return len < 0 ? 0 : len;
     }
-    p++;
   }
   return 0;
 }
@@ -659,27 +664,48 @@ int web_interface_init() {
   return 0;
 }
 
+static void drop_slot(ClientSlot &slot) {
+  slot.client.stop();
+  slot.active = false;
+}
+
 static void process_slot(WebContext *ctx, ClientSlot &slot) {
   int avail = slot.client.available();
   if (avail > 0) {
     size_t space = sizeof(slot.buffer) - 1 - slot.buffer_len;
     size_t to_read = (size_t)avail < space ? (size_t)avail : space;
-    slot.buffer_len += slot.client.read((uint8_t *)slot.buffer + slot.buffer_len, to_read);
+    int got = slot.client.read((uint8_t *)slot.buffer + slot.buffer_len, to_read);
+    if (got > 0) {
+      slot.buffer_len += (size_t)got;
+      slot.last_activity_ms = millis();
+    }
     slot.buffer[slot.buffer_len] = '\0';
+  }
+
+  // a client that goes quiet mid request (phone walked out of wifi range,
+  // tab killed) never sends a close, so connected() stays true - and with
+  // 4 slots, four of those refused every new connection until reboot.
+  // nothing legitimate pauses this long inside a single request
+  if (millis() - slot.last_activity_ms > WEB_CLIENT_TIMEOUT_MS) {
+    drop_slot(slot);
+    return;
   }
 
   int headers_end = find_headers_end(slot.buffer, slot.buffer_len);
   if (headers_end < 0) {
-    if (!slot.client.connected() || slot.buffer_len >= sizeof(slot.buffer) - 1) {
-      slot.client.stop();
-      slot.active = false;
-    }
+    if (!slot.client.connected() || slot.buffer_len >= sizeof(slot.buffer) - 1) drop_slot(slot);
     return;
   }
 
-  int content_length = get_content_length(slot.buffer);
+  // the wait-for-body branch used to return without ever looking at the
+  // connection, so a post whose declared length never fully arrived (an
+  // aborted upload, a bogus content-length) pinned the slot for good.
+  // clamped to the buffer so the wait is always for a finite byte count
+  int content_length = get_content_length(slot.buffer, (size_t)headers_end);
   size_t total_needed = (size_t)headers_end + (size_t)content_length;
-  if (slot.buffer_len < total_needed && slot.buffer_len < sizeof(slot.buffer) - 1) {
+  if (total_needed > sizeof(slot.buffer) - 1) total_needed = sizeof(slot.buffer) - 1;
+  if (slot.buffer_len < total_needed) {
+    if (!slot.client.connected()) drop_slot(slot);
     return;
   }
 
@@ -691,8 +717,7 @@ static void process_slot(WebContext *ctx, ClientSlot &slot) {
 
   dispatch(ctx, method, path, body, slot.client);
 
-  slot.client.stop();
-  slot.active = false;
+  drop_slot(slot);
 }
 
 void web_interface_process(WebContext *ctx) {
@@ -703,6 +728,7 @@ void web_interface_process(WebContext *ctx) {
       if (!g_slots[i].active) {
         g_slots[i].client = new_client;
         g_slots[i].buffer_len = 0;
+        g_slots[i].last_activity_ms = millis();
         g_slots[i].active = true;
         placed = true;
         break;

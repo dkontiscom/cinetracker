@@ -623,6 +623,26 @@ Subsystems and what drives them:
   validate-first rather than retry-on-failure so a missing cable doesnt
   pay the 10s dhcp wait twice. the bad file is left in place, the next
   save from the web ui replaces it.
+
+  web server, from the same pass. the server has 4 client slots and the
+  wait-for-body branch of process_slot returned without ever looking at
+  the connection, so a post whose declared content-length never fully
+  arrived (an aborted upload, a browser killed mid request, a bogus or
+  negative length - which wrapped through size_t into a count nothing
+  could satisfy) pinned its slot for good. four of those and every new
+  connection was refused until reboot. and there was no idle timeout at
+  all, so a client that just went quiet (phone walked out of wifi range,
+  no close ever sent, connected() true forever) did the same. fixed
+  three ways: the body wait now drops a disconnected client, the
+  declared length is clamped to the buffer so the wait is always for a
+  finite byte count, and any slot silent for over WEB_CLIENT_TIMEOUT_MS
+  (5s, nothing legitimate pauses that long inside one request) is
+  dropped. the read return is also checked before being added to the
+  buffer length (it was added unsigned as-is - qnethernet never returns
+  negative there, but it was one library change away from a wrap).
+  content-length is now only looked for inside the headers and at a line
+  start, the old scan ran over the whole buffer and matched mid line, so
+  a body containing the text could set it.
 - Status LEDs: built, see src/status_leds.cpp. pin 4 genlock/ptp lock, pin 5
   freed streaming active - not two copies of the same signal, each pin is
   its own real status now.
