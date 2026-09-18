@@ -383,6 +383,17 @@ Subsystems and what drives them:
   during the wizard, no reason to touch the live struct before its
   meant to change. version/timestamp stamping moved from start into the
   save path too, same reasoning.
+
+  same pass also found handle_fleet() dropped peer names straight into
+  the json response's "name":"%s" unescaped - fine for a normal name,
+  but those names come straight off an unauthenticated lan broadcast
+  (fleet.cpp), so a crafted one containing a quote or backslash could
+  break or inject fields into the response for anything parsing
+  /api/fleet. fixed with a small json_escape() helper (doubles quotes/
+  backslashes, flattens control characters to spaces) run on the name
+  before its ever formatted in. buffers grown to match the worst case
+  of an all-quotes 31 character name doubling in length (entry 100->150,
+  body 1400->2000), still comfortably safe.
 - Status LEDs: built, see src/status_leds.cpp. pin 4 genlock/ptp lock, pin 5
   freed streaming active - not two copies of the same signal, each pin is
   its own real status now.

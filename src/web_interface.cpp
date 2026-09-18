@@ -526,27 +526,50 @@ static void handle_filter_set(WebContext *ctx, const char *body, EthernetClient 
   send_json(client, 200, "OK", "{\"success\":true}");
 }
 
+// peer names come straight off an unauthenticated lan broadcast (fleet.cpp),
+// unescaped a crafted name containing a quote or backslash could break or
+// inject fields into this response - strip/escape before it ever reaches
+// a %s. out_size must be at least 2x the longest input this is called
+// with plus one, so a name that is entirely quotes still fits
+static void json_escape(const char *in, char *out, size_t out_size) {
+  size_t o = 0;
+  for (size_t i = 0; in[i] != '\0' && o + 2 < out_size; i++) {
+    unsigned char c = (unsigned char)in[i];
+    if (c == '"' || c == '\\') {
+      out[o++] = '\\';
+      out[o++] = (char)c;
+    } else if (c < 0x20) {
+      out[o++] = ' ';
+    } else {
+      out[o++] = (char)c;
+    }
+  }
+  out[o] = '\0';
+}
+
 static void handle_fleet(EthernetClient &client) {
   FleetPeer peers[FLEET_MAX_PEERS];
   int count = fleet_get_peers(peers, FLEET_MAX_PEERS);
 
-  // peer names come straight off an unauthenticated lan broadcast, so this
   // formats each entry into its own small buffer first and only copies it
   // into body if it actually fits, rather than accumulating snprintf's
   // would-have-written return value against sizeof(body) - len, which
   // keeps growing past the real buffer even once its silently truncating
   // and wraps size_t - int into a huge number once it overtakes it
-  char body[1400];
+  char body[2000];
   size_t len = 0;
 
   int n = snprintf(body, sizeof(body), "{\"conflict\":%s,\"peers\":[", fleet_camera_id_conflict() ? "true" : "false");
   len += (n > 0) ? (size_t)n : 0;
 
   for (int i = 0; i < count; i++) {
-    char entry[100];
+    char safe_name[70];
+    json_escape(peers[i].name, safe_name, sizeof(safe_name));
+
+    char entry[150];
     int entry_len = snprintf(entry, sizeof(entry), "%s{\"ip\":\"%u.%u.%u.%u\",\"name\":\"%s\",\"camera_id\":%u}",
                               i > 0 ? "," : "", peers[i].ip[0], peers[i].ip[1], peers[i].ip[2], peers[i].ip[3],
-                              peers[i].name, peers[i].camera_id);
+                              safe_name, peers[i].camera_id);
     // stop before overflowing, always leaving room for the closing "]}"
     if (entry_len <= 0 || len + (size_t)entry_len + 3 > sizeof(body)) break;
     memcpy(body + len, entry, (size_t)entry_len);
