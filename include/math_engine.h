@@ -26,18 +26,11 @@ struct EncoderState {
   int32_t normalized_angle;
   int16_t velocity;
 
-  float mm_value;
-  float last_mm_value;
-
   int32_t cal_min;
   int32_t cal_max;
   int32_t cal_range;
   int32_t original_cal_min;
   int32_t original_cal_max;
-
-  float mm_min;
-  float mm_max;
-  float mm_scale;
 
   bool overshoot_detected;
   uint8_t direction;
@@ -77,20 +70,10 @@ int32_t kalman_filter(EncoderState *state, int32_t measurement);
 
 void handle_boundary_overshoot(EncoderState *state, int32_t angle);
 void math_process_angle(EncoderState *state, uint16_t raw_angle);
-float process_encoder_sample(EncoderState *state, uint16_t raw_angle);
+void process_encoder_sample(EncoderState *state, uint16_t raw_angle);
 
-uint8_t auto_detect_direction(EncoderState *state, const uint16_t *samples, size_t count);
 uint16_t calculate_noise_floor(const uint16_t *samples, size_t count);
-float calculate_scale_factor(int32_t angle_range, float mm_range);
 
 void math_engine_init_state(EncoderState *state, uint8_t encoder_id);
-void math_engine_reset_state(EncoderState *state);
 void math_engine_set_filter(EncoderState *state, uint8_t filter_type);
 void math_engine_configure_kalman(EncoderState *state, float process_noise, float measurement_noise);
-
-bool math_engine_validate_calibration(const EncoderState *state);
-void math_engine_apply_calibration(EncoderState *state, int32_t cal_min, int32_t cal_max,
-                                    float mm_min, float mm_max, uint8_t direction);
-
-float math_engine_get_position_mm(const EncoderState *state);
-float math_engine_get_velocity_mm_per_sec(const EncoderState *state);

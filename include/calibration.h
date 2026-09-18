@@ -5,7 +5,6 @@
 
 enum CalibrationState {
   CAL_STATE_IDLE = 0,
-  CAL_STATE_SELECT_LENS,
   CAL_STATE_DETECT_ENCODERS,
   CAL_STATE_FOCUS_SET_MIN,
   CAL_STATE_FOCUS_SET_MID,
@@ -28,33 +27,6 @@ enum CalibrationError {
   CAL_ERROR_STORAGE_FAIL = -3,
 };
 
-struct LensProfile {
-  char name[64];
-  char manufacturer[32];
-  char model[32];
-  char serial_number[32];
-
-  float focus_min_mm;
-  float focus_max_mm;
-  bool focus_enabled;
-
-  float iris_min_fstop;
-  float iris_max_fstop;
-  bool iris_enabled;
-
-  float zoom_min_mm;
-  float zoom_max_mm;
-  bool zoom_enabled;
-
-  uint16_t focus_rotation_deg;
-  uint16_t iris_rotation_deg;
-  uint16_t zoom_rotation_deg;
-
-  uint32_t created_timestamp;
-  uint32_t modified_timestamp;
-  uint32_t use_count;
-};
-
 struct EncoderCalibration {
   // unwrapped multi turn positions not raw 14bit values see math_engine h
   int32_t min_angle;
@@ -67,7 +39,22 @@ struct EncoderCalibration {
   uint8_t encoder_id;
 
   int32_t total_range;
-  float scale_factor;
+
+  // operator typed reference values, mm for focus/zoom, fstop for iris
+  // status page sanity check display only, never sent over freed. focus
+  // has no phys_max, its physical max is always infinity by construction
+  bool has_phys_min;
+  bool has_phys_mid;
+  bool has_phys_max;
+  float phys_min;
+  float phys_mid;
+  float phys_max;
+
+  // two segment scale, min-mid and mid-max, so a lens that isnt linear
+  // across its whole throw (focus rings especially) still gets a rough
+  // per segment estimate instead of one number averaged across the range
+  float scale_lo;
+  float scale_hi;
 
   uint16_t noise_floor;
   uint8_t quality_score;
@@ -77,16 +64,12 @@ struct EncoderCalibration {
 };
 
 struct CalibrationData {
-  LensProfile lens;
   EncoderCalibration encoders[3];
 
   uint32_t timestamp;
   uint32_t version;
   uint8_t valid;
   uint16_t total_score;
-
-  char user_name[32];
-  char notes[128];
 };
 
 struct CalibrationSession {
@@ -98,7 +81,10 @@ struct CalibrationSession {
   uint8_t total_steps;
   uint8_t progress_percent;
 
-  LensProfile *active_lens;
+  // operator's manual choice at calibration_start_session, not hardware
+  // auto detected, since a prime lens has no zoom ring to detect at all
+  uint8_t encoder_wanted_mask;
+
   EncoderCalibration temp_encoders[3];
 
   uint16_t *sample_buffer;
@@ -115,39 +101,26 @@ struct CalibrationSession {
   uint32_t timeout_ms;
 };
 
-struct LensPreset {
-  const char *name;
-  uint16_t focus_min_mm;
-  uint16_t focus_max_mm;
-  uint8_t iris_min_fstop_x10;
-  uint8_t iris_max_fstop_x10;
-  uint16_t zoom_min_mm;
-  uint16_t zoom_max_mm;
-};
-
-const LensPreset *calibration_get_lens_presets();
-int calibration_get_preset_count();
-
-int calibration_start_session(CalibrationSession *session, CalibrationData *result);
+int calibration_start_session(CalibrationSession *session, CalibrationData *result, uint8_t encoder_wanted_mask);
 int calibration_end_session(CalibrationSession *session, bool save);
 void calibration_abort_session(CalibrationSession *session);
 
-int calibration_select_preset(CalibrationSession *session, int preset_index, LensProfile *profile);
-int calibration_set_lens_profile(CalibrationSession *session, const LensProfile *profile);
 int calibration_detect_encoders(CalibrationSession *session, uint8_t *detected_mask);
-int calibration_set_point(CalibrationSession *session, uint8_t encoder_id, int32_t angle);
+int calibration_set_point(CalibrationSession *session, uint8_t encoder_id, int32_t angle,
+                           bool has_phys_value, float phys_value);
 int calibration_collect_samples(CalibrationSession *session, uint8_t encoder_id,
                                  const uint16_t *samples, size_t count);
 
-int calibration_validate(const CalibrationData *cal, char *error_report, size_t report_size);
+int calibration_validate(const EncoderCalibration encoders[3], char *error_report, size_t report_size);
 int calibration_test_accuracy(const CalibrationData *cal, uint8_t encoder_id, uint8_t *score);
 
-float calibration_angle_to_mm(const CalibrationData *cal, uint8_t encoder_id, int32_t angle);
-float calibration_angle_to_fstop(const CalibrationData *cal, int32_t angle);
-int32_t calibration_mm_to_angle(const CalibrationData *cal, uint8_t encoder_id, float mm);
-
-int calibration_export_json(const CalibrationData *cal, char *buffer, size_t size);
-int calibration_import_json(CalibrationData *cal, const char *json);
+// rough physical estimate for the status page sanity check display only
+// never sent over freed, returns false if this encoder has no usable
+// reference points for the angle's segment. focus reports out_is_infinite
+// past its mid point instead of a value, its physical max is always
+// infinity so no finite estimate is possible or meaningful there
+bool calibration_angle_to_phys(const CalibrationData *cal, uint8_t encoder_id, int32_t angle,
+                                float *out_value, bool *out_is_infinite);
 
 const char *calibration_get_state_name(CalibrationState state);
 const char *calibration_get_instructions(CalibrationState state);

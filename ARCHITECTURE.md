@@ -266,16 +266,49 @@ Subsystems and what drives them:
   turn count is just never trusted past that boundary, nothing more.
 
   found and fixed two related bugs while building this: network_stack.cpp
-  and math_engine_apply_calibration() both assumed cal_max is always
-  numerically bigger than cal_min, which is only true for one rotation
-  direction - for a lens calibrated the other way FreeD output was
-  already silently broken (cal_max - cal_min going negative into an
-  unsigned range, producing garbage normalized values). direction was
-  always the right flag to check here, it just wasnt being checked
-  consistently everywhere cal_min/cal_max got used. fixed in
-  math_engine.cpp (handle_boundary_overshoot, process_encoder_sample,
-  math_engine_apply_calibration, math_engine_validate_calibration) and
+  and math_engine.cpp both assumed cal_max is always numerically bigger
+  than cal_min, which is only true for one rotation direction - for a
+  lens calibrated the other way FreeD output was already silently broken
+  (cal_max - cal_min going negative into an unsigned range, producing
+  garbage normalized values). direction was always the right flag to
+  check here, it just wasnt being checked consistently everywhere
+  cal_min/cal_max got used. fixed in math_engine.cpp
+  (handle_boundary_overshoot, process_encoder_sample) and
   network_stack.cpp (all three freed normalization blocks).
+
+  full codebase re-audit (2026-09-18, multiple parallel review agents,
+  read only pass then fixes only after explicit sign off) found the
+  calibration wizard was completely non functional from the web ui - the
+  buttons never called calibration/start so the server side session state
+  machine never left idle, and separately CAL_STATE_VALIDATE had no code
+  path that ever moved it to CAL_STATE_COMPLETE, so even a correctly
+  wired wizard would never have let save succeed. root cause was a real
+  design mismatch: calibration.cpp still had a full lens preset picker
+  (LensProfile, LENS_PRESETS table, calibration_select_preset) that the
+  web ui was never actually built against. resolved by dropping the
+  preset system entirely (never used, nobody picks a lens from a
+  dropdown when the real workflow is two people and a tape measure) and
+  keeping the guided step by step wizard, now backed by a real state
+  machine that actually works: operator manually toggles which of
+  focus/iris/zoom this lens has (not auto detected - a prime has no zoom
+  ring to detect, and spi absence detection for focus/zoom isnt reliable
+  enough to gate on, only i2c/iris can really tell not-connected from
+  connected), each min/mid/max point optionally takes a typed physical
+  value (mm for focus/zoom, fstop for iris) purely for a status page
+  sanity check display, never sent over freed which only ever gets the
+  0-100% normalized position. two segments (min-mid, mid-max) each get
+  their own scale factor instead of one averaged across the whole range,
+  since focus rings especially arent linear across their throw. focus
+  max has no physical value at all, its always infinity by construction,
+  the status page shows the infinity symbol instead of a number past
+  that point. this also deleted math_engine.cpp's separate, parallel,
+  already broken copy of the same mm conversion (EncoderState.mm_min/
+  mm_max were hardcoded 0/100 and never actually set from calibration -
+  math_engine_apply_calibration(), the only thing that would have set
+  them, was dead code nothing called), so /api/status's focus_mm/
+  iris_fstop/zoom_mm fields now come from one real implementation
+  (calibration_angle_to_phys) instead of two, one of which was silently
+  wrong.
 - Status LEDs: built, see src/status_leds.cpp. pin 4 genlock/ptp lock, pin 5
   freed streaming active - not two copies of the same signal, each pin is
   its own real status now.

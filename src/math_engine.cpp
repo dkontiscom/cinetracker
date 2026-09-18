@@ -133,49 +133,8 @@ void math_process_angle(EncoderState *state, uint16_t raw_angle) {
   state->sample_count++;
 }
 
-float process_encoder_sample(EncoderState *state, uint16_t raw_angle) {
-  state->last_mm_value = state->mm_value;
-
+void process_encoder_sample(EncoderState *state, uint16_t raw_angle) {
   math_process_angle(state, raw_angle);
-
-  if (state->cal_range > 0) {
-    // direction says which of cal_min/cal_max is the physical low end not
-    // which one is numerically smaller same reasoning as the overshoot fix
-    float angle_offset = (state->direction == 0)
-        ? (float)(state->normalized_angle - state->cal_min)
-        : (float)(state->cal_min - state->normalized_angle);
-    state->mm_value = state->mm_min + angle_offset * state->mm_scale;
-
-    if (state->mm_value < state->mm_min) state->mm_value = state->mm_min;
-    else if (state->mm_value > state->mm_max) state->mm_value = state->mm_max;
-  }
-
-  return state->mm_value;
-}
-
-uint8_t auto_detect_direction(EncoderState *state, const uint16_t *samples, size_t count) {
-  if (count < 10) return 0;
-
-  int32_t sum_derivatives = 0;
-  int32_t positive_count = 0;
-  int32_t negative_count = 0;
-
-  for (size_t i = 1; i < count; i++) {
-    int16_t derivative = angle_distance(samples[i - 1], samples[i]);
-    sum_derivatives += derivative;
-    if (derivative > 10) positive_count++;
-    else if (derivative < -10) negative_count++;
-  }
-
-  if (positive_count > negative_count) {
-    state->direction = 0;
-  } else if (negative_count > positive_count) {
-    state->direction = 1;
-  } else {
-    state->direction = (sum_derivatives >= 0) ? 0 : 1;
-  }
-
-  return state->direction;
 }
 
 uint16_t calculate_noise_floor(const uint16_t *samples, size_t count) {
@@ -194,11 +153,6 @@ uint16_t calculate_noise_floor(const uint16_t *samples, size_t count) {
   return (uint16_t)sqrtf(sum_sq_diff / count);
 }
 
-float calculate_scale_factor(int32_t angle_range, float mm_range) {
-  if (angle_range == 0) return 0.0f;
-  return mm_range / angle_range;
-}
-
 void math_engine_init_state(EncoderState *state, uint8_t encoder_id) {
   memset(state, 0, sizeof(EncoderState));
 
@@ -209,27 +163,8 @@ void math_engine_init_state(EncoderState *state, uint8_t encoder_id) {
   state->cal_max = AS5048_MAX_ANGLE;
   state->cal_range = AS5048_MAX_ANGLE;
 
-  state->mm_min = 0.0f;
-  state->mm_max = 100.0f;
-  state->mm_scale = calculate_scale_factor(state->cal_range, state->mm_max - state->mm_min);
-
   state->kalman_q = KALMAN_Q;
   state->kalman_r = KALMAN_R;
-}
-
-void math_engine_reset_state(EncoderState *state) {
-  uint8_t encoder_id = state->encoder_id;
-  uint8_t filter_type = state->filter_type;
-  int32_t cal_min = state->cal_min;
-  int32_t cal_max = state->cal_max;
-  float mm_min = state->mm_min;
-  float mm_max = state->mm_max;
-  uint8_t direction = state->direction;
-
-  math_engine_init_state(state, encoder_id);
-
-  state->filter_type = filter_type;
-  math_engine_apply_calibration(state, cal_min, cal_max, mm_min, mm_max, direction);
 }
 
 void math_engine_set_filter(EncoderState *state, uint8_t filter_type) {
@@ -246,30 +181,3 @@ void math_engine_configure_kalman(EncoderState *state, float process_noise, floa
   state->kalman_initialized = false;
 }
 
-bool math_engine_validate_calibration(const EncoderState *state) {
-  // cal_max < cal_min is the normal case for the reverse direction not an
-  // error only a zero range (nothing moved between min and max) is bad
-  if (state->cal_max == state->cal_min) return false;
-  if (state->mm_max <= state->mm_min) return false;
-  return true;
-}
-
-void math_engine_apply_calibration(EncoderState *state, int32_t cal_min, int32_t cal_max,
-                                    float mm_min, float mm_max, uint8_t direction) {
-  state->cal_min = cal_min;
-  state->cal_max = cal_max;
-  state->cal_range = (cal_max > cal_min) ? (cal_max - cal_min) : (cal_min - cal_max);
-  state->mm_min = mm_min;
-  state->mm_max = mm_max;
-  state->direction = direction;
-  state->mm_scale = calculate_scale_factor(state->cal_range, mm_max - mm_min);
-  state->calibrated = 1;
-}
-
-float math_engine_get_position_mm(const EncoderState *state) {
-  return state->mm_value;
-}
-
-float math_engine_get_velocity_mm_per_sec(const EncoderState *state) {
-  return state->velocity * state->mm_scale * 1000.0f;
-}

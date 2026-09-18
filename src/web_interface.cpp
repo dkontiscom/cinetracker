@@ -25,7 +25,6 @@ struct ClientSlot {
 static EthernetServer g_server{WEB_SERVER_PORT};
 static ClientSlot g_slots[WEB_MAX_CLIENTS];
 static bool g_streaming = false;
-static LensProfile g_active_profile;
 
 static int find_headers_end(const char *buf, size_t len) {
   for (size_t i = 3; i < len; i++) {
@@ -84,6 +83,32 @@ static bool json_get_int(const char *body, const char *key, int *out) {
   return true;
 }
 
+static bool json_get_float(const char *body, const char *key, float *out) {
+  char pattern[40];
+  snprintf(pattern, sizeof(pattern), "\"%s\"", key);
+  const char *p = strstr(body, pattern);
+  if (!p) return false;
+  p = strchr(p + strlen(pattern), ':');
+  if (!p) return false;
+  p++;
+  while (*p == ' ') p++;
+  *out = strtof(p, nullptr);
+  return true;
+}
+
+static bool json_get_bool(const char *body, const char *key, bool *out) {
+  char pattern[40];
+  snprintf(pattern, sizeof(pattern), "\"%s\"", key);
+  const char *p = strstr(body, pattern);
+  if (!p) return false;
+  p = strchr(p + strlen(pattern), ':');
+  if (!p) return false;
+  p++;
+  while (*p == ' ') p++;
+  *out = (strncmp(p, "true", 4) == 0);
+  return true;
+}
+
 static void parse_ip(const char *s, uint8_t out[4]) {
   int a, b, c, d;
   if (sscanf(s, "%d.%d.%d.%d", &a, &b, &c, &d) == 4) {
@@ -92,16 +117,6 @@ static void parse_ip(const char *s, uint8_t out[4]) {
     out[2] = (uint8_t)c;
     out[3] = (uint8_t)d;
   }
-}
-
-static bool query_get_int(const char *query, const char *key, int *out) {
-  if (!query) return false;
-  char pattern[40];
-  snprintf(pattern, sizeof(pattern), "%s=", key);
-  const char *p = strstr(query, pattern);
-  if (!p) return false;
-  *out = atoi(p + strlen(pattern));
-  return true;
 }
 
 static void send_response(EthernetClient &client, int status, const char *status_text,
@@ -128,6 +143,16 @@ static void send_html(EthernetClient &client, const char *html) {
   send_response(client, 200, "OK", "text/html", html, strlen(html));
 }
 
+// rough physical estimate for display only, see calibration_angle_to_phys
+// not every encoder has enough typed reference points to produce one, and
+// focus reports infinite instead of a value past its mid point
+static void get_phys_display(const CalibrationData *cal, uint8_t encoder_id, int32_t angle,
+                              float *value, bool *valid, bool *is_infinite) {
+  *is_infinite = false;
+  *value = 0.0f;
+  *valid = calibration_angle_to_phys(cal, encoder_id, angle, value, is_infinite);
+}
+
 static void handle_status(WebContext *ctx, EthernetClient &client) {
   EncoderState *encoders = ctx->encoders;
 
@@ -146,18 +171,28 @@ static void handle_status(WebContext *ctx, EthernetClient &client) {
   bool connected = encoders[0].enabled || encoders[1].enabled || encoders[2].enabled;
   bool unexpected_reboot = ctx->unexpected_reboot && *ctx->unexpected_reboot;
 
-  char body[512];
+  float focus_mm, iris_fstop, zoom_mm;
+  bool focus_valid, focus_inf, iris_valid, iris_inf, zoom_valid, zoom_inf;
+  get_phys_display(ctx->cal_data, 0, encoders[0].filtered_angle, &focus_mm, &focus_valid, &focus_inf);
+  get_phys_display(ctx->cal_data, 1, encoders[1].filtered_angle, &iris_fstop, &iris_valid, &iris_inf);
+  get_phys_display(ctx->cal_data, 2, encoders[2].filtered_angle, &zoom_mm, &zoom_valid, &zoom_inf);
+
+  char body[700];
   snprintf(body, sizeof(body),
       "{\"mode\":\"%s\",\"streaming\":%s,\"connected\":%s,\"synced\":%s,"
       "\"unexpected_reboot\":%s,"
-      "\"focus_mm\":%.2f,\"iris_fstop\":%.2f,\"zoom_mm\":%.2f,"
+      "\"focus_mm\":%.2f,\"focus_mm_valid\":%s,\"focus_mm_infinite\":%s,"
+      "\"iris_fstop\":%.2f,\"iris_fstop_valid\":%s,"
+      "\"zoom_mm\":%.2f,\"zoom_mm_valid\":%s,"
       "\"focus_angle\":%ld,\"iris_angle\":%ld,\"zoom_angle\":%ld,"
       "\"frames_sent\":%lu,\"errors\":%lu,\"uptime\":%lu,\"fps\":%.1f}",
       mode, g_streaming ? "true" : "false", connected ? "true" : "false", genlock_locked() ? "true" : "false",
       unexpected_reboot ? "true" : "false",
-      math_engine_get_position_mm(&encoders[0]), math_engine_get_position_mm(&encoders[1]),
-      math_engine_get_position_mm(&encoders[2]), (long)encoders[0].filtered_angle, (long)encoders[1].filtered_angle,
-      (long)encoders[2].filtered_angle, (unsigned long)stats.packets_sent, (unsigned long)stats.packets_dropped,
+      focus_mm, focus_valid ? "true" : "false", focus_inf ? "true" : "false",
+      iris_fstop, iris_valid ? "true" : "false",
+      zoom_mm, zoom_valid ? "true" : "false",
+      (long)encoders[0].filtered_angle, (long)encoders[1].filtered_angle, (long)encoders[2].filtered_angle,
+      (unsigned long)stats.packets_sent, (unsigned long)stats.packets_dropped,
       (unsigned long)network_get_uptime_seconds(), network_get_actual_fps());
 
   send_json(client, 200, "OK", body);
@@ -165,39 +200,72 @@ static void handle_status(WebContext *ctx, EthernetClient &client) {
 
 static void handle_encoders(WebContext *ctx, EthernetClient &client) {
   EncoderState *e = ctx->encoders;
-  char body[400];
+
+  float phys[3];
+  bool valid[3], inf[3];
+  for (int i = 0; i < 3; i++) {
+    get_phys_display(ctx->cal_data, i, e[i].filtered_angle, &phys[i], &valid[i], &inf[i]);
+  }
+
+  char body[500];
   snprintf(body, sizeof(body),
       "{\"encoders\":["
-      "{\"id\":0,\"name\":\"focus\",\"angle\":%ld,\"mm\":%.2f,\"enabled\":%s},"
-      "{\"id\":1,\"name\":\"iris\",\"angle\":%ld,\"fstop\":%.2f,\"enabled\":%s},"
-      "{\"id\":2,\"name\":\"zoom\",\"angle\":%ld,\"mm\":%.2f,\"enabled\":%s}"
+      "{\"id\":0,\"name\":\"focus\",\"angle\":%ld,\"mm\":%.2f,\"mm_valid\":%s,\"mm_infinite\":%s,\"enabled\":%s},"
+      "{\"id\":1,\"name\":\"iris\",\"angle\":%ld,\"fstop\":%.2f,\"fstop_valid\":%s,\"enabled\":%s},"
+      "{\"id\":2,\"name\":\"zoom\",\"angle\":%ld,\"mm\":%.2f,\"mm_valid\":%s,\"enabled\":%s}"
       "]}",
-      (long)e[0].filtered_angle, math_engine_get_position_mm(&e[0]), e[0].enabled ? "true" : "false",
-      (long)e[1].filtered_angle, math_engine_get_position_mm(&e[1]), e[1].enabled ? "true" : "false",
-      (long)e[2].filtered_angle, math_engine_get_position_mm(&e[2]), e[2].enabled ? "true" : "false");
+      (long)e[0].filtered_angle, phys[0], valid[0] ? "true" : "false", inf[0] ? "true" : "false",
+      e[0].enabled ? "true" : "false",
+      (long)e[1].filtered_angle, phys[1], valid[1] ? "true" : "false", e[1].enabled ? "true" : "false",
+      (long)e[2].filtered_angle, phys[2], valid[2] ? "true" : "false", e[2].enabled ? "true" : "false");
   send_json(client, 200, "OK", body);
 }
 
 static void handle_cal_status(WebContext *ctx, EthernetClient &client) {
   CalibrationSession *s = ctx->cal_session;
-  char body[300];
+
+  // calibration_validate can join multiple lines with real newlines, which
+  // isnt valid inside a json string, flatten to spaces before sending
+  char error_flat[256];
+  strncpy(error_flat, s->state == CAL_STATE_ERROR ? s->error_message : "", sizeof(error_flat) - 1);
+  error_flat[sizeof(error_flat) - 1] = '\0';
+  for (char *p = error_flat; *p; p++) {
+    if (*p == '\n' || *p == '"') *p = ' ';
+  }
+
+  char body[600];
   snprintf(body, sizeof(body),
-      "{\"state\":\"%s\",\"calibrated\":%s,\"focus_calibrated\":%s,\"iris_calibrated\":%s,"
-      "\"zoom_calibrated\":%s,\"lens_name\":\"%s\"}",
-      calibration_get_state_name(s->state), ctx->cal_data->valid ? "true" : "false",
+      "{\"state\":\"%s\",\"instructions\":\"%s\",\"progress\":%u,\"current_encoder\":%u,"
+      "\"calibrated\":%s,\"focus_calibrated\":%s,\"iris_calibrated\":%s,\"zoom_calibrated\":%s,"
+      "\"focus_wanted\":%s,\"iris_wanted\":%s,\"zoom_wanted\":%s,\"error\":\"%s\"}",
+      calibration_get_state_name(s->state), calibration_get_instructions(s->state), s->progress_percent,
+      s->current_encoder, ctx->cal_data->valid ? "true" : "false",
       s->temp_encoders[0].calibrated ? "true" : "false", s->temp_encoders[1].calibrated ? "true" : "false",
-      s->temp_encoders[2].calibrated ? "true" : "false", s->active_lens ? s->active_lens->name : "");
+      s->temp_encoders[2].calibrated ? "true" : "false", (s->encoder_wanted_mask & 1) ? "true" : "false",
+      (s->encoder_wanted_mask & 2) ? "true" : "false", (s->encoder_wanted_mask & 4) ? "true" : "false",
+      error_flat);
   send_json(client, 200, "OK", body);
 }
 
-static void handle_cal_start(WebContext *ctx, const char *query, EthernetClient &client) {
-  int preset = 10;
-  query_get_int(query, "preset", &preset);
+// which rings to calibrate is the operator's manual choice, not hardware
+// auto detection - a prime lens genuinely has no zoom ring to detect, and
+// spi absence detection (focus/zoom) isnt reliable enough to gate on
+// anyway, only i2c (iris) can tell "not connected" from "connected" for sure
+static void handle_cal_start(WebContext *ctx, const char *body, EthernetClient &client) {
+  bool want_focus = true, want_iris = true, want_zoom = true;
+  json_get_bool(body, "focus", &want_focus);
+  json_get_bool(body, "iris", &want_iris);
+  json_get_bool(body, "zoom", &want_zoom);
 
-  calibration_start_session(ctx->cal_session, ctx->cal_data);
-  calibration_select_preset(ctx->cal_session, preset, &g_active_profile);
-  uint8_t mask = 0;
-  calibration_detect_encoders(ctx->cal_session, &mask);
+  uint8_t mask = (want_focus ? 1 : 0) | (want_iris ? 2 : 0) | (want_zoom ? 4 : 0);
+  if (mask == 0) {
+    send_json(client, 200, "OK", "{\"success\":false,\"message\":\"select at least one encoder\"}");
+    return;
+  }
+
+  calibration_start_session(ctx->cal_session, ctx->cal_data, mask);
+  uint8_t detected = 0;
+  calibration_detect_encoders(ctx->cal_session, &detected);
 
   send_json(client, 200, "OK", "{\"success\":true}");
 }
@@ -205,7 +273,7 @@ static void handle_cal_start(WebContext *ctx, const char *query, EthernetClient 
 // reads the live continuously unwrapped position not a fresh raw read so
 // a multi turn gear ratio between calibration points is never lost see
 // architecture md for why this cant be a one shot encoder_read_angle
-static void handle_cal_point(WebContext *ctx, EthernetClient &client) {
+static void handle_cal_point(WebContext *ctx, const char *body, EthernetClient &client) {
   CalibrationSession *s = ctx->cal_session;
   EncoderState *enc = &ctx->encoders[s->current_encoder];
   if (enc->sample_count == 0) {
@@ -213,10 +281,18 @@ static void handle_cal_point(WebContext *ctx, EthernetClient &client) {
     return;
   }
 
-  int result = calibration_set_point(s, s->current_encoder, enc->unwrapped_angle);
-  char body[64];
-  snprintf(body, sizeof(body), "{\"success\":%s}", result == CAL_OK ? "true" : "false");
-  send_json(client, 200, "OK", body);
+  const char *completed_name = calibration_get_state_name(s->state);
+  float phys_value = 0.0f;
+  bool has_phys = json_get_float(body, "phys_value", &phys_value);
+
+  int result = calibration_set_point(s, s->current_encoder, enc->unwrapped_angle, has_phys, phys_value);
+
+  char out[350];
+  snprintf(out, sizeof(out),
+      "{\"success\":%s,\"completed\":\"%s\",\"state\":\"%s\",\"instructions\":\"%s\",\"progress\":%u}",
+      result == CAL_OK ? "true" : "false", completed_name, calibration_get_state_name(s->state),
+      calibration_get_instructions(s->state), s->progress_percent);
+  send_json(client, 200, "OK", out);
 }
 
 static void handle_cal_save(WebContext *ctx, EthernetClient &client) {
@@ -441,10 +517,7 @@ static void handle_ack_reboot(WebContext *ctx, EthernetClient &client) {
 
 static void dispatch(WebContext *ctx, const char *method, char *path, const char *body, EthernetClient &client) {
   char *query = strchr(path, '?');
-  if (query) {
-    *query = '\0';
-    query++;
-  }
+  if (query) *query = '\0';
 
   bool is_get = strcmp(method, "GET") == 0;
   bool is_post = strcmp(method, "POST") == 0;
@@ -458,9 +531,9 @@ static void dispatch(WebContext *ctx, const char *method, char *path, const char
   } else if (is_get && strcmp(path, "/api/calibration/status") == 0) {
     handle_cal_status(ctx, client);
   } else if (is_post && strcmp(path, "/api/calibration/start") == 0) {
-    handle_cal_start(ctx, query, client);
+    handle_cal_start(ctx, body, client);
   } else if (is_post && strcmp(path, "/api/calibration/set") == 0) {
-    handle_cal_point(ctx, client);
+    handle_cal_point(ctx, body, client);
   } else if (is_post && strcmp(path, "/api/calibration/save") == 0) {
     handle_cal_save(ctx, client);
   } else if (is_post && strcmp(path, "/api/calibration/stop") == 0) {

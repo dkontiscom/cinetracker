@@ -500,54 +500,76 @@ const char *web_content_index_html() {
             <h2>Quick Actions</h2>
             <div class='btn-group'>
                 <button class='btn btn-secondary' onclick='resetOvershoot()'>Reset Overshoot</button>
-                <button class='btn btn-secondary' onclick='zeroEncoders()'>Zero All</button>
             </div>
         </div>
     </div>
 
     <!-- Calibrate Tab -->
     <div id='tab-calibrate' class='tab-content'>
-        <div class='card'>
+        <div class='card' id='cal-setup'>
             <h2>Calibration Wizard</h2>
-            <div id='calibration-status' class='alert alert-warning'>Ready to calibrate</div>
+            <p style='color:var(--text-dim);font-size:0.85rem'>Not every lens has all three rings - turn off whichever this lens doesn't have.</p>
+            <div class='toggle-group'>
+                <span>Focus</span>
+                <label class='toggle'>
+                    <input type='checkbox' id='cal-want-focus' checked>
+                    <span class='toggle-slider'></span>
+                </label>
+            </div>
+            <div class='toggle-group'>
+                <span>Iris</span>
+                <label class='toggle'>
+                    <input type='checkbox' id='cal-want-iris' checked>
+                    <span class='toggle-slider'></span>
+                </label>
+            </div>
+            <div class='toggle-group'>
+                <span>Zoom</span>
+                <label class='toggle'>
+                    <input type='checkbox' id='cal-want-zoom' checked>
+                    <span class='toggle-slider'></span>
+                </label>
+            </div>
+            <button class='btn btn-primary' style='margin-top:1rem' onclick='startCalibration()'>Start Calibration</button>
+        </div>
 
-            <div class='calibration-step' id='step-1'>
+        <div class='card' id='cal-wizard' style='display:none'>
+            <h2>Calibration Wizard</h2>
+
+            <div class='calibration-step' id='cal-step-focus'>
                 <div class='step-header'>
-                    <span class='step-title'>1. Focus Limits</span>
-                    <span class='step-status' id='focus-status'>Not Set</span>
+                    <span class='step-title'>Focus</span>
+                    <span class='step-status' id='cal-step-focus-status'>-</span>
                 </div>
-                <div class='btn-group'>
-                    <button class='btn btn-secondary' onclick='setLimit("focus", "min")'>Set Near</button>
-                    <button class='btn btn-secondary' onclick='setLimit("focus", "mid")'>Set Mid</button>
-                    <button class='btn btn-secondary' onclick='setLimit("focus", "max")'>Set Far</button>
+            </div>
+            <div class='calibration-step' id='cal-step-iris'>
+                <div class='step-header'>
+                    <span class='step-title'>Iris</span>
+                    <span class='step-status' id='cal-step-iris-status'>-</span>
+                </div>
+            </div>
+            <div class='calibration-step' id='cal-step-zoom'>
+                <div class='step-header'>
+                    <span class='step-title'>Zoom</span>
+                    <span class='step-status' id='cal-step-zoom-status'>-</span>
                 </div>
             </div>
 
-            <div class='calibration-step' id='step-2'>
-                <div class='step-header'>
-                    <span class='step-title'>2. Iris Limits</span>
-                    <span class='step-status' id='iris-status'>Not Set</span>
-                </div>
-                <div class='btn-group'>
-                    <button class='btn btn-secondary' onclick='setLimit("iris", "min")'>Set Open</button>
-                    <button class='btn btn-secondary' onclick='setLimit("iris", "mid")'>Set Mid</button>
-                    <button class='btn btn-secondary' onclick='setLimit("iris", "max")'>Set Closed</button>
-                </div>
+            <div id='calibration-status' class='alert alert-warning' style='margin-top:1rem'>Ready to calibrate</div>
+
+            <div class='form-group' id='cal-phys-group'>
+                <label id='cal-phys-label'>Physical value (optional)</label>
+                <input type='number' step='any' id='cal-phys-value' placeholder='e.g. 850'>
             </div>
 
-            <div class='calibration-step' id='step-3'>
-                <div class='step-header'>
-                    <span class='step-title'>3. Zoom Limits</span>
-                    <span class='step-status' id='zoom-status'>Not Set</span>
-                </div>
-                <div class='btn-group'>
-                    <button class='btn btn-secondary' onclick='setLimit("zoom", "min")'>Set Wide</button>
-                    <button class='btn btn-secondary' onclick='setLimit("zoom", "mid")'>Set Mid</button>
-                    <button class='btn btn-secondary' onclick='setLimit("zoom", "max")'>Set Tele</button>
-                </div>
-            </div>
+            <button class='btn btn-primary' onclick='setCalPoint()'>Set</button>
+            <button class='btn btn-secondary' style='margin-top:0.75rem' onclick='abortCalibration()'>Abort</button>
+        </div>
 
-            <button class='btn btn-primary' onclick='saveCalibration()' style='margin-top: 1.5rem;'>Save Calibration</button>
+        <div class='card' id='cal-complete' style='display:none'>
+            <h2>Calibration Complete</h2>
+            <button class='btn btn-primary' onclick='saveCalibration()'>Save Calibration</button>
+            <button class='btn btn-secondary' style='margin-top:0.75rem' onclick='abortCalibration()'>Discard</button>
         </div>
     </div>
 
@@ -664,7 +686,6 @@ const char *web_content_index_html() {
         // Global state
         let currentTab = 'monitor';
         let isStreaming = false;
-        let calibrationData = {};
 
         // Tab switching
         function switchTab(tab) {
@@ -678,6 +699,8 @@ const char *web_content_index_html() {
             event.target.classList.add('active');
             document.getElementById('tab-' + tab).classList.add('active');
             currentTab = tab;
+
+            if (tab === 'calibrate') updateCalStatus();
         }
 
         // Real-time updates
@@ -697,11 +720,11 @@ const char *web_content_index_html() {
 
                     // Update encoder values
                     document.getElementById('focus-value').textContent =
-                        data.focus_mm ? data.focus_mm.toFixed(0) : '--';
+                        data.focus_mm_infinite ? '∞' : (data.focus_mm_valid ? data.focus_mm.toFixed(0) : '--');
                     document.getElementById('iris-value').textContent =
-                        data.iris_fstop ? 'T' + data.iris_fstop.toFixed(1) : '--';
+                        data.iris_fstop_valid ? 'T' + data.iris_fstop.toFixed(1) : '--';
                     document.getElementById('zoom-value').textContent =
-                        data.zoom_mm ? data.zoom_mm.toFixed(0) : '--';
+                        data.zoom_mm_valid ? data.zoom_mm.toFixed(0) : '--';
 
                     // Update frame rate
                     document.getElementById('frame-rate').textContent =
@@ -731,36 +754,128 @@ const char *web_content_index_html() {
         }
 
         // Calibration functions
-        function setLimit(encoder, limit) {
-            fetch('/api/calibration/set', {
+        function updateCalStatus() {
+            if (currentTab !== 'calibrate') return;
+
+            fetch('/api/calibration/status')
+                .then(r => r.json())
+                .then(data => {
+                    const setup = document.getElementById('cal-setup');
+                    const wizard = document.getElementById('cal-wizard');
+                    const complete = document.getElementById('cal-complete');
+
+                    if (data.state === 'Idle') {
+                        setup.style.display = '';
+                        wizard.style.display = 'none';
+                        complete.style.display = 'none';
+                        return;
+                    }
+
+                    if (data.state === 'Complete') {
+                        setup.style.display = 'none';
+                        wizard.style.display = 'none';
+                        complete.style.display = '';
+                        return;
+                    }
+
+                    setup.style.display = 'none';
+                    complete.style.display = 'none';
+                    wizard.style.display = '';
+
+                    const rings = [
+                        { id: 'focus', wanted: data.focus_wanted, calibrated: data.focus_calibrated, enc: 0 },
+                        { id: 'iris', wanted: data.iris_wanted, calibrated: data.iris_calibrated, enc: 1 },
+                        { id: 'zoom', wanted: data.zoom_wanted, calibrated: data.zoom_calibrated, enc: 2 },
+                    ];
+                    rings.forEach(ring => {
+                        const card = document.getElementById('cal-step-' + ring.id);
+                        const status = document.getElementById('cal-step-' + ring.id + '-status');
+                        if (!ring.wanted) {
+                            card.classList.add('inactive');
+                            status.textContent = 'Skipped';
+                        } else if (ring.calibrated) {
+                            card.classList.remove('inactive');
+                            status.textContent = 'Done';
+                        } else if (data.current_encoder === ring.enc) {
+                            card.classList.remove('inactive');
+                            status.textContent = 'In progress';
+                        } else {
+                            card.classList.add('inactive');
+                            status.textContent = 'Waiting';
+                        }
+                    });
+
+                    const statusEl = document.getElementById('calibration-status');
+                    if (data.state === 'Error') {
+                        statusEl.className = 'alert alert-error';
+                        statusEl.textContent = data.error || 'Calibration failed';
+                    } else {
+                        statusEl.className = 'alert alert-warning';
+                        statusEl.textContent = data.instructions + ' (' + data.progress + '%)';
+                    }
+
+                    // focus max is always infinity, never a typed value, so
+                    // that one step has no physical value input at all
+                    const physGroup = document.getElementById('cal-phys-group');
+                    physGroup.style.display = (data.state === 'Focus Maximum') ? 'none' : '';
+                    const isIris = data.current_encoder === 1;
+                    document.getElementById('cal-phys-label').textContent =
+                        'Physical value (optional, ' + (isIris ? 'f-stop' : 'mm') + ')';
+                })
+                .catch(() => {});
+        }
+
+        function startCalibration() {
+            const body = {
+                focus: document.getElementById('cal-want-focus').checked,
+                iris: document.getElementById('cal-want-iris').checked,
+                zoom: document.getElementById('cal-want-zoom').checked,
+            };
+            fetch('/api/calibration/start', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ encoder, limit })
+                body: JSON.stringify(body)
             })
             .then(r => r.json())
             .then(data => {
-                if (data.success) {
-                    calibrationData[encoder + '_' + limit] = data.value;
-                    document.getElementById(encoder + '-status').textContent = 'Set';
-                    document.getElementById(encoder + '-status').style.color = 'var(--primary)';
-                    showToast(`${encoder} ${limit} set to ${data.value}`, 'success');
-                } else {
-                    showToast(data.message, 'error');
+                if (!data.success) {
+                    showToast(data.message || 'could not start calibration', 'error');
+                    return;
                 }
+                updateCalStatus();
             });
+        }
+
+        function setCalPoint() {
+            const raw = document.getElementById('cal-phys-value').value;
+            const body = {};
+            if (raw !== '') body.phys_value = parseFloat(raw);
+
+            fetch('/api/calibration/set', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            })
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('cal-phys-value').value = '';
+                showToast((data.completed || 'point') + ' set', data.success ? 'success' : 'error');
+                updateCalStatus();
+            });
+        }
+
+        function abortCalibration() {
+            fetch('/api/calibration/stop', { method: 'POST' })
+                .then(r => r.json())
+                .then(() => updateCalStatus());
         }
 
         function saveCalibration() {
             fetch('/api/calibration/save', { method: 'POST' })
                 .then(r => r.json())
                 .then(data => {
-                    showToast(data.message, data.success ? 'success' : 'error');
-                    if (data.success) {
-                        // Reset calibration UI
-                        document.querySelectorAll('.step-status').forEach(el => {
-                            el.textContent = 'Saved';
-                        });
-                    }
+                    showToast(data.success ? 'Calibration saved' : 'Save failed', data.success ? 'success' : 'error');
+                    updateCalStatus();
                 });
         }
 
@@ -871,14 +986,6 @@ const char *web_content_index_html() {
                 });
         }
 
-        function zeroEncoders() {
-            fetch('/api/encoders/zero', { method: 'POST' })
-                .then(r => r.json())
-                .then(data => {
-                    showToast('Encoders zeroed', 'success');
-                });
-        }
-
         // System functions
         function confirmReboot() {
             if (confirm('Are you sure you want to reboot the system?')) {
@@ -958,6 +1065,7 @@ const char *web_content_index_html() {
             // Start status updates
             setInterval(updateStatus, 100);
             updateStatus();
+            setInterval(updateCalStatus, 500);
 
             // Handle modal close on background click
             document.getElementById('modal').onclick = function(e) {
