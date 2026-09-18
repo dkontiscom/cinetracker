@@ -368,6 +368,21 @@ Subsystems and what drives them:
   none, matching the old semantics, never exposed a per-filter-type
   choice), persisted the same way genlock fps is (filter.bin), applied
   at boot before sampling starts and live via math_engine_set_filter().
+
+  third audit pass (fresh agents, focused on everything touched by the
+  last two passes) found one real bug: calibration_start_session()
+  memset ctx->cal_data - the live/saved calibration the status page's
+  focus_mm/iris_fstop/zoom_mm readouts and calibrated flags come from -
+  immediately on pressing Start, not just on save. calibration_abort_
+  session() never restored it. so starting a calibration then aborting
+  instead of saving permanently wiped the status display until reboot,
+  even though the actual encoder state used for freed streaming was
+  untouched (that was set from storage once at boot, independent of
+  cal_data). fixed by not touching cal_data at all until an actual save
+  writes into it - the session only ever needed its own temp_encoders
+  during the wizard, no reason to touch the live struct before its
+  meant to change. version/timestamp stamping moved from start into the
+  save path too, same reasoning.
 - Status LEDs: built, see src/status_leds.cpp. pin 4 genlock/ptp lock, pin 5
   freed streaming active - not two copies of the same signal, each pin is
   its own real status now.

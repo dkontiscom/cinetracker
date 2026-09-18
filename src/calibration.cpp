@@ -54,8 +54,12 @@ int calibration_start_session(CalibrationSession *session, CalibrationData *resu
 
   Serial.println("Calibration: Starting new session");
 
+  // result (ctx->cal_data) is the live/saved calibration the status page
+  // reads from - it used to get memset here immediately on Start, wiping
+  // the display until reboot if the operator aborted instead of saving.
+  // only the session's own temp_encoders need clearing, result is left
+  // untouched until calibration_end_session actually saves into it
   memset(session, 0, sizeof(CalibrationSession));
-  memset(result, 0, sizeof(CalibrationData));
 
   session->state = CAL_STATE_DETECT_ENCODERS;
   session->previous_state = CAL_STATE_IDLE;
@@ -71,9 +75,6 @@ int calibration_start_session(CalibrationSession *session, CalibrationData *resu
     if (encoder_wanted_mask & (1 << ENCODER_ORDER[i])) session->total_steps += 3;
   }
 
-  result->version = 1;
-  result->timestamp = millis() / 1000;
-
   return CAL_OK;
 }
 
@@ -86,6 +87,7 @@ int calibration_end_session(CalibrationSession *session, bool save) {
     memcpy(session->result->encoders, session->temp_encoders, sizeof(session->temp_encoders));
 
     session->result->valid = 1;
+    session->result->version = 1;
     session->result->timestamp = millis() / 1000;
 
     session->result->total_score = 0;
