@@ -28,17 +28,25 @@ hardware yet, only build verified):
 6. [done, untested, moved up] Fleet web UI: auto discovery, read only
    status for multiple devices, camera ID conflict warnings. see item 1.
 
-Smaller things planned alongside the above, roughly where they fit best:
-encoder health diagnostics in the UI [not started], battery backed RTC
-for timecode continuity across brief dropouts [not started]. explicitly
-not doing: a watchdog that silently reboots and recovers on its own -
-if the device gets stuck during a take we want that to be visible and
-force a manual reboot, not hidden from whoever's running the shot.
-config backup/restore and fleet-wide firmware update are also explicitly
-not planned - updates and recovery need to happen carefully by hand on
-each device, not automated across a fleet. a separate human friendly
-device display name is also explicitly not wanted, camera id is the
-only device identity that matters.
+Explicitly not doing, all considered and rejected not just deferred:
+a watchdog that silently reboots and recovers on its own - if the device
+gets stuck during a take we want that to be visible and force a manual
+reboot, not hidden from whoever's running the shot. config backup/
+restore and fleet-wide firmware update - updates and recovery need to
+happen carefully by hand on each device, not automated across a fleet.
+a separate human friendly device display name - camera id is the only
+device identity that matters, and it already doubles as the number
+written on the enclosure. a physical calibration set-point button and a
+calibration lock - real field testing across three builds (esp32, pico,
+teensy) showed physical buttons cant give reliable confirmation, and the
+web ui's tab separation already prevents accidental calibration triggers
+without needing a lock. an "identify this device" feature - real studios
+run at most ~4 cameras, this only pays off at fleet scale this project
+will never reach. encoder health diagnostics in the UI - too much detail
+nobody asked for. a battery backed RTC for timecode continuity - doesnt
+actually help, genlock has no holdover of its own, so losing power kills
+sync completely regardless of whether timecode kept ticking through the
+gap, the take is unusable either way.
 
 7. [not started] Firmware updates from the web UI - upload a file, click
    update, done. the normal teensy update path needs the teensy loader
