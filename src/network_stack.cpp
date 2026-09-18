@@ -12,6 +12,8 @@ static IPAddress g_dest_ip;
 
 static uint32_t g_frame_interval_us = 0;
 static uint32_t g_next_frame_time = 0;
+static uint32_t g_last_process_us = 0;
+static bool g_have_last_process = false;
 static uint32_t g_last_frame_time = 0;
 static bool g_have_last_frame = false;
 
@@ -245,8 +247,21 @@ int network_send_freed(const FreedPacket *packet) {
 int network_process_frame(const EncoderState encoder_states[3]) {
   if (!g_initialized) return -1;
 
-  // signed diff trick so this still works wen micros wraps around
   uint32_t now = micros();
+
+  // not called for a while means streaming was off (or the loop stalled
+  // hard) and the schedule is meaningless: resync to now instead of
+  // trusting a next_frame_time left behind 36+ minutes ago - past 2^31us
+  // the signed diff below reads that as "not yet" and nothing went out
+  // for up to another 36 minutes while the ui said streaming. this also
+  // keeps a resume from being counted as a missed frame
+  if (!g_have_last_process || (now - g_last_process_us) > 2 * g_frame_interval_us) {
+    g_next_frame_time = now;
+  }
+  g_last_process_us = now;
+  g_have_last_process = true;
+
+  // signed diff trick so this still works when micros wraps around
   if ((int32_t)(now - g_next_frame_time) < 0) return 1;
 
   FreedPacket packet;

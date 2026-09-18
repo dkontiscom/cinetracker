@@ -69,8 +69,8 @@ int32_t median_filter(EncoderState *state, int32_t input);
 int32_t kalman_filter(EncoderState *state, int32_t measurement);
 
 void handle_boundary_overshoot(EncoderState *state, int32_t angle);
-void math_process_angle(EncoderState *state, uint16_t raw_angle);
-void process_encoder_sample(EncoderState *state, uint16_t raw_angle);
+void math_process_angle(EncoderState *state, uint16_t raw_angle, int32_t unwrapped_angle);
+void process_encoder_sample(EncoderState *state, uint16_t raw_angle, int32_t unwrapped_angle);
 
 uint16_t calculate_noise_floor(const uint16_t *samples, size_t count);
 

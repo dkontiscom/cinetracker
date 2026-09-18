@@ -1,4 +1,5 @@
 #include "encoder_driver.h"
+#include "math_engine.h"
 
 // public encoder_id stays 0 focus 1 iris 2 zoom everywhere else in the
 // codebase this array only covers the two spi ones index by g_spi_slot
@@ -22,8 +23,12 @@ static const SPISettings AS5048_SPI_SETTINGS(ENCODER_SPI_BAUDRATE, MSBFIRST, SPI
 static IntervalTimer g_sampling_timer;
 static volatile uint8_t g_active_mask = 0;
 static volatile uint16_t g_latest_angle[3] = {0, 0, 0};
+static volatile int32_t g_latest_unwrapped[3] = {0, 0, 0};
 static volatile bool g_latest_valid[3] = {false, false, false};
 static volatile uint32_t g_sample_count = 0;
+// previous post-deadband raw per encoder, only ever touched by that
+// encoder's own writer (isr for focus/zoom, encoder_process for iris)
+static uint16_t g_prev_raw[3] = {0, 0, 0};
 
 static uint32_t g_iris_sample_count = 0;
 static uint32_t g_iris_period_us = 1000;
@@ -86,6 +91,22 @@ static bool as5048b_present() {
   return Wire.endTransmission() == 0;
 }
 
+// the multi turn unwrap lives here, at the real sample rate, not in the
+// main loop. it used to run in math_process_angle at loop rate on
+// whatever the isr had last latched, so any loop stall longer than the
+// time to turn the shaft half a revolution (the 10s network reconfigure
+// did it easily) aliased a whole turn, and handle_boundary_overshoot
+// then quietly dragged the calibration window along to match. same
+// deadband and angle_distance math, just moved to where every sample is
+// actually seen
+static void accumulate(uint8_t i, uint16_t raw) {
+  raw = apply_deadband(raw, g_prev_raw[i], ENCODER_DEADBAND);
+  g_latest_unwrapped[i] += angle_distance(g_prev_raw[i], raw);
+  g_prev_raw[i] = raw;
+  g_latest_angle[i] = raw;
+  g_latest_valid[i] = true;
+}
+
 // only focus and zoom iris is polled from encoder_process() in the main
 // loop not in here see the header comment on encoder_process for why
 static void sampling_isr() {
@@ -96,10 +117,7 @@ static void sampling_isr() {
     if (!(g_active_mask & (1 << i))) continue;
 
     uint16_t response = as5048_read_register(g_spi_buses[k], AS5048_CMD_ANGLE | AS5048_READ_FLAG);
-    if (!(response & AS5048_EF_ERROR)) {
-      g_latest_angle[i] = response & 0x3FFF;
-      g_latest_valid[i] = true;
-    }
+    if (!(response & AS5048_EF_ERROR)) accumulate(i, response & 0x3FFF);
   }
   g_sample_count++;
 }
@@ -197,10 +215,12 @@ void encoder_process() {
   if (g_iris_since_read < g_iris_period_us) return;
   g_iris_since_read = 0;
 
+  // loop rate is iris's real sample rate (it's polled over i2c from here),
+  // so unlike focus/zoom a stall still costs it - inherent to i2c from
+  // the main loop, not something the isr move can fix
   uint16_t angle;
   if (as5048b_read_reg16(AS5048B_REG_ANGLE_MSB, &angle)) {
-    g_latest_angle[1] = angle;
-    g_latest_valid[1] = true;
+    accumulate(1, angle);
     g_iris_sample_count++;
   }
 }
@@ -225,17 +245,19 @@ bool encoder_read_angle(uint8_t encoder_id, uint16_t *angle) {
   return ok;
 }
 
-bool encoder_get_latest_sample(uint8_t encoder_id, uint16_t *angle, uint32_t *sample_count) {
-  if (encoder_id >= 3 || !angle) return false;
+bool encoder_get_latest_sample(uint8_t encoder_id, uint16_t *angle, int32_t *unwrapped, uint32_t *sample_count) {
+  if (encoder_id >= 3 || !angle || !unwrapped) return false;
 
   noInterrupts();
   bool valid = g_latest_valid[encoder_id];
   uint16_t value = g_latest_angle[encoder_id];
+  int32_t acc = g_latest_unwrapped[encoder_id];
   uint32_t count = (encoder_id == 1) ? g_iris_sample_count : g_sample_count;
   interrupts();
 
   if (!valid) return false;
   *angle = value;
+  *unwrapped = acc;
   if (sample_count) *sample_count = count;
   return true;
 }

@@ -93,13 +93,12 @@ void handle_boundary_overshoot(EncoderState *state, int32_t current_angle) {
   }
 }
 
-void math_process_angle(EncoderState *state, uint16_t raw_angle) {
-  raw_angle = apply_deadband(raw_angle, state->raw_angle, ENCODER_DEADBAND);
-
-  // this is the actual unwrap step delta rides along the real turns the
-  // gear can do so a multi turn gear ratio never loses track of position
-  int16_t delta = angle_distance(state->raw_angle, raw_angle);
-  state->unwrapped_angle += delta;
+void math_process_angle(EncoderState *state, uint16_t raw_angle, int32_t unwrapped_angle) {
+  // the unwrap itself happens in encoder_driver at the sample rate, see
+  // accumulate() there for why it cant live here at loop rate. delta is
+  // only for velocity now
+  int32_t delta = unwrapped_angle - state->unwrapped_angle;
+  state->unwrapped_angle = unwrapped_angle;
   state->raw_angle = normalize_angle_14bit(raw_angle);
 
   switch (state->filter_type) {
@@ -133,8 +132,8 @@ void math_process_angle(EncoderState *state, uint16_t raw_angle) {
   state->sample_count++;
 }
 
-void process_encoder_sample(EncoderState *state, uint16_t raw_angle) {
-  math_process_angle(state, raw_angle);
+void process_encoder_sample(EncoderState *state, uint16_t raw_angle, int32_t unwrapped_angle) {
+  math_process_angle(state, raw_angle, unwrapped_angle);
 }
 
 uint16_t calculate_noise_floor(const uint16_t *samples, size_t count) {

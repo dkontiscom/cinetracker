@@ -45,7 +45,9 @@ void encoder_stop_sampling();
 void encoder_process();
 
 bool encoder_read_angle(uint8_t encoder_id, uint16_t *angle);
-bool encoder_get_latest_sample(uint8_t encoder_id, uint16_t *angle, uint32_t *sample_count);
+// unwrapped is the multi turn position accumulated at the sample rate, the
+// raw 14 bit value wraps every revolution and is only kept for display
+bool encoder_get_latest_sample(uint8_t encoder_id, uint16_t *angle, int32_t *unwrapped, uint32_t *sample_count);
 
 int encoder_get_diagnostics(uint8_t encoder_id, uint16_t *agc, uint16_t *magnitude);
 int encoder_collect_calibration_samples(uint8_t encoder_id, uint16_t *samples, size_t count);

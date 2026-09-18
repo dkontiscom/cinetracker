@@ -124,8 +124,9 @@ void setup() {
 void loop() {
   for (int i = 0; i < 3; i++) {
     uint16_t angle;
-    if (encoder_get_latest_sample(i, &angle, nullptr)) {
-      process_encoder_sample(&g_encoders[i], angle);
+    int32_t unwrapped;
+    if (encoder_get_latest_sample(i, &angle, &unwrapped, nullptr)) {
+      process_encoder_sample(&g_encoders[i], angle, unwrapped);
     }
   }
 

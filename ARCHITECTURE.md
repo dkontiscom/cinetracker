@@ -575,6 +575,27 @@ Subsystems and what drives them:
   itself stays 4 slots (4ms of playout latency) on purpose - deepening
   it would ride out longer stalls at the cost of latency, a separate
   knob nobody has asked to turn.
+
+  data path pair from the same pass. the freed frame scheduler only
+  advanced next_frame_time while streaming, so after 36-72 minutes with
+  streaming off the signed micros() diff read the stale value as "not
+  yet" and nothing went out for up to another 36 minutes while the ui
+  said streaming. now network_process_frame resyncs to now whenever it
+  hasnt been called for over two frame intervals (streaming was off, or
+  a hard stall) - one mechanism, no hook into the web handler needed,
+  and a resume no longer counts as a missed frame either. and the multi
+  turn unwrap moved out of math_process_angle into encoder_driver: it
+  ran at loop rate on whatever the isr had last latched, so a loop stall
+  longer than half a shaft turn (the 10s network reconfigure did it
+  easily) aliased a whole revolution, and handle_boundary_overshoot then
+  quietly dragged the calibration window along to match - a permanent
+  offset until recalibration, with nothing visibly wrong. the isr now
+  accumulates the unwrapped int32 itself at 1khz (same deadband, same
+  angle_distance, just where every sample is actually seen) and the loop
+  reads it alongside the raw value. iris is the honest exception: its
+  polled over i2c from the loop, so loop rate is its sample rate and a
+  stall still costs it, thats inherent to i2c-from-the-loop not
+  something the move can fix.
 - Status LEDs: built, see src/status_leds.cpp. pin 4 genlock/ptp lock, pin 5
   freed streaming active - not two copies of the same signal, each pin is
   its own real status now.
