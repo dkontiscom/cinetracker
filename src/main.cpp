@@ -11,11 +11,25 @@
 #include "ptp_client.h"
 #include "genlock.h"
 #include "aes67.h"
+#include "status_leds.h"
+#include "reset_button.h"
 
 static EncoderState g_encoders[3];
 static CalibrationSession g_cal_session;
 static CalibrationData g_cal_data;
 static WebContext g_web_ctx;
+static bool g_unexpected_reboot = false;
+
+// dirty unless a previous boot proved otherwise a missing flag file (very
+// first boot ever) doesnt count as a crash theres nothing to compare to
+static void check_clean_shutdown() {
+  bool clean = false;
+  if (storage_load_clean_shutdown(&clean) == 0 && !clean) {
+    g_unexpected_reboot = true;
+    Serial.println("Main: previous shutdown was not clean flagging it");
+  }
+  storage_set_clean_shutdown(false);
+}
 
 static void load_saved_calibration() {
   if (storage_load_calibration(&g_cal_data) != 0) return;
@@ -39,6 +53,7 @@ void setup() {
   Serial.println("CineTracker starting");
 
   storage_init();
+  check_clean_shutdown();
 
   for (int i = 0; i < 3; i++) {
     math_engine_init_state(&g_encoders[i], i);
@@ -76,6 +91,10 @@ void setup() {
   g_web_ctx.encoders = g_encoders;
   g_web_ctx.cal_session = &g_cal_session;
   g_web_ctx.cal_data = &g_cal_data;
+  g_web_ctx.unexpected_reboot = &g_unexpected_reboot;
+
+  status_leds_init();
+  reset_button_init();
 
   Serial.println("CineTracker ready");
 }
@@ -97,4 +116,6 @@ void loop() {
   fleet_process();
   ptp_client_process();
   aes67_process();
+  status_leds_process();
+  reset_button_process();
 }

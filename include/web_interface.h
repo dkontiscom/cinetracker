@@ -12,6 +12,7 @@ struct WebContext {
   EncoderState *encoders;
   CalibrationSession *cal_session;
   CalibrationData *cal_data;
+  bool *unexpected_reboot;
 };
 
 int web_interface_init();

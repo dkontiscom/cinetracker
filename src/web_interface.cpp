@@ -10,6 +10,8 @@
 #include "web_content.h"
 #include "fleet.h"
 #include "aes67.h"
+#include "genlock.h"
+#include "storage.h"
 
 using namespace qindesign::network;
 
@@ -142,14 +144,17 @@ static void handle_status(WebContext *ctx, EthernetClient &client) {
   network_get_statistics(&stats);
 
   bool connected = encoders[0].enabled || encoders[1].enabled || encoders[2].enabled;
+  bool unexpected_reboot = ctx->unexpected_reboot && *ctx->unexpected_reboot;
 
   char body[512];
   snprintf(body, sizeof(body),
-      "{\"mode\":\"%s\",\"streaming\":%s,\"connected\":%s,"
+      "{\"mode\":\"%s\",\"streaming\":%s,\"connected\":%s,\"synced\":%s,"
+      "\"unexpected_reboot\":%s,"
       "\"focus_mm\":%.2f,\"iris_fstop\":%.2f,\"zoom_mm\":%.2f,"
       "\"focus_angle\":%ld,\"iris_angle\":%ld,\"zoom_angle\":%ld,"
       "\"frames_sent\":%lu,\"errors\":%lu,\"uptime\":%lu,\"fps\":%.1f}",
-      mode, g_streaming ? "true" : "false", connected ? "true" : "false",
+      mode, g_streaming ? "true" : "false", connected ? "true" : "false", genlock_locked() ? "true" : "false",
+      unexpected_reboot ? "true" : "false",
       math_engine_get_position_mm(&encoders[0]), math_engine_get_position_mm(&encoders[1]),
       math_engine_get_position_mm(&encoders[2]), (long)encoders[0].filtered_angle, (long)encoders[1].filtered_angle,
       (long)encoders[2].filtered_angle, (unsigned long)stats.packets_sent, (unsigned long)stats.packets_dropped,
@@ -376,11 +381,17 @@ static void handle_fleet(EthernetClient &client) {
 }
 
 static void handle_reboot(EthernetClient &client) {
+  storage_set_clean_shutdown(true);
   send_json(client, 200, "OK", "{\"success\":true}");
   client.flush();
   delay(100);
   // magic reset word for cortex m7 not teensy specific
   SCB_AIRCR = 0x05FA0004;
+}
+
+static void handle_ack_reboot(WebContext *ctx, EthernetClient &client) {
+  if (ctx->unexpected_reboot) *ctx->unexpected_reboot = false;
+  send_json(client, 200, "OK", "{\"success\":true}");
 }
 
 static void dispatch(WebContext *ctx, const char *method, char *path, const char *body, EthernetClient &client) {
@@ -431,6 +442,8 @@ static void dispatch(WebContext *ctx, const char *method, char *path, const char
     handle_aes67_set(body, client);
   } else if (is_post && strcmp(path, "/api/system/reboot") == 0) {
     handle_reboot(client);
+  } else if (is_post && strcmp(path, "/api/system/ack_reboot") == 0) {
+    handle_ack_reboot(ctx, client);
   } else {
     send_json(client, 404, "Not Found", "{\"error\":\"not found\"}");
   }

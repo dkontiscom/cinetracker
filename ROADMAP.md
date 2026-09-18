@@ -27,13 +27,8 @@ hardware yet, only build verified):
    status for multiple devices, camera ID conflict warnings. see item 1.
 
 Smaller things planned alongside the above, roughly where they fit best:
-encoder health diagnostics in the UI [not started], status LEDs for
-genlock/PTP lock state [not started], battery backed RTC for timecode
-continuity across brief dropouts [not started], one clear ok/not-ok
-status readout in the web ui and on the physical leds instead of raw
-numbers someone has to interpret [not started], physical factory reset
-button (hold to confirm, pin 6) for when settings got messed up or the
-device moves to a different studio's network [not started]. explicitly
+encoder health diagnostics in the UI [not started], battery backed RTC
+for timecode continuity across brief dropouts [not started]. explicitly
 not doing: a watchdog that silently reboots and recovers on its own -
 if the device gets stuck during a take we want that to be visible and
 force a manual reboot, not hidden from whoever's running the shot.
@@ -52,6 +47,9 @@ each device, not automated across a fleet.
    a drop in though, needs real integration work and a better safety
    story than "type this number to confirm" before it touches a unit at
    a studio.
+8. [done, untested] Status LEDs (genlock/ptp lock, freed streaming active)
+   and a physical factory reset button (hold 5s to confirm) for wrong
+   settings or moving to a different studio's network.
 
 This week (starting 2026-09-16) is a sprint to get the repo public ready
 with at least the basics working, which pieces count as "basics" is still

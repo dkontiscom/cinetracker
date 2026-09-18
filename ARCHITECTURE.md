@@ -233,7 +233,24 @@ Subsystems and what drives them:
   math_engine.cpp (handle_boundary_overshoot, process_encoder_sample,
   math_engine_apply_calibration, math_engine_validate_calibration) and
   network_stack.cpp (all three freed normalization blocks).
-- Status LEDs (genlock lock / ptp sync): pins 4 and 5 reserved, not built yet.
+- Status LEDs: built, see src/status_leds.cpp. pin 4 genlock/ptp lock, pin 5
+  freed streaming active - not two copies of the same signal, each pin is
+  its own real status now.
+- Reset button: built, see src/reset_button.cpp. pin 6, active low, has to
+  be held 5s not tapped so bumping it on set cant wipe a device mid shoot,
+  reuses the same SCB_AIRCR reboot handle_reboot() already used.
+
+  unexpected reboot flag: a single byte file (bootflag.bin) written false
+  at the start of every boot and true only right before a deliberate
+  reset (web ui reboot or the reset button). if a boot finds it still
+  false that means the previous session never got to mark itself clean -
+  crash or power loss not a normal restart - and the web ui shows a
+  banner for it under System until someone clicks Acknowledge. no
+  watchdog silently recovers from this on purpose, see roadmap for why,
+  this is the visible version of the same idea. acknowledging only
+  clears the in memory flag for the current session, a genuinely new
+  unexpected reboot re-flags it fresh from the persisted bit regardless
+  of whether the last one was ever acknowledged.
 - Web UI / fleet discovery: runs in loop(), non blocking. read only fleet
   view is the baseline, per device control if it turns out to be easy.
 
@@ -243,9 +260,9 @@ none found:
     Zoom encoder  (as5048a)  SPI1  sck 27  mosi 26  miso 1   cs 0
     Iris encoder  (as5048b)  I2C   sda 18  scl 19
     Genlock output                bit0 2  bit1 3
-    Status LEDs                   genlock/ptp lock 4, 5 (reserved not built)
+    Status LEDs                   genlock/ptp lock 4, freed streaming 5
     Audio (i2s)                   mclk 23  bclk 21  lrclk 20  dac data 7  adc data 8
-    Factory reset button          pin 6 (reserved not built)
+    Factory reset button          pin 6 hold 5s to confirm
     Ethernet                      native teensy 4.1 rj45, fixed by the board itself
                                   not something we assign, ptp uses it directly
 so pin 13 doubles as the teensy onboard led (fine, external leds used

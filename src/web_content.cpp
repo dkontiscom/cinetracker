@@ -450,6 +450,9 @@ const char *web_content_index_html() {
     <div class='header'>
         <h1>
             <span>CineTracker</span>
+            <span style='font-size:0.7rem;color:var(--text-dim);margin-left:auto;margin-right:0.3rem'>sync</span>
+            <span class='status-indicator' id='sync-indicator'></span>
+            <span style='font-size:0.7rem;color:var(--text-dim);margin-left:0.6rem;margin-right:0.3rem'>link</span>
             <span class='status-indicator' id='status-indicator'></span>
         </h1>
     </div>
@@ -610,6 +613,10 @@ const char *web_content_index_html() {
 
         <div class='card'>
             <h2>System</h2>
+            <div id='unexpected-reboot-banner' style='display:none;background:var(--danger);color:#fff;padding:10px;border-radius:8px;margin-bottom:10px'>
+                Device restarted unexpectedly last time (crash or power loss not a normal reboot)
+                <button class='btn btn-secondary' style='margin-top:8px' onclick='ackUnexpectedReboot()'>Acknowledge</button>
+            </div>
             <div class='toggle-group'>
                 <span>Filter Enabled</span>
                 <label class='toggle'>
@@ -668,6 +675,10 @@ const char *web_content_index_html() {
                     document.getElementById('status-indicator').className =
                         'status-indicator ' + (data.connected ? 'connected' : '');
 
+                    // Update sync indicator
+                    document.getElementById('sync-indicator').className =
+                        'status-indicator ' + (data.synced ? 'connected' : '');
+
                     // Update encoder values
                     document.getElementById('focus-value').textContent =
                         data.focus_mm ? data.focus_mm.toFixed(0) : '--';
@@ -688,6 +699,7 @@ const char *web_content_index_html() {
                 })
                 .catch(err => {
                     document.getElementById('status-indicator').className = 'status-indicator';
+                    document.getElementById('sync-indicator').className = 'status-indicator';
                 });
         }
 
@@ -835,6 +847,22 @@ const char *web_content_index_html() {
             }
         }
 
+        function checkUnexpectedReboot() {
+            fetch('/api/status')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('unexpected-reboot-banner').style.display =
+                        data.unexpected_reboot ? 'block' : 'none';
+                });
+        }
+
+        function ackUnexpectedReboot() {
+            fetch('/api/system/ack_reboot', { method: 'POST' })
+                .then(() => {
+                    document.getElementById('unexpected-reboot-banner').style.display = 'none';
+                });
+        }
+
         // Toast notifications
         function showToast(message, type = 'info') {
             const toast = document.createElement('div');
@@ -879,6 +907,7 @@ const char *web_content_index_html() {
                 });
 
             loadAes67Status();
+            checkUnexpectedReboot();
 
             // Start status updates
             setInterval(updateStatus, 100);

@@ -59,3 +59,17 @@ int storage_factory_reset(uint32_t confirm) {
   if (!g_fs.quickFormat()) return -1;
   return storage_init();
 }
+
+int storage_load_clean_shutdown(bool *clean) {
+  if (!g_fs_ready || !clean) return -1;
+  uint8_t val = 0;
+  if (!read_file("bootflag.bin", &val, sizeof(val))) return -1;
+  *clean = (val != 0);
+  return 0;
+}
+
+int storage_set_clean_shutdown(bool clean) {
+  if (!g_fs_ready) return -1;
+  uint8_t val = clean ? 1 : 0;
+  return write_file("bootflag.bin", &val, sizeof(val)) ? 0 : -1;
+}
