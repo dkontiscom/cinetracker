@@ -7,6 +7,7 @@ using namespace qindesign::network;
 
 static l3PTP g_ptp(false, true, false);
 static bool g_started = false;
+static bool g_link_up = false;
 
 static double g_frame_duration;
 static int64_t g_jump_threshold;
@@ -17,6 +18,7 @@ static PtpInterruptCallback g_updater;
 
 static void on_link(bool state) {
   Serial.printf("Ptp: link %s\n", state ? "up" : "down");
+  g_link_up = state;
   if (state && !g_started) {
     g_ptp.begin(g_frame_duration, g_jump_threshold, g_rate_limit, g_clock_update_rate, g_blocker,
                 g_updater, false);
@@ -54,8 +56,14 @@ void ptp_client_process() {
   if (g_started) g_ptp.update();
 }
 
+// lockcount alone froze at its last value the moment syncs stopped, so a
+// pulled cable or a vanished master read as locked forever - the lock led
+// stayed on and the genlock status kept saying synced. link state makes
+// a cable pull show instantly, the staleness check catches a master that
+// went away with the link still up
 bool ptp_client_locked() {
-  return g_started && g_ptp.getLockCount() > PTP_LOCK_THRESHOLD;
+  return g_started && g_link_up && g_ptp.getLockCount() > PTP_LOCK_THRESHOLD &&
+         g_ptp.msSinceUpdate() < PTP_STALE_MS;
 }
 
 int64_t ptp_client_offset_ns() {

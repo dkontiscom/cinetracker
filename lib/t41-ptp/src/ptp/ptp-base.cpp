@@ -412,6 +412,11 @@ int PTPBase::getLockCount()
 	return lockcount;
 }
 
+uint32_t PTPBase::msSinceUpdate() const
+{
+	return sincePTPUpdate;
+}
+
 void PTPBase::updateTimer()
 {
     if (logging >= 2)

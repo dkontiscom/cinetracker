@@ -27,7 +27,12 @@ static AudioConnection_F32 g_conn_out(g_play_queue, 0, g_i2s_out, 0);
 static Aes67Direction g_direction = AES67_OFF;
 static Aes67Config g_config;
 
-static EthernetUDP g_rtp_socket;
+// default queue depth is 1 packet: with 1ms packets, any loop iteration
+// longer than that (a web request, a flash write) dropped everything but
+// the newest at the socket, before the jitter buffer ever saw it. 8 parks
+// an 8ms stall's worth to be drained afterwards
+#define AES67_RX_QUEUE_DEPTH 8
+static EthernetUDP g_rtp_socket(AES67_RX_QUEUE_DEPTH);
 static EthernetUDP g_sap_socket;
 static IPAddress g_dest_ip;
 static IPAddress g_sap_ip(AES67_SAP_ADDR_A, AES67_SAP_ADDR_B, AES67_SAP_ADDR_C, AES67_SAP_ADDR_D);
@@ -135,13 +140,15 @@ static void process_tx() {
   }
 }
 
-static void process_rx() {
+// one packet, false only when the socket had nothing left
+static bool process_rx_one() {
   int size = g_rtp_socket.parsePacket();
-  if (size < 12) return;
+  if (size <= 0) return false;
+  if (size < 12) return true;
 
   uint8_t packet[12 + AES67_SAMPLES_PER_PACKET * 3];
   int len = g_rtp_socket.read(packet, sizeof(packet));
-  if (len < 12) return;
+  if (len < 12) return true;
 
   uint16_t seq = (packet[2] << 8) | packet[3];
 
@@ -170,6 +177,16 @@ static void process_rx() {
       g_playout_primed = true;
       g_last_playout_us = micros();
     }
+  }
+  return true;
+}
+
+// drains whatever the socket queued, not one per loop - reading one per
+// iteration meant a stall's backlog could never catch up, it just kept
+// overflowing the queue one packet at a time
+static void process_rx() {
+  for (int i = 0; i < AES67_RX_QUEUE_DEPTH; i++) {
+    if (!process_rx_one()) break;
   }
 }
 

@@ -556,6 +556,25 @@ Subsystems and what drives them:
   for a clock we know nothing about, and the version bumps when it
   appears. a=recvonly added too, matching what dante's own sdp carries.
   the buffer grew 256->320 for the extra lines.
+
+  two more from the same pass. genlock_locked() reported locked forever
+  once syncs stopped: the lib's lockcount only moves when a sync
+  exchange arrives, so a pulled cable or a vanished master left it
+  frozen at whatever it was - lock led on, status page saying synced,
+  nothing true about either. the lib has its own ms-since-last-update
+  timer it never exposed (it uses >1100ms as stale internally), one
+  getter added, and ptp_client_locked() now also wants link up and an
+  update inside PTP_STALE_MS (5s, clear of a 2s sync interval). cable
+  pull unlocks instantly via the link callback, a master gone with the
+  link still up unlocks within seconds. and the rtp receive socket had
+  qnethernet's default queue depth of 1 packet, with process_rx pulling
+  one per loop() - so any iteration longer than 1ms (web request, flash
+  write) dropped everything but the newest at the socket, before the
+  jitter buffer ever saw it, and a backlog could never catch up. queue
+  is 8 deep now and process_rx drains it each loop. the jitter buffer
+  itself stays 4 slots (4ms of playout latency) on purpose - deepening
+  it would ride out longer stalls at the cost of latency, a separate
+  knob nobody has asked to turn.
 - Status LEDs: built, see src/status_leds.cpp. pin 4 genlock/ptp lock, pin 5
   freed streaming active - not two copies of the same signal, each pin is
   its own real status now.

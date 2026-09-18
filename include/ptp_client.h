@@ -4,6 +4,10 @@
 
 // >5 is the libs own convention for locked not something we picked
 #define PTP_LOCK_THRESHOLD 5
+// no sync exchange for this long means the master is gone, not a hiccup.
+// the lib itself treats >1100ms as stale but that assumes a 1s sync
+// interval, masters go up to 2s, so this sits well clear of that
+#define PTP_STALE_MS 5000
 
 typedef void (*PtpInterruptCallback)();
 

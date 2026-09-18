@@ -26,6 +26,10 @@ public:
     // one has arrived. cinetracker addition, the aes67 sdp needs it for a
     // real a=ts-refclk line
     bool getMasterIdentity(uint8_t id[8], uint8_t &domain) const;
+    // ms since the servo last got a full sync exchange. lockcount only
+    // moves when one arrives, so on its own it freezes at whatever it was
+    // when the master went away. cinetracker addition
+    uint32_t msSinceUpdate() const;
 
 protected:
     virtual void initSockets()=0;
