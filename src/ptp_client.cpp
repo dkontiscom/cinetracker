@@ -15,6 +15,15 @@ static double g_clock_update_rate;
 static PtpInterruptCallback g_blocker;
 static PtpInterruptCallback g_updater;
 
+static void on_link(bool state) {
+  Serial.printf("Ptp: link %s\n", state ? "up" : "down");
+  if (state && !g_started) {
+    g_ptp.begin(g_frame_duration, g_jump_threshold, g_rate_limit, g_clock_update_rate, g_blocker,
+                g_updater, false);
+    g_started = true;
+  }
+}
+
 int ptp_client_init(double frame_duration_ns, int64_t jump_threshold_ns,
                      double rate_limit_per_update, double clock_update_rate_hz,
                      PtpInterruptCallback interrupt_blocker, PtpInterruptCallback update_interrupt) {
@@ -28,14 +37,15 @@ int ptp_client_init(double frame_duration_ns, int64_t jump_threshold_ns,
   EthernetIEEE1588.begin();
 
   // only one onLinkState slot exists in qnethernet dont register a 2nd one elsewhere
-  Ethernet.onLinkState([](bool state) {
-    Serial.printf("Ptp: link %s\n", state ? "up" : "down");
-    if (state && !g_started) {
-      g_ptp.begin(g_frame_duration, g_jump_threshold, g_rate_limit, g_clock_update_rate, g_blocker,
-                  g_updater, false);
-      g_started = true;
-    }
-  });
+  Ethernet.onLinkState(on_link);
+
+  // the callback is change-only, qnethernet just stores the pointer and
+  // never replays the current state. network_stack_init runs before us
+  // and blocks in a 10s dhcp wait that services the link, so with a cable
+  // plugged at boot the up edge fires before anyone is listening and ptp
+  // never started - genlock never locked, only an unplug/replug woke it.
+  // static ip was a race not a guarantee. so check now, once, by hand
+  on_link(Ethernet.linkState());
 
   return 0;
 }

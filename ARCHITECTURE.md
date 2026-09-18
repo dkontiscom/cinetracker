@@ -494,6 +494,22 @@ Subsystems and what drives them:
   live apply hanging off "ok" that would have applied stale data), and
   apply_calibration clears the overshoot flag so a fresh window starts
   clean.
+
+  third of the four: ptp never started if the cable was plugged in at
+  boot. ptp_client_init registers qnethernet's onLinkState callback to
+  call g_ptp.begin() on link up, but that callback is change-only (the
+  library just stores the pointer, checked in QNEthernet.h, no replay of
+  the current state) and network_stack_init runs first and blocks in a
+  10s dhcp wait that services the link - so the up edge fired during
+  that wait, before anyone was listening, g_started stayed false, and
+  genlock never locked. only an unplug/replug rescued it, and static ip
+  was a race not a fix. now the begin logic is a named function that's
+  both registered as the callback and called once by hand right after
+  with Ethernet.linkState(), so an edge that already went by is caught.
+  a link that drops and comes back after ptp is running still doesnt
+  re-begin (begin is once per boot by design, same reason genlock fps
+  needs a reboot) - what genlock_locked() reports across a link loss is
+  a separate open item from the same audit.
 - Status LEDs: built, see src/status_leds.cpp. pin 4 genlock/ptp lock, pin 5
   freed streaming active - not two copies of the same signal, each pin is
   its own real status now.
