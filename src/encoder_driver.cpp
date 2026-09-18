@@ -30,6 +30,14 @@ static volatile uint32_t g_sample_count = 0;
 // encoder's own writer (isr for focus/zoom, encoder_process for iris)
 static uint16_t g_prev_raw[3] = {0, 0, 0};
 
+// spi error flag state per encoder (index 1 unused, iris is i2c). written
+// by the isr, the transition report is printed from the main loop
+static volatile bool g_error_active[3] = {false, false, false};
+static uint32_t g_error_clear_at[3] = {0, 0, 0};
+static volatile uint32_t g_error_count[3] = {0, 0, 0};
+static volatile uint8_t g_error_reg[3] = {0, 0, 0};
+static bool g_error_reported[3] = {false, false, false};
+
 static uint32_t g_iris_sample_count = 0;
 static uint32_t g_iris_period_us = 1000;
 static elapsedMicros g_iris_since_read = 0;
@@ -58,6 +66,27 @@ static uint16_t as5048_transfer(const EncoderBus &bus, uint16_t tx) {
 static uint16_t as5048_read_register(const EncoderBus &bus, uint16_t command) {
   as5048_transfer(bus, as5048_calculate_parity(command));
   return as5048_transfer(bus, AS5048_CMD_NOP);
+}
+
+// the error flag is latched. datasheet DS000298 v1-11 p19, verbatim: "if
+// the error flag is set to high because of a communication problem the
+// flag remains set until it will be cleared by the CLEAR ERROR FLAG
+// command". every frame after one glitch (a connector wiggle, a parity
+// hit, the encoder powering up a moment after the first isr frame) came
+// back with EF set, got discarded, and that ring froze silently for
+// good - nothing issued the clear. the clear is itself a read of 0x0001,
+// its response carries the error register, and the read after that is
+// clean again. rate limited so an unplugged encoder (floating miso reads
+// as EF every tick) doesnt cost a clear every millisecond forever
+static void as5048_clear_error(uint8_t bus_slot, uint8_t encoder_id) {
+  if (g_error_active[encoder_id] && (g_sample_count - g_error_clear_at[encoder_id]) < 1000) return;
+  uint16_t err = as5048_read_register(g_spi_buses[bus_slot], AS5048_CMD_CLEAR_ERROR | AS5048_READ_FLAG);
+  g_error_clear_at[encoder_id] = g_sample_count;
+  if (!g_error_active[encoder_id]) {
+    g_error_active[encoder_id] = true;
+    g_error_count[encoder_id]++;
+    g_error_reg[encoder_id] = err & 0x07;
+  }
 }
 
 // iris as5048b over i2c register pairs are high byte then low 6 bits same
@@ -117,7 +146,12 @@ static void sampling_isr() {
     if (!(g_active_mask & (1 << i))) continue;
 
     uint16_t response = as5048_read_register(g_spi_buses[k], AS5048_CMD_ANGLE | AS5048_READ_FLAG);
-    if (!(response & AS5048_EF_ERROR)) accumulate(i, response & 0x3FFF);
+    if (!(response & AS5048_EF_ERROR)) {
+      accumulate(i, response & 0x3FFF);
+      g_error_active[i] = false;
+    } else {
+      as5048_clear_error(k, i);
+    }
   }
   g_sample_count++;
 }
@@ -134,6 +168,10 @@ int encoder_driver_init() {
   SPI1.begin();
   Wire.begin();
   Wire.setClock(400000);
+
+  // whatever the chips latched during power up, start clean
+  as5048_read_register(g_spi_buses[0], AS5048_CMD_CLEAR_ERROR | AS5048_READ_FLAG);
+  as5048_read_register(g_spi_buses[1], AS5048_CMD_CLEAR_ERROR | AS5048_READ_FLAG);
 
   Serial.println("Encoder: Driver initialized");
   return 0;
@@ -211,6 +249,22 @@ void encoder_stop_sampling() {
 }
 
 void encoder_process() {
+  // error/recovery transitions for the spi encoders, printed here not in
+  // the isr. visible, not silent, and not a diagnostics ui either
+  static const uint8_t spi_ids[2] = {0, 2};
+  for (uint8_t k = 0; k < 2; k++) {
+    uint8_t i = spi_ids[k];
+    bool active = g_error_active[i];
+    if (active && !g_error_reported[i]) {
+      Serial.printf("Encoder: %s spi error flag set (error register 0x%X, count %lu), clearing\n",
+                    i == 0 ? "focus" : "zoom", g_error_reg[i], (unsigned long)g_error_count[i]);
+      g_error_reported[i] = true;
+    } else if (!active && g_error_reported[i]) {
+      Serial.printf("Encoder: %s spi reads clean again\n", i == 0 ? "focus" : "zoom");
+      g_error_reported[i] = false;
+    }
+  }
+
   if (!(g_active_mask & (1 << 1))) return;
   if (g_iris_since_read < g_iris_period_us) return;
   g_iris_since_read = 0;
@@ -238,7 +292,13 @@ bool encoder_read_angle(uint8_t encoder_id, uint16_t *angle) {
   } else {
     uint16_t response = as5048_read_register(g_spi_buses[g_spi_slot(encoder_id)], AS5048_CMD_ANGLE | AS5048_READ_FLAG);
     ok = !(response & AS5048_EF_ERROR);
-    if (ok) *angle = response & 0x3FFF;
+    if (ok) {
+      *angle = response & 0x3FFF;
+    } else {
+      // same latch, same clear - so calibration detection self heals on
+      // the next attempt instead of failing forever after one glitch
+      as5048_read_register(g_spi_buses[g_spi_slot(encoder_id)], AS5048_CMD_CLEAR_ERROR | AS5048_READ_FLAG);
+    }
   }
 
   g_active_mask = saved_mask;

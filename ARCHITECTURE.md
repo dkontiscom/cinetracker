@@ -643,6 +643,29 @@ Subsystems and what drives them:
   content-length is now only looked for inside the headers and at a line
   start, the old scan ran over the whole buffer and matched mid line, so
   a body containing the text could set it.
+
+  the as5048a error flag, from the same pass, checked against the real
+  datasheet before touching it (DS000298 v1-11, fetched to the scratchpad
+  and text-extracted, no poppler here). page 19 verbatim: "if the error
+  flag is set to high because of a communication problem the flag remains
+  set until it will be cleared by the CLEAR ERROR FLAG command". latched,
+  in other words. the isr discarded every frame with EF set and nothing
+  ever issued the clear, so one glitch - a connector wiggle, a parity hit,
+  the encoder powering up a moment after the first isr frame - meant
+  every frame after it carried EF, got discarded, and that ring froze
+  silently for good (encoder_read_angle failed forever too, so
+  calibration detection couldnt recover it either). the clear is itself
+  a read of register 0x0001: per the datasheet's sequence its response
+  carries the error register content, and the read after that is clean.
+  now the isr issues it on an EF frame, rate limited to once a second
+  while errors persist so an unplugged encoder (floating miso reads as EF
+  every tick) doesnt cost a clear every millisecond forever, and marks
+  the ring clean again on the next good frame. encoder_read_angle does
+  the same so detection self heals, and init clears both chips once for
+  whatever they latched during power up. error and recovery transitions
+  are printed from the main loop (never from the isr) with the error
+  register value and a running count - visible not silent, but no
+  diagnostics ui, that was explicitly not wanted.
 - Status LEDs: built, see src/status_leds.cpp. pin 4 genlock/ptp lock, pin 5
   freed streaming active - not two copies of the same signal, each pin is
   its own real status now.
