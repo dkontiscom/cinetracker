@@ -510,6 +510,26 @@ Subsystems and what drives them:
   re-begin (begin is once per boot by design, same reason genlock fps
   needs a reboot) - what genlock_locked() reports across a link loss is
   a separate open item from the same audit.
+
+  fourth of the four: aes67 receive could never hear a multicast stream.
+  the rtp socket was bound with a plain begin(port), a unicast bind -
+  lwip has igmp on and drops multicast for any group the interface hasnt
+  joined (and the mac hash filter rejects it before lwip even sees it),
+  so LTC_OUT mode received nothing, ever, at the default 239.x
+  destination. now bind_rtp_socket() uses beginMulticast() (which does
+  the joinGroup) when the destination is a multicast address and a plain
+  bind otherwise, so a unicast destination still works. the join is by
+  destination type not direction: direction can flip at runtime, and a
+  socket sitting in a group costs nothing in transmit mode, so theres
+  one bind path instead of two. one subtlety checked in the library
+  source: stop() only removes the pcb, the group membership lives on the
+  netif and is ref counted, so changing destination now explicitly
+  leaveGroup()s the old address first - and an ip only change (same
+  port) now rebinds too, it used to skip that, which was fine for
+  unicast but is exactly the wrong thing when the group itself is what
+  changed. still open from the same audit and adjacent to this: the
+  socket's receive queue depth is 1, so any loop iteration over 1ms
+  drops packets before the jitter buffer ever sees them.
 - Status LEDs: built, see src/status_leds.cpp. pin 4 genlock/ptp lock, pin 5
   freed streaming active - not two copies of the same signal, each pin is
   its own real status now.

@@ -210,6 +210,24 @@ static void send_sap_announce() {
   g_sap_socket.endPacket();
 }
 
+static bool is_multicast(const uint8_t ip[4]) {
+  return ip[0] >= 224 && ip[0] <= 239;
+}
+
+// a plain begin(port) is a unicast bind - lwip has igmp on and drops
+// multicast for any group the netif hasnt joined, and the mac hash filter
+// rejects it even earlier, so LTC_OUT mode heard nothing at all, ever.
+// the join is by destination type not direction on purpose: direction can
+// flip at runtime and a socket already sitting in the group costs nothing
+// in transmit mode (process_rx isnt called then anyway), so theres no
+// second rebind path to get wrong
+static int bind_rtp_socket() {
+  uint8_t ok = is_multicast(g_config.dest_ip)
+      ? g_rtp_socket.beginMulticast(g_dest_ip, g_config.dest_port)
+      : g_rtp_socket.begin(g_config.dest_port);
+  return ok ? 0 : -1;
+}
+
 int aes67_init(const Aes67Config *config) {
   g_config = *config;
   g_dest_ip = IPAddress(g_config.dest_ip[0], g_config.dest_ip[1], g_config.dest_ip[2], g_config.dest_ip[3]);
@@ -219,7 +237,7 @@ int aes67_init(const Aes67Config *config) {
 
   g_record_queue.begin();
 
-  if (g_rtp_socket.begin(g_config.dest_port) == 0) {
+  if (bind_rtp_socket() != 0) {
     Serial.println("Aes67: rtp socket begin failed");
     return -1;
   }
@@ -246,16 +264,24 @@ Aes67Direction aes67_get_direction() {
 }
 
 int aes67_set_destination(const uint8_t ip[4], uint16_t port) {
+  bool changed = memcmp(g_config.dest_ip, ip, 4) != 0 || port != g_config.dest_port;
+  if (!changed) return 0;
+
+  // stop() only removes the pcb - the group membership lives on the netif
+  // and is ref counted (checked in QNEthernetUDP.cpp), so the old group has
+  // to be left by hand or joins pile up across destination changes. an ip
+  // change used to skip the rebind entirely, fine for unicast, wrong for
+  // multicast where the group itself is what changed
+  if (is_multicast(g_config.dest_ip)) Ethernet.leaveGroup(g_dest_ip);
+  g_rtp_socket.stop();
+
   memcpy(g_config.dest_ip, ip, 4);
+  g_config.dest_port = port;
   g_dest_ip = IPAddress(ip[0], ip[1], ip[2], ip[3]);
 
-  if (port != g_config.dest_port) {
-    g_config.dest_port = port;
-    g_rtp_socket.stop();
-    if (g_rtp_socket.begin(port) == 0) {
-      Serial.println("Aes67: rtp socket rebind failed");
-      return -1;
-    }
+  if (bind_rtp_socket() != 0) {
+    Serial.println("Aes67: rtp socket rebind failed");
+    return -1;
   }
 
   return 0;
