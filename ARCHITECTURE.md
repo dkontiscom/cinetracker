@@ -411,6 +411,16 @@ Subsystems and what drives them:
   removed /api/encoders (handle_encoders) entirely - zero frontend
   consumer, and /api/status already sends the same live per-encoder
   angle/mm/fstop data the monitor tab actually uses.
+
+  third cleanup: the roadmap already claimed the fleet web ui was done,
+  but there was never actually a frontend for it - /api/fleet had zero
+  fetch() calls anywhere. built for real: a Fleet card on the Monitor
+  tab, a conflict warning banner and a plain list of discovered peers
+  (name/ip/camera id), polled every 3s. peer names come off an
+  unauthenticated lan broadcast same as the json escaping fix above, so
+  the row list is built with createElement/textContent, never innerHTML
+  - a crafted name can't run as html/script in the page, same threat
+  model, client side this time instead of server side.
 - Status LEDs: built, see src/status_leds.cpp. pin 4 genlock/ptp lock, pin 5
   freed streaming active - not two copies of the same signal, each pin is
   its own real status now.

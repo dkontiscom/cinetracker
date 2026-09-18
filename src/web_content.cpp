@@ -502,6 +502,14 @@ const char *web_content_index_html() {
                 <button class='btn btn-secondary' onclick='resetOvershoot()'>Reset Overshoot</button>
             </div>
         </div>
+
+        <div class='card'>
+            <h2>Fleet</h2>
+            <div id='fleet-conflict' class='alert alert-error' style='display:none'>
+                Camera ID conflict - another device on the network is using the same camera ID
+            </div>
+            <div id='fleet-peers' style='color:var(--text-dim);font-size:0.85rem'>No other devices detected</div>
+        </div>
     </div>
 
     <!-- Calibrate Tab -->
@@ -694,6 +702,7 @@ const char *web_content_index_html() {
             currentTab = tab;
 
             if (tab === 'calibrate') updateCalStatus();
+            if (tab === 'monitor') updateFleet();
         }
 
         // Real-time updates
@@ -979,6 +988,32 @@ const char *web_content_index_html() {
                 });
         }
 
+        // Fleet - peer names come off an unauthenticated lan broadcast, so
+        // rows are built with textContent, never innerHTML, a crafted name
+        // must never be able to run as html/script in this page
+        function updateFleet() {
+            if (currentTab !== 'monitor') return;
+
+            fetch('/api/fleet')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('fleet-conflict').style.display = data.conflict ? '' : 'none';
+
+                    const list = document.getElementById('fleet-peers');
+                    list.innerHTML = '';
+                    if (!data.peers || data.peers.length === 0) {
+                        list.textContent = 'No other devices detected';
+                        return;
+                    }
+                    data.peers.forEach(p => {
+                        const row = document.createElement('div');
+                        row.textContent = p.name + ' - ' + p.ip + ' - camera ' + p.camera_id;
+                        list.appendChild(row);
+                    });
+                })
+                .catch(() => {});
+        }
+
         function setFilterEnabled() {
             const enabled = document.getElementById('filter-enabled').checked;
             fetch('/api/filter', {
@@ -1082,6 +1117,8 @@ const char *web_content_index_html() {
             setInterval(updateStatus, 100);
             updateStatus();
             setInterval(updateCalStatus, 500);
+            setInterval(updateFleet, 3000);
+            updateFleet();
 
             // Handle modal close on background click
             document.getElementById('modal').onclick = function(e) {
