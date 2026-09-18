@@ -312,11 +312,20 @@ static void handle_network_get(EthernetClient &client) {
   IPAddress subnet = Ethernet.subnetMask();
   IPAddress gateway = Ethernet.gatewayIP();
 
-  char body[256];
+  // multicast/port are the freed stream's destination (NetworkConfig
+  // dest_ip/dest_port), handle_network_set already accepts and saves
+  // them together with ip - this is just the matching read back, the web
+  // ui had nothing to load these two from before
+  NetworkConfig config;
+  network_get_current_config(&config);
+
+  char body[300];
   snprintf(body, sizeof(body),
-      "{\"ip\":\"%u.%u.%u.%u\",\"subnet\":\"%u.%u.%u.%u\",\"gateway\":\"%u.%u.%u.%u\"}",
+      "{\"ip\":\"%u.%u.%u.%u\",\"subnet\":\"%u.%u.%u.%u\",\"gateway\":\"%u.%u.%u.%u\","
+      "\"multicast\":\"%u.%u.%u.%u\",\"port\":%u}",
       ip[0], ip[1], ip[2], ip[3], subnet[0], subnet[1], subnet[2], subnet[3], gateway[0], gateway[1],
-      gateway[2], gateway[3]);
+      gateway[2], gateway[3], config.dest_ip[0], config.dest_ip[1], config.dest_ip[2], config.dest_ip[3],
+      config.dest_port);
   send_json(client, 200, "OK", body);
 }
 

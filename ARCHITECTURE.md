@@ -333,6 +333,19 @@ Subsystems and what drives them:
   handle_freed_set() right alongside network_set_camera_id() so both
   update together, no reboot required, same as everything else that
   isnt genlock.
+
+  last one from this pass: the settings page loaded its initial values
+  from /api/config, which never existed server side - it 404d silently
+  every load (the fetch never checked response status) so the network
+  and freed settings cards always showed hardcoded placeholder defaults,
+  never your actual saved config, even right after saving real values.
+  handle_network_set (the write side) already accepted and saved ip,
+  multicast and port together, it was only the read side missing -
+  handle_network_get never returned multicast/port at all. fixed by
+  adding those two to handle_network_get (sourced from the same
+  NetworkConfig the write side already uses) and pointing the page at
+  /api/network + /api/freed, the two endpoints that actually back these
+  fields, instead of the one that never existed.
 - Status LEDs: built, see src/status_leds.cpp. pin 4 genlock/ptp lock, pin 5
   freed streaming active - not two copies of the same signal, each pin is
   its own real status now.

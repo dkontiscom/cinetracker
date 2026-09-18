@@ -1045,17 +1045,21 @@ const char *web_content_index_html() {
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
-            // Load initial settings
-            fetch('/api/config')
+            // Load initial settings - split across the two real endpoints
+            // that actually back these fields, /api/config never existed
+            fetch('/api/network')
                 .then(r => r.json())
                 .then(config => {
                     document.getElementById('ip-address').value = config.ip || '192.168.1.100';
                     document.getElementById('multicast-ip').value = config.multicast || '236.10.10.10';
                     document.getElementById('port').value = config.port || 40000;
+                });
+
+            fetch('/api/freed')
+                .then(r => r.json())
+                .then(config => {
                     document.getElementById('camera-id').value = config.camera_id || 1;
                     document.getElementById('frame-rate-select').value = config.frame_rate || 24;
-                    document.getElementById('filter-enabled').checked = config.filter_enabled !== false;
-                    document.getElementById('led-enabled').checked = config.led_enabled !== false;
                 });
 
             loadAes67Status();
