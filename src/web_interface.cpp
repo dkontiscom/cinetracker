@@ -292,12 +292,14 @@ static void handle_freed_get(EthernetClient &client) {
 static void handle_freed_set(const char *body, EthernetClient &client) {
   int camera_id, frame_rate;
   bool camera_id_changed = json_get_int(body, "camera_id", &camera_id);
+  bool frame_rate_changed = json_get_int(body, "frame_rate", &frame_rate);
   if (camera_id_changed) network_set_camera_id((uint8_t)camera_id);
-  if (json_get_int(body, "frame_rate", &frame_rate)) network_set_frame_rate((uint8_t)frame_rate);
+  if (frame_rate_changed) network_set_frame_rate((uint8_t)frame_rate);
 
   // camera id doubles as the device id fleet conflict detection depends
-  // on it so it needs to survive a reboot not just the ip/gateway stuff
-  if (camera_id_changed) {
+  // on it and frame_rate is freed metadata both live in NetworkConfig so
+  // either change needs the same save
+  if (camera_id_changed || frame_rate_changed) {
     NetworkConfig config;
     network_get_current_config(&config);
     storage_save_network_config(&config);
@@ -354,6 +356,11 @@ static void handle_aes67_set(const char *body, EthernetClient &client) {
   if (have_ip || have_port) {
     aes67_set_destination(ip, port);
   }
+
+  Aes67Settings settings;
+  settings.direction = (uint8_t)aes67_get_direction();
+  aes67_get_destination(settings.dest_ip, &settings.dest_port);
+  storage_save_aes67_settings(&settings);
 
   send_json(client, 200, "OK", "{\"success\":true}");
 }

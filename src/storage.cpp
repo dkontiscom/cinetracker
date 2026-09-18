@@ -70,6 +70,16 @@ int storage_save_network_config(const NetworkConfig *config) {
   return write_file("network.bin", config, sizeof(NetworkConfig)) ? 0 : -1;
 }
 
+int storage_load_aes67_settings(Aes67Settings *settings) {
+  if (!g_fs_ready || !settings) return -1;
+  return read_file("aes67.bin", settings, sizeof(Aes67Settings)) ? 0 : -1;
+}
+
+int storage_save_aes67_settings(const Aes67Settings *settings) {
+  if (!g_fs_ready || !settings) return -1;
+  return write_file("aes67.bin", settings, sizeof(Aes67Settings)) ? 0 : -1;
+}
+
 int storage_load_clean_shutdown(bool *clean) {
   if (!g_fs_ready || !clean) return -1;
   uint8_t val = 0;

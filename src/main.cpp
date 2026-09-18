@@ -86,6 +86,12 @@ void setup() {
   strncpy(aes67_config.stream_name, "cinetracker-ltc", sizeof(aes67_config.stream_name) - 1);
   aes67_init(&aes67_config);
 
+  Aes67Settings aes67_settings;
+  if (storage_load_aes67_settings(&aes67_settings) == 0) {
+    aes67_set_destination(aes67_settings.dest_ip, aes67_settings.dest_port);
+    aes67_set_direction((Aes67Direction)aes67_settings.direction);
+  }
+
   char device_name[32];
   snprintf(device_name, sizeof(device_name), "cinetracker-%u", network_get_camera_id());
   fleet_init(device_name, network_get_camera_id());

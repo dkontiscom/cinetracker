@@ -55,11 +55,11 @@ only device identity that matters.
    unexpected reboot flag (crash/power loss vs a deliberate reset) shown
    as a web ui banner until acknowledged, same visible-not-silent idea as
    skipping the watchdog above.
-9. [done, untested] Network config and camera id now survive a reboot.
-   FreeD frame_rate metadata and AES67 direction/destination still dont,
-   only network + device id were asked for so far. genlock fps is still
-   a compile time #define, not a runtime setting yet, persistence for it
-   is blocked on that happening first.
+9. [done, untested] Network config, camera id, FreeD frame_rate metadata
+   and AES67 direction/destination all now survive a reboot. genlock fps
+   is still a compile time #define, not a runtime setting yet,
+   persistence for it is blocked on that happening first - the only
+   settings piece still not done.
 
 This week (starting 2026-09-16) is a sprint to get the repo public ready
 with at least the basics working, which pieces count as "basics" is still

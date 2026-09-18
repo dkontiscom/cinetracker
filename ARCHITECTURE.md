@@ -263,9 +263,12 @@ Subsystems and what drives them:
   silently reset every other field to its hardcoded default instead of
   leaving it alone. now starts from network_get_current_config() (new
   getter, just returns the live g_config) so partial updates behave
-  correctly. FreeD frame_rate and AES67 direction/destination are NOT
-  persisted yet, only network + camera id were asked for. device display
-  name explicitly not wanted, see roadmap.
+  correctly. FreeD frame_rate now also triggers the same NetworkConfig
+  save since its part of that same struct. AES67 direction + destination
+  survive a reboot too, separate small Aes67Settings struct saved to
+  aes67.bin whenever handle_aes67_set runs - stream_name isnt user
+  settable so it stays a main.cpp default not something we persist.
+  device display name explicitly not wanted, see roadmap.
 
 Full pin map, all interfaces, checked for overlaps against each other -
 none found:

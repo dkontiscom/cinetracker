@@ -24,6 +24,14 @@ struct Aes67Config {
   char stream_name[32];
 };
 
+// direction + destination only stream_name isnt user settable so no
+// point persisting it
+struct Aes67Settings {
+  uint8_t direction;
+  uint8_t dest_ip[4];
+  uint16_t dest_port;
+};
+
 int aes67_init(const Aes67Config *config);
 void aes67_set_direction(Aes67Direction dir);
 Aes67Direction aes67_get_direction();
