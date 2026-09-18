@@ -489,15 +489,32 @@ static void handle_fleet(EthernetClient &client) {
   FleetPeer peers[FLEET_MAX_PEERS];
   int count = fleet_get_peers(peers, FLEET_MAX_PEERS);
 
-  char body[700];
-  int len = snprintf(body, sizeof(body), "{\"conflict\":%s,\"peers\":[",
-                      fleet_camera_id_conflict() ? "true" : "false");
+  // peer names come straight off an unauthenticated lan broadcast, so this
+  // formats each entry into its own small buffer first and only copies it
+  // into body if it actually fits, rather than accumulating snprintf's
+  // would-have-written return value against sizeof(body) - len, which
+  // keeps growing past the real buffer even once its silently truncating
+  // and wraps size_t - int into a huge number once it overtakes it
+  char body[1400];
+  size_t len = 0;
+
+  int n = snprintf(body, sizeof(body), "{\"conflict\":%s,\"peers\":[", fleet_camera_id_conflict() ? "true" : "false");
+  len += (n > 0) ? (size_t)n : 0;
+
   for (int i = 0; i < count; i++) {
-    len += snprintf(body + len, sizeof(body) - len, "%s{\"ip\":\"%u.%u.%u.%u\",\"name\":\"%s\",\"camera_id\":%u}",
-                     i > 0 ? "," : "", peers[i].ip[0], peers[i].ip[1], peers[i].ip[2], peers[i].ip[3],
-                     peers[i].name, peers[i].camera_id);
+    char entry[100];
+    int entry_len = snprintf(entry, sizeof(entry), "%s{\"ip\":\"%u.%u.%u.%u\",\"name\":\"%s\",\"camera_id\":%u}",
+                              i > 0 ? "," : "", peers[i].ip[0], peers[i].ip[1], peers[i].ip[2], peers[i].ip[3],
+                              peers[i].name, peers[i].camera_id);
+    // stop before overflowing, always leaving room for the closing "]}"
+    if (entry_len <= 0 || len + (size_t)entry_len + 3 > sizeof(body)) break;
+    memcpy(body + len, entry, (size_t)entry_len);
+    len += (size_t)entry_len;
   }
-  snprintf(body + len, sizeof(body) - len, "]}");
+
+  n = snprintf(body + len, sizeof(body) - len, "]}");
+  len += (n > 0) ? (size_t)n : 0;
+
   send_json(client, 200, "OK", body);
 }
 

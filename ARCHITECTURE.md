@@ -309,6 +309,20 @@ Subsystems and what drives them:
   iris_fstop/zoom_mm fields now come from one real implementation
   (calibration_angle_to_phys) instead of two, one of which was silently
   wrong.
+
+  same re-audit found a real stack overflow in handle_fleet() (/api/fleet,
+  the peer list json builder): it accumulated snprintf's return value
+  against sizeof(body) - len across a loop, but that return value is what
+  snprintf would have written if unbounded, not what actually fit - so
+  once enough peers pushed it past the buffer the subtraction (size_t -
+  int) wrapped to a huge number and the next snprintf wrote a full,
+  untruncated chunk starting from an already out of bounds pointer. peer
+  names come straight off an unauthenticated lan broadcast (fleet.cpp),
+  so this was reachable by anything else on the network, not just a
+  theoretical edge case. fixed by formatting each peer into its own small
+  fixed buffer first and only copying it into the real one if it actually
+  fits, always leaving room for the closing "]}" - no more accumulating
+  a length against shrinking remaining space at all.
 - Status LEDs: built, see src/status_leds.cpp. pin 4 genlock/ptp lock, pin 5
   freed streaming active - not two copies of the same signal, each pin is
   its own real status now.
