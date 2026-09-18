@@ -421,6 +421,27 @@ Subsystems and what drives them:
   the row list is built with createElement/textContent, never innerHTML
   - a crafted name can't run as html/script in the page, same threat
   model, client side this time instead of server side.
+
+  mopped up the remaining low severity items from that pass: handle_
+  fleet()'s per-entry buffer now also checked against its own size not
+  just against room left in body, closing the same bug class one layer
+  down. resetOvershoot()'s toast and handle_filter_set()'s response now
+  actually reflect success/failure instead of always claiming success -
+  the filter one specifically distinguishes "applied live" (always
+  works, no io) from "persisted" (can fail), since the setting still
+  works right now even if it wont survive a reboot. the three settings-
+  page init fetches now catch failures with a visible toast instead of
+  silently leaving placeholder values with zero indication anything
+  didnt load. and 3 real compiler warnings in vendored lib/t41-ptp
+  fixed locally, not upstreamed, same call as t41-tri-sync's bugs: an
+  unused bool suppressed, a bitwise-and-vs-precedence parenthesization
+  made explicit (behaviorally identical, pure clarity), and one real
+  logic bug (slave && messageType==3 || messageType==9 parsing as
+  (slave && messageType==3) || messageType==9, meaning it'd also match
+  messageType==9 regardless of role) fixed to the clearly intended
+  slave && (messageType==3 || messageType==9) - inert for this project
+  today since ptp only ever runs in slave mode here, but a real bug for
+  master mode.
 - Status LEDs: built, see src/status_leds.cpp. pin 4 genlock/ptp lock, pin 5
   freed streaming active - not two copies of the same signal, each pin is
   its own real status now.

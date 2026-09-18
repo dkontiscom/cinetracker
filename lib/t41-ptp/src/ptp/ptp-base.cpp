@@ -250,8 +250,7 @@ void PTPBase::updateController()
     }
     const NanoTime offsetCorrection = -currentOffset;
 
-    if (skipAtStart && updateCounter < 5 && abs(offsetCorrection) > 1000
-        & t1lastvalid && t2lastvalid){
+    if (skipAtStart && updateCounter < 5 && (abs(offsetCorrection) > 1000 & t1lastvalid) && t2lastvalid){
         currentNSPS = driftEstimationLP;
         triInterruptBlocker();
         qindesign::network::EthernetIEEE1588.offsetTimer(offsetCorrection);
@@ -463,7 +462,7 @@ void PTPBase::parsePTPMessage(const uint8_t *buf, int size, const timespec &recv
         }
         else if(slave && messageType == 8){
             parseFollowUpMessage(buf);
-        }else if(slave && messageType==3 || messageType==9){
+        }else if(slave && (messageType==3 || messageType==9)){
             parseDelayResponseMessage(buf,recv_ts);
         }else if(slave && messageType==10){
             parseDelayResponseFollowUpMessage(buf);

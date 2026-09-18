@@ -498,9 +498,15 @@ static void handle_filter_set(WebContext *ctx, const char *body, EthernetClient 
   for (int i = 0; i < 3; i++) {
     math_engine_set_filter(&ctx->encoders[i], enabled ? FILTER_EMA : FILTER_NONE);
   }
-  storage_save_filter_enabled(enabled);
 
-  send_json(client, 200, "OK", "{\"success\":true}");
+  // live change always applies even if the save below fails, only thing
+  // in question is whether it survives the next reboot - say so plainly
+  // rather than reporting success on a setting that silently wont stick
+  bool saved = storage_save_filter_enabled(enabled) == 0;
+  char resp[96];
+  snprintf(resp, sizeof(resp), "{\"success\":%s,\"message\":\"%s\"}", saved ? "true" : "false",
+           saved ? "filter setting updated" : "applied now but failed to save, will revert on reboot");
+  send_json(client, 200, "OK", resp);
 }
 
 // peer names come straight off an unauthenticated lan broadcast (fleet.cpp),
@@ -547,8 +553,12 @@ static void handle_fleet(EthernetClient &client) {
     int entry_len = snprintf(entry, sizeof(entry), "%s{\"ip\":\"%u.%u.%u.%u\",\"name\":\"%s\",\"camera_id\":%u}",
                               i > 0 ? "," : "", peers[i].ip[0], peers[i].ip[1], peers[i].ip[2], peers[i].ip[3],
                               safe_name, peers[i].camera_id);
+    // entry_len is what snprintf would have written, not necessarily what
+    // fit in entry[] - reject anything that would mean entry itself
+    // truncated, not just anything that wouldn't fit in body
+    if (entry_len <= 0 || (size_t)entry_len >= sizeof(entry)) break;
     // stop before overflowing, always leaving room for the closing "]}"
-    if (entry_len <= 0 || len + (size_t)entry_len + 3 > sizeof(body)) break;
+    if (len + (size_t)entry_len + 3 > sizeof(body)) break;
     memcpy(body + len, entry, (size_t)entry_len);
     len += (size_t)entry_len;
   }

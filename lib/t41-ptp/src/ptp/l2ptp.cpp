@@ -93,6 +93,7 @@ void l2PTP::sendPTPMessage(const uint8_t *buf, int size, bool generalMessage)
         w+=qindesign::network::EthernetFrame.write(buf0,fill);
     }
     bool sent=qindesign::network::EthernetFrame.endFrame();
+    (void)sent;
     /*if(sent){
         Serial.printf("Sent %d\n",w);
     }else{

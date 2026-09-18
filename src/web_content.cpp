@@ -984,7 +984,7 @@ const char *web_content_index_html() {
             fetch('/api/encoders/reset', { method: 'POST' })
                 .then(r => r.json())
                 .then(data => {
-                    showToast('Overshoot reset', 'success');
+                    showToast(data.success ? 'Overshoot reset' : 'Reset failed', data.success ? 'success' : 'error');
                 });
         }
 
@@ -1023,7 +1023,8 @@ const char *web_content_index_html() {
             })
             .then(r => r.json())
             .then(data => {
-                showToast(enabled ? 'Filtering enabled' : 'Filtering disabled', data.success ? 'success' : 'error');
+                const fallback = enabled ? 'Filtering enabled' : 'Filtering disabled';
+                showToast(data.message || fallback, data.success ? 'success' : 'error');
             });
         }
 
@@ -1094,20 +1095,23 @@ const char *web_content_index_html() {
                     document.getElementById('ip-address').value = config.ip || '192.168.1.100';
                     document.getElementById('multicast-ip').value = config.multicast || '236.10.10.10';
                     document.getElementById('port').value = config.port || 40000;
-                });
+                })
+                .catch(() => showToast('Failed to load network settings, showing placeholders', 'error'));
 
             fetch('/api/freed')
                 .then(r => r.json())
                 .then(config => {
                     document.getElementById('camera-id').value = config.camera_id || 1;
                     document.getElementById('frame-rate-select').value = config.frame_rate || 24;
-                });
+                })
+                .catch(() => showToast('Failed to load FreeD settings, showing placeholders', 'error'));
 
             fetch('/api/filter')
                 .then(r => r.json())
                 .then(data => {
                     document.getElementById('filter-enabled').checked = data.enabled !== false;
-                });
+                })
+                .catch(() => showToast('Failed to load filter setting, showing placeholder', 'error'));
 
             loadAes67Status();
             loadGenlockStatus();
