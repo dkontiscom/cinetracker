@@ -155,9 +155,14 @@ bool network_check_link_status() {
   return up;
 }
 
+// freed zoom/focus are unsigned 24 bit raw encoder values (thats what
+// FREED_NORMALIZED_MAX = 0xFFFFFF is for), this used to clamp to the
+// signed range instead so everything past half the lens throw sat flat
+// at 8388607. only ever used for those two fields, pan/tilt/xyz are
+// never populated by a lens only tracker
 static void freed_encode_24bit(int32_t value, uint8_t *buffer) {
-  if (value > 8388607) value = 8388607;
-  if (value < -8388608) value = -8388608;
+  if (value > FREED_NORMALIZED_MAX) value = FREED_NORMALIZED_MAX;
+  if (value < 0) value = 0;
 
   buffer[0] = (value >> 16) & 0xFF;
   buffer[1] = (value >> 8) & 0xFF;
@@ -172,6 +177,22 @@ static uint8_t freed_calculate_checksum(const FreedPacket *packet) {
   return (uint8_t)(0x40 - sum);
 }
 
+// cal_max isnt always the bigger number, direction says which side is the
+// physical min, so use cal_range (already a plain magnitude) and flip the
+// offset the same way math_engine's process_encoder_sample does. the
+// multiply has to be 64 bit: offset * 0xFFFFFF overflows int32 for any
+// offset past 127 counts and a lens throw is thousands, so every value
+// past about a degree of travel used to wrap negative on the wire. clamps
+// so a position outside the window (mid set on the wrong side of min, a
+// stale window) gives an end stop instead of a negative or wrapped value
+static int32_t freed_normalize(const EncoderState *e, int32_t max) {
+  if (!e->enabled || e->cal_range <= 0) return 0;
+  int32_t offset = e->direction == 0 ? (e->filtered_angle - e->cal_min) : (e->cal_min - e->filtered_angle);
+  if (offset < 0) return 0;
+  if (offset > e->cal_range) return max;
+  return (int32_t)(((int64_t)offset * max) / e->cal_range);
+}
+
 void network_build_freed_packet(FreedPacket *packet, const EncoderState encoder_states[3],
                                  uint8_t camera_id, uint8_t user_data) {
   if (!packet || !encoder_states) return;
@@ -180,44 +201,9 @@ void network_build_freed_packet(FreedPacket *packet, const EncoderState encoder_
   packet->header = 0xD1;
   packet->camera_id = camera_id;
 
-  // cal_max isnt always the bigger number direction says which side is
-  // physical min so use cal_range (already a plain magnitude) not a
-  // fresh max-min subtraction and flip the offset the same way
-  // math_engine's process_encoder_sample does
-  int32_t zoom_norm = 0;
-  if (encoder_states[2].enabled) {
-    int32_t range = encoder_states[2].cal_range;
-    if (range > 0) {
-      int32_t offset = encoder_states[2].direction == 0
-          ? (encoder_states[2].filtered_angle - encoder_states[2].cal_min)
-          : (encoder_states[2].cal_min - encoder_states[2].filtered_angle);
-      zoom_norm = (offset * FREED_NORMALIZED_MAX) / range;
-    }
-  }
-  freed_encode_24bit(zoom_norm, packet->zoom);
-
-  int32_t focus_norm = 0;
-  if (encoder_states[0].enabled) {
-    int32_t range = encoder_states[0].cal_range;
-    if (range > 0) {
-      int32_t offset = encoder_states[0].direction == 0
-          ? (encoder_states[0].filtered_angle - encoder_states[0].cal_min)
-          : (encoder_states[0].cal_min - encoder_states[0].filtered_angle);
-      focus_norm = (offset * FREED_NORMALIZED_MAX) / range;
-    }
-  }
-  freed_encode_24bit(focus_norm, packet->focus);
-
-  if (encoder_states[1].enabled) {
-    int32_t range = encoder_states[1].cal_range;
-    if (range > 0) {
-      int32_t offset = encoder_states[1].direction == 0
-          ? (encoder_states[1].filtered_angle - encoder_states[1].cal_min)
-          : (encoder_states[1].cal_min - encoder_states[1].filtered_angle);
-      int32_t iris_norm = (offset * 255) / range;
-      packet->spare[0] = iris_norm & 0xFF;
-    }
-  }
+  freed_encode_24bit(freed_normalize(&encoder_states[2], FREED_NORMALIZED_MAX), packet->zoom);
+  freed_encode_24bit(freed_normalize(&encoder_states[0], FREED_NORMALIZED_MAX), packet->focus);
+  packet->spare[0] = (uint8_t)freed_normalize(&encoder_states[1], 255);
   packet->spare[1] = user_data;
 
   packet->checksum = freed_calculate_checksum(packet);

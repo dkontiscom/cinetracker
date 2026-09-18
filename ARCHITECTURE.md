@@ -435,13 +435,46 @@ Subsystems and what drives them:
   didnt load. and 3 real compiler warnings in vendored lib/t41-ptp
   fixed locally, not upstreamed, same call as t41-tri-sync's bugs: an
   unused bool suppressed, a bitwise-and-vs-precedence parenthesization
-  made explicit (behaviorally identical, pure clarity), and one real
+  that turned out NOT to clear its warning (the compiler wanted the
+  comparison itself parenthesized, and the build check that "confirmed"
+  it was defeated by platformio deciding what to recompile by content
+  hash not timestamp, so the touched file never rebuilt - caught by the
+  fourth audit, still pending, the real fix is && not parens), and one real
   logic bug (slave && messageType==3 || messageType==9 parsing as
   (slave && messageType==3) || messageType==9, meaning it'd also match
   messageType==9 regardless of role) fixed to the clearly intended
   slave && (messageType==3 || messageType==9) - inert for this project
   today since ptp only ever runs in slave mode here, but a real bug for
   master mode.
+
+  fourth audit pass (2026-09-19, five fresh agents, first deep look at
+  the protocol and physics layer rather than module wiring) found that
+  four core features had never actually worked. first one fixed: the
+  freed packet's focus/zoom normalization in network_stack.cpp did
+  offset * 0xFFFFFF in int32, which overflows for any offset past 127
+  encoder counts - a lens throw is thousands, so every value past about
+  a degree of travel wrapped negative on the wire, the device's core
+  output was garbage from the first packet. and right next to it,
+  freed_encode_24bit clamped to the signed 24 bit range (8388607) while
+  the normalization targets the unsigned one (16777215, the constant
+  the code itself defines), so even with the overflow gone the top half
+  of the throw would have sat flat. both fixed in one place: a single
+  freed_normalize() helper (64 bit multiply, clamps to the window so a
+  position outside it gives an end stop not a wrapped value) replacing
+  the three copy-pasted blocks, and the encoder made unsigned - freed
+  zoom/focus are unsigned raw encoder values, and this encoder only ever
+  serves those two fields since a lens only tracker never populates
+  pan/tilt/xyz.
+
+  roadmap item 10 done alongside it: send_sap_announce() now only runs
+  when direction is LTC_IN (the transmit path). the 30s timer sits
+  outside that gate on purpose so a device flipped to transmit announces
+  at once rather than up to 30s later. no sap deletion packet is sent
+  when flipping the other way (rfc 2974 has one) - receivers just age
+  the session out, same as before. the announcement body itself still
+  has the other problems the fourth audit found (double nul before the
+  sdp, millis() as session id, missing a=ts-refclk/a=mediaclk), those
+  are separate and still open.
 - Status LEDs: built, see src/status_leds.cpp. pin 4 genlock/ptp lock, pin 5
   freed streaming active - not two copies of the same signal, each pin is
   its own real status now.

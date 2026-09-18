@@ -281,10 +281,18 @@ void aes67_process() {
     process_playout();
   }
 
-  uint32_t now = millis();
-  if (now - g_last_announce_ms >= AES67_ANNOUNCE_INTERVAL_MS) {
-    send_sap_announce();
-    g_last_announce_ms = now;
+  // sap is a sender's mechanism - only announce when we're actually the
+  // one putting this stream on the wire. a receiver announcing itself as
+  // a source at the same multicast address showed up as a conflicting
+  // duplicate next to the real source in anything discovering via sap.
+  // the timer stays outside the gate on purpose, so flipping to LTC_IN
+  // announces right away instead of up to 30s later
+  if (g_direction == AES67_LTC_IN) {
+    uint32_t now = millis();
+    if (now - g_last_announce_ms >= AES67_ANNOUNCE_INTERVAL_MS) {
+      send_sap_announce();
+      g_last_announce_ms = now;
+    }
   }
 }
 

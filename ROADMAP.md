@@ -69,6 +69,14 @@ gap, the take is unusable either way.
    AES67 direction/destination, genlock fps (see item 3), and now the
    filter on/off switch too all survive a reboot. every currently
    web-settable value is persisted.
+10. [done, untested] AES67's SAP announcement (send_sap_announce, see
+    ARCHITECTURE.md) fired every 30s regardless of direction. SAP is a
+    sender's mechanism - a receiving device shouldnt self-announce as a
+    source at the same multicast address, could show as a conflicting
+    duplicate source in dante controller (or anything else discovering
+    via sap) if some other device is the real source there. now gated to
+    only run when direction is LTC_IN (actually transmitting), and
+    flipping to LTC_IN announces immediately not up to 30s later.
 
 This week (starting 2026-09-16) is a sprint to get the repo public ready
 with at least the basics working, which pieces count as "basics" is still
