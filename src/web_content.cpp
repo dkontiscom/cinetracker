@@ -882,13 +882,21 @@ const char *web_content_index_html() {
                 });
         }
 
+        // an empty number field must not be sent at all - parseInt('') is
+        // NaN, which serialises as null, and the device read that as 0.
+        // left out, the device just keeps its current value
+        function intField(id, obj, key) {
+            const v = parseInt(document.getElementById(id).value);
+            if (!Number.isNaN(v)) obj[key] = v;
+        }
+
         // Network settings
         function saveNetworkSettings() {
             const settings = {
                 ip: document.getElementById('ip-address').value,
-                multicast: document.getElementById('multicast-ip').value,
-                port: parseInt(document.getElementById('port').value)
+                multicast: document.getElementById('multicast-ip').value
             };
+            intField('port', settings, 'port');
 
             fetch('/api/network', {
                 method: 'POST',
@@ -903,10 +911,9 @@ const char *web_content_index_html() {
 
         // FreeD settings
         function saveFreeDSettings() {
-            const settings = {
-                camera_id: parseInt(document.getElementById('camera-id').value),
-                frame_rate: parseInt(document.getElementById('frame-rate-select').value)
-            };
+            const settings = {};
+            intField('camera-id', settings, 'camera_id');
+            intField('frame-rate-select', settings, 'frame_rate');
 
             fetch('/api/freed', {
                 method: 'POST',
@@ -923,9 +930,9 @@ const char *web_content_index_html() {
         function saveAes67Settings() {
             const settings = {
                 direction: document.getElementById('aes67-direction').value,
-                dest_ip: document.getElementById('aes67-dest-ip').value,
-                dest_port: parseInt(document.getElementById('aes67-dest-port').value)
+                dest_ip: document.getElementById('aes67-dest-ip').value
             };
+            intField('aes67-dest-port', settings, 'dest_port');
 
             fetch('/api/aes67', {
                 method: 'POST',
@@ -934,7 +941,8 @@ const char *web_content_index_html() {
             })
             .then(r => r.json())
             .then(data => {
-                showToast(data.success ? 'AES67 settings saved' : 'Failed to save', data.success ? 'success' : 'error');
+                const fallback = data.success ? 'AES67 settings saved' : 'Failed to save';
+                showToast(data.message || fallback, data.success ? 'success' : 'error');
                 loadAes67Status();
             });
         }

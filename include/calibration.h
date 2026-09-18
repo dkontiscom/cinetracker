@@ -60,7 +60,6 @@ struct EncoderCalibration {
   uint8_t quality_score;
 
   uint32_t sample_count;
-  uint32_t calibration_time;
 };
 
 struct CalibrationData {
@@ -120,7 +119,6 @@ bool calibration_angle_to_phys(const CalibrationData *cal, uint8_t encoder_id, i
 
 const char *calibration_get_state_name(CalibrationState state);
 const char *calibration_get_instructions(CalibrationState state);
-uint8_t calibration_get_progress(const CalibrationSession *session);
 
 void apply_calibration(EncoderState *encoder, const EncoderCalibration *cal);
 // pushes a whole CalibrationData into the live encoder states, the one

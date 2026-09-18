@@ -367,11 +367,6 @@ const char *calibration_get_instructions(CalibrationState state) {
   return "Unknown state";
 }
 
-uint8_t calibration_get_progress(const CalibrationSession *session) {
-  if (!session) return 0;
-  return session->progress_percent;
-}
-
 void apply_calibration(EncoderState *encoder, const EncoderCalibration *cal) {
   if (!encoder || !cal || !cal->calibrated) return;
 

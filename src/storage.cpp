@@ -27,7 +27,8 @@ struct FileHeader {
 // bump the one whose struct changed shape, the old file is then ignored
 // and the code falls back to defaults instead of reading the old layout
 // as the new one. size is checked too but two layouts can share a size
-#define CALIBRATION_LAYOUT 1
+// 2: dropped the never-written calibration_time field from EncoderCalibration
+#define CALIBRATION_LAYOUT 2
 #define NETWORK_LAYOUT 1
 #define AES67_LAYOUT 1
 #define GENLOCK_LAYOUT 1

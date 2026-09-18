@@ -66,10 +66,6 @@ bool ptp_client_locked() {
          g_ptp.msSinceUpdate() < PTP_STALE_MS;
 }
 
-int64_t ptp_client_offset_ns() {
-  return g_started ? g_ptp.getOffset() : 0;
-}
-
 bool ptp_client_master_identity(uint8_t id[8], uint8_t *domain) {
   if (!g_started || !domain) return false;
   return g_ptp.getMasterIdentity(id, *domain);

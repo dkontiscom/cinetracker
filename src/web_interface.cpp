@@ -347,13 +347,19 @@ static void handle_network_set(const char *body, EthernetClient &client) {
 
   int port;
   if (json_get_int(body, "port", &port)) config.dest_port = (uint16_t)port;
+  if (config.dest_port == 0) {
+    send_json(client, 200, "OK", "{\"success\":false,\"message\":\"port 0 is not valid\"}");
+    return;
+  }
 
   int result = network_reconfigure(&config);
-  if (result == 0) storage_save_network_config(&config);
+  bool saved = result == 0 && storage_save_network_config(&config) == 0;
 
-  char resp[100];
-  snprintf(resp, sizeof(resp), "{\"success\":%s,\"message\":\"%s\"}", result == 0 ? "true" : "false",
-           result == 0 ? "network updated" : "reconfigure failed");
+  const char *msg = result != 0 ? "reconfigure failed"
+                    : saved   ? "network updated"
+                              : "applied now but failed to save, will revert on reboot";
+  char resp[110];
+  snprintf(resp, sizeof(resp), "{\"success\":%s,\"message\":\"%s\"}", saved ? "true" : "false", msg);
   send_json(client, 200, "OK", resp);
 }
 
@@ -379,13 +385,17 @@ static void handle_freed_set(const char *body, EthernetClient &client) {
   // camera id doubles as the device id fleet conflict detection depends
   // on it and frame_rate is freed metadata both live in NetworkConfig so
   // either change needs the same save
+  bool saved = true;
   if (camera_id_changed || frame_rate_changed) {
     NetworkConfig config;
     network_get_current_config(&config);
-    storage_save_network_config(&config);
+    saved = storage_save_network_config(&config) == 0;
   }
 
-  send_json(client, 200, "OK", "{\"success\":true,\"message\":\"freed settings updated\"}");
+  char resp[110];
+  snprintf(resp, sizeof(resp), "{\"success\":%s,\"message\":\"%s\"}", saved ? "true" : "false",
+           saved ? "freed settings updated" : "applied now but failed to save, will revert on reboot");
+  send_json(client, 200, "OK", resp);
 }
 
 static const char *aes67_direction_name(Aes67Direction dir) {
@@ -434,6 +444,10 @@ static void handle_aes67_set(const char *body, EthernetClient &client) {
   int port_val;
   bool have_port = json_get_int(body, "dest_port", &port_val);
   if (have_port) port = (uint16_t)port_val;
+  if (have_port && port == 0) {
+    send_json(client, 200, "OK", "{\"success\":false,\"message\":\"port 0 is not valid\"}");
+    return;
+  }
 
   if (have_ip || have_port) {
     aes67_set_destination(ip, port);
@@ -442,9 +456,12 @@ static void handle_aes67_set(const char *body, EthernetClient &client) {
   Aes67Settings settings;
   settings.direction = (uint8_t)aes67_get_direction();
   aes67_get_destination(settings.dest_ip, &settings.dest_port);
-  storage_save_aes67_settings(&settings);
+  bool saved = storage_save_aes67_settings(&settings) == 0;
 
-  send_json(client, 200, "OK", "{\"success\":true}");
+  char resp[110];
+  snprintf(resp, sizeof(resp), "{\"success\":%s,\"message\":\"%s\"}", saved ? "true" : "false",
+           saved ? "aes67 settings updated" : "applied now but failed to save, will revert on reboot");
+  send_json(client, 200, "OK", resp);
 }
 
 static void handle_genlock_get(EthernetClient &client) {
@@ -464,7 +481,13 @@ static void handle_genlock_set(const char *body, EthernetClient &client) {
     return;
   }
 
-  storage_save_genlock_fps((uint8_t)fps);
+  // the reboot is only worth doing if the new fps actually reached flash -
+  // it used to reboot regardless and come back on the old rate, having
+  // just said "rebooting to apply"
+  if (storage_save_genlock_fps((uint8_t)fps) != 0) {
+    send_json(client, 200, "OK", "{\"success\":false,\"message\":\"failed to save fps, not rebooting\"}");
+    return;
+  }
   storage_set_clean_shutdown(true);
   send_json(client, 200, "OK", "{\"success\":true,\"message\":\"rebooting to apply\"}");
   client.flush();

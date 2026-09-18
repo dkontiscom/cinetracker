@@ -153,13 +153,17 @@ static bool process_rx_one() {
   uint16_t seq = (packet[2] << 8) | packet[3];
 
   // signed so a reordered/late packet (seq behind expected) shows up as a
-  // small negative number instead of wrapping a uint16 into a huge one
-  if (g_have_expected_seq && seq != g_expected_seq) {
+  // small negative number instead of wrapping a uint16 into a huge one.
+  // a late packet must not rewind expected either - it used to, so the
+  // next in-order one then read as a second loss for the same gap
+  if (g_have_expected_seq) {
     int16_t gap = (int16_t)(seq - g_expected_seq);
     if (gap > 0) g_packets_lost += gap;
+    if (gap >= 0) g_expected_seq = seq + 1;
+  } else {
+    g_expected_seq = seq + 1;
+    g_have_expected_seq = true;
   }
-  g_expected_seq = seq + 1;
-  g_have_expected_seq = true;
   g_packets_received++;
 
   int payload_len = len - 12;
@@ -307,7 +311,10 @@ int aes67_init(const Aes67Config *config) {
   g_sess_id = 0;
   for (int i = 0; i < 6; i++) g_sess_id = (g_sess_id << 8) | mac[i];
 
-  AudioMemory_F32(16);
+  // with the settings, otherwise the pool blocks default to 128 samples
+  // and the i2s output prints a mismatch warning per block from the audio
+  // interrupt, a thousand times a second, in receive mode
+  AudioMemory_F32(16, g_audio_settings);
 
   g_record_queue.begin();
 

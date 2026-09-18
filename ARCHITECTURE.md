@@ -694,6 +694,31 @@ Subsystems and what drives them:
   helper so the timeout logic exists once. only the delay request site
   runs in this projects slave only use, the sync one is fixed identically
   for master mode.
+
+  and the low severity tail of the fourth audit, all in one go. the
+  audio pool was allocated without the settings so its blocks defaulted
+  to 128 samples and the i2s output printed a mismatch warning per block
+  from the audio interrupt, a thousand times a second, in receive mode.
+  the rtp loss counter let a late packet rewind expected_seq, so the next
+  in-order one read as a second loss for the same gap. four handlers
+  reported success when the flash save failed - network, freed, aes67,
+  and genlock, which even rebooted on a failed save and came back on the
+  old rate having said "rebooting to apply": they now say plainly that
+  the change is applied but wont survive a reboot, and genlock doesnt
+  reboot at all if the fps didnt save. an empty camera id / port field
+  saved 0 (parseInt('') is NaN, serialises as null, atoi("null") is 0) -
+  empty number fields are now simply not sent so the device keeps its
+  value, and port 0 is rejected server side either way. two dead
+  functions gone (calibration_get_progress, ptp_client_offset_ns),
+  encoder_stop_sampling deliberately kept: the web firmware update will
+  need to halt the sampling isr before it writes flash. the never-written
+  calibration_time field dropped from EncoderCalibration, which is the
+  first real use of the file versioning - CALIBRATION_LAYOUT is 2 now, an
+  old calibration.bin is ignored with a log line instead of being read
+  through the wrong layout. and two stale bullets removed from the open
+  items below, both long since done: interrupt priority (genlock wins,
+  set this pass) and genlock fps being a compile time #define (a web ui
+  setting since the third day).
 - Status LEDs: built, see src/status_leds.cpp. pin 4 genlock/ptp lock, pin 5
   freed streaming active - not two copies of the same signal, each pin is
   its own real status now.
@@ -750,11 +775,6 @@ with INPUT_PULLUP, active low, hold to confirm not a single tap so a
 bump on set cant trigger it by accident.
 
 Open items, still not resolved:
-- interrupt priority order across genlock/ptp/audio/encoders/ethernet still
-  needs setting once all the pieces actually exist - genlock should win.
-- genlock fps (24/25/30/60) is a compile time #define, switching for a
-  different production means a reflash right now, not a web ui setting.
-  true fractional rates (23.976/29.97/59.94) not supported at all yet.
 - ltc dropout tolerance on the receiving end (freewheel) not verified
   against any real downstream reader yet, only the theory checks out.
 - none of this tested on real hardware yet, pin map and both the spi and
