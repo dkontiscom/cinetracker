@@ -1,6 +1,7 @@
 .pio/
 .vscode/
 _legacy_rp2040/
+docs/
 *.o
 *.elf
 *.hex

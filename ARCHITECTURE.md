@@ -61,6 +61,37 @@ Subsystems and what drives them:
   SMPTE ST0274-2008 tri-level sync generator, cites the actual spec
   sections in its own source, not guesswork.
 
+  two things from the paper behind this library (riggers/schleusner/
+  renke/blume, rtcsa 2024, "ptp-synchronized tri-level sync generation
+  for networked multi-sensor systems") that are worth holding against
+  what we actually do.
+
+  clock servo rate limit - CHECK ON FIRST HARDWARE TEST. the servo is the
+  feedback loop nudging the teensy clock into line with the ptp master,
+  and because the sync pulse is generated off that same clock, every
+  nudge shifts the signal the camera sees. nudge too hard and the camera
+  drops genlock. their case study swept a real camera (dreamchip atomone)
+  to find its tolerance and landed on 375 ns/s per adjustment at a 10 Hz
+  update rate. genlock.cpp currently passes 800 ns/s at 4 Hz into
+  ptp_client_init - bigger steps taken less often, wrong on both axes
+  relative to their result, and the paper says plainly that the stable
+  range gets narrower as the update rate drops (their fig 5 sweeps
+  1/4/8/10/12 Hz specifically to show this). not changed blind, because
+  their figures are for one particular camera and this wants a real
+  camera and a picture to watch. but if genlock turns out flaky, 375 and
+  10 is the first thing to try.
+
+  settling time - genlock is not usable immediately at power on, and this
+  is normal rather than a fault. the servo has to pull the local clock
+  into alignment first, and their fig 7 plots that over a 0-400 second
+  axis for the worst case start (half a frame of offset, 30 ppm initial
+  drift). big offsets are corrected quickly by the coarse mode, which
+  jumps the clock in whole frame steps so the pulse phase is preserved,
+  but the final fine alignment inside half a frame is the slow part. so
+  expect the lock led on pin 4 to stay dark for a while after boot, and
+  dont roll camera until it lights. once settled, the companion paper
+  measures 40.7 ns standard deviation against the master clock.
+
   fps: originally only 30 or 60 compiled (#error for anything else), and
   even after we added 24/25 it was still a single TRISYNC_FPS #define -
   one rate baked into the binary at compile time, changing it meant
@@ -775,6 +806,11 @@ with INPUT_PULLUP, active low, hold to confirm not a single tap so a
 bump on set cant trigger it by accident.
 
 Open items, still not resolved:
+- genlock clock servo rate limit: genlock.cpp passes 800 ns/s at 4 Hz,
+  the source paper measured 375 ns/s at 10 Hz against a real camera and
+  showed the stable range narrows at lower update rates. if a camera
+  drops genlock intermittently while our ui still says synced, this is
+  the first thing to change. see the genlock section above.
 - ltc dropout tolerance on the receiving end (freewheel) not verified
   against any real downstream reader yet, only the theory checks out.
 - none of this tested on real hardware yet, pin map and both the spi and
