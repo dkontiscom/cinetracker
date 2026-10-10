@@ -22,7 +22,12 @@ repo .gitignore ignores every folder named docs.
 
 Status
 
-  carrier  v0.5c designed (generated, not yet in KiCad form here), not
-           ordered. KiCad project with an editable schematic: in progress.
+  carrier  v0.5d: KiCad 7 project with an editable hierarchical schematic,
+           routed board and JLCPCB fab outputs. Not built or ordered.
+           Do not build v0.3 to v0.5c: they swapped the two Teensy socket
+           rows (see carrier/documentation/changelog.md).
+           Next revision (v0.5e): mechanical provisions for the PoE board.
   poe      v0.1 requirements settled, see poe/documentation/requirements-v0.1.md.
-           schematic not started.
+           schematic in progress.
+
+Prototype orders are planned at carrier v0.6, together with the PoE board.

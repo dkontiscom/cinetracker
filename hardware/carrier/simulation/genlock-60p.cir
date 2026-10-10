@@ -1,0 +1,37 @@
+* v0.5c genlock stage
+.include ./ideal.lib
+.include ./OPA356.lib
+VDD vdd 0 3.3
+VA v33a 0 3.3
+VB0 g0 0 PWL(0.000000000000e+00 3.300000 1.000000000000e-06 3.300000 1.002000000000e-06 0.000000 1.594592592593e-06 0.000000 1.596592592593e-06 3.300000)
+VB1 g1 0 PWL(0.000000000000e+00 0.000000 1.296296296296e-06 0.000000 1.298296296296e-06 3.300000 1.592592592593e-06 3.300000 1.594592592593e-06 0.000000)
+RG0 g0 p0 23.0
+RG1 g1 p1 23.0
+R1 p1 s 2000
+R2 p0 b 2000
+R3 s b 1011
+R4 b 0 2022
+R5 s 0 5100
+R5a s v33a 5600
+CSS s 0 2e-12
+XU1 s o1 v33a 0 o1 OPA356W
+RF1 o1 m 150
+RF2 m f 150
+CF1 m out 6.9e-11
+CF2 f 0 6.9e-11
+XU2 f out v33a 0 out OPA356W
+
+C1 out dc 4.7e-05
+R7 dc 0 10000
+R6 dc bnc 75
+CD5 bnc 0 10p
+T1 bnc 0 rx 0 Z0=75 TD=1e-08
+RL rx 0 75
+CL rx 0 5e-12
+.options method=gear
+.tran 0.1n 2.192592593e-06 0 0.1n
+.control
+run
+wrdata ./out2.txt v(rx) v(out) v(f)
+.endc
+.end

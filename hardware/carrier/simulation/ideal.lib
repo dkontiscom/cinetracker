@@ -1,0 +1,11 @@
+* ideal unity buffer, same pin order as OPA354 (+IN -IN V+ V- OUT); fast single pole 1 GHz
+.SUBCKT IDEAL 3 4 5 2 1
+E1 n1 0 3 4 1e5
+R1 n1 n2 1
+C1 n2 0 1.6e-14
+E2 1 0 n2 0 1
+.ENDS
+* OPA356 wrapper with OPA354 pin order (+IN -IN V+ V- OUT)
+.SUBCKT OPA356W 3 4 5 2 1
+XW 1 2 3 4 5 OPA356
+.ENDS

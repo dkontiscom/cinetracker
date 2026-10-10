@@ -1,6 +1,8 @@
 # CineTracker PoE board v0.1: requirements
 
-Date: 2026-10-10 (updated the same day after the user's decisions). Status: requirements settled; schematic not started.
+Date: 2026-10-10 (updated the same day after the user's decisions, and again for carrier v0.5d). Status: requirements settled; schematic not started.
+
+> **Geometry corrected for carrier v0.5d.** The earlier version of this file took the Teensy pin positions from carrier v0.5c, which had the two Teensy socket rows swapped. The Ethernet pins are near the VIN row (top), not the GND row. Section 2 now uses v0.5d and PJRC's own drawings.
 
 ## 1. Decided
 
@@ -28,18 +30,18 @@ The carrier is 80 × 64 mm. The origin is the top-left corner and y runs down.
 
 | Item | Position (mm) | Source |
 |---|---|---|
-| Teensy outline | x 9.53–70.49, y 24.73–42.51 (USB end at x ≈ 9.5) | carrier v0.5c board file |
-| Teensy Ethernet pins, 2×3 at 2.0 mm pitch | x 23.77 / 25.77; y 34.79 / 36.79 / 38.79. RX+ at (23.77, 38.79), RX− at (25.77, 38.79), LED at (23.77, 36.79), GND at (25.77, 36.79), TX− at (23.77, 34.79), TX+ at (25.77, 34.79) | PJRC dimension drawing and XenGi KiCad footprint, which agree to 0.05 mm |
-| Teensy USB Host pins, 1×5 at 2.54 mm pitch (keep clear) | x 17.15–27.31, y 29.05 | same |
-| J7 (+5 V, +5 V, GND, GND), female, 8.5 mm tall | x 39.50 / 42.04 / 44.58 / 47.12, y 45.20 | carrier v0.5c |
-| Free space on the bottom edge between carrier connectors | x 21.7–37.0 (between the BNC and J5) and x 51.0–58.0 | carrier v0.5c |
-| Carrier analog genlock section, directly under the PoE board's path | x 20–50, y 44–62 | carrier v0.5c |
+| Teensy outline | x 9.53–70.49, y 24.73–42.51 (USB end at x ≈ 9.5). VIN row (J8) at y 26.00, GND/0/1 row (J9) at y 41.24 | carrier v0.5d board file |
+| Teensy Ethernet pins, 2×3 at 2.0 mm pitch | x 23.77 / 25.77; y 28.45 / 30.45 / 32.45. RX+ at (23.77, 28.45), RX− at (25.77, 28.45), LED at (23.77, 30.45), GND at (25.77, 30.45), TX− at (23.77, 32.45), TX+ at (25.77, 32.45) | Positions: PJRC dimension drawing (middle row 4.45 mm below the VIN row) and the XenGi KiCad footprint, which agree to 0.05 mm. Signal names: [PJRC Ethernet pinout image](https://www.pjrc.com/store/teensy41_ethernet_pinout.png) |
+| Teensy USB Host pins, 1×5 at 2.54 mm pitch (keep clear) | x 17.15–27.31, y 38.19 (3.05 mm above the GND row) | PJRC dimension drawing |
+| J7 (+5 V, +5 V, GND, GND), female, 8.5 mm tall | x 39.50 / 42.04 / 44.58 / 47.12, y 45.20 | carrier v0.5d (unchanged from v0.5c) |
+| Free space on the bottom edge between carrier connectors | x 21.7–37.0 (between the BNC and J5) and x 51.0–58.0 | carrier v0.5d (connectors unchanged from v0.5c) |
+| Carrier analog genlock section, directly under the PoE board's path | part centres x 15–38, y 45–62 (BNC J1 at x 15) | carrier v0.5d |
 
 **Heights:**
 - **Teensy top surface:** about 10.1 mm above the carrier (8.5 mm socket + 1.57 mm PCB).
 - **Tallest parts on top of the Teensy:** the micro-B USB is 3.07 mm and the pushbutton 2.5 mm (PJRC drawing). Keep at least 3.1 mm clearance.
 - **Ethernet link:** a 2×3 2 mm male header on the Teensy pointing up, as in PJRC's Ethernet kit, mating with a 2×3 2 mm female socket under the PoE board. This puts the PoE board's underside at roughly 16 mm above the carrier (**suspicion**: depends on the socket chosen).
-- **Reaching J7:** the PoE board's pins must bridge about 7.5–8 mm above J7's 8.5 mm socket, so it needs a long-pin 1×4 header (about 14 mm below the board). The alternative is a taller J7 on carrier v0.5d.
+- **Reaching J7:** the PoE board's pins must bridge about 7.5–8 mm above J7's 8.5 mm socket, so it needs a long-pin 1×4 header (about 14 mm below the board). The alternative is a taller J7 on the next carrier revision (v0.5e).
 
 ## 3. Ethernet connector
 
@@ -105,12 +107,14 @@ The cordset cannot fix this. 100 Mbit data must stay on pins 1,2/3,6, and the sp
 
 **Magnetics, PHY side:** the Teensy has no magnetics. PJRC's kit magjack ties the PHY-side centre taps to 0.1 µF to GND. Copy that arrangement. The kit's magjack is not PoE-capable.
 
-## 5. What this means for the carrier (v0.5d)
+## 5. What this means for the carrier (next revision, v0.5e)
+
+Carrier v0.5d only fixes the Teensy rows and moves the design into KiCad. These PoE provisions go into v0.5e.
 
 1. Add one or two standoff holes under the PoE board. MH3 and MH4 are in the bottom corners and are not under it.
 2. Choose between a taller J7 and a long-pin header on the PoE board.
 3. Keep the area under the PoE board free of anything taller than about 5 mm. The current parts there are low: SOT-23, 0805, 1206 and SMA.
-4. **EMI:** the PoE converter will sit directly above the analog genlock and audio section. Put the module over the Teensy's middle (x about 28–50, y about 26–41) rather than over the genlock. Also keep a solid ground plane on the PoE board's isolated side facing the carrier. **The effect is a suspicion until measured.**
+4. **EMI:** the PoE converter will sit directly above the analog genlock and audio section. Put the module over the Teensy's middle (x about 28–50, y about 26–41) rather than over the genlock. The Ethernet pins are at the top of that area (y 28.45–32.45), so the magnetics fit next to them. Also keep a solid ground plane on the PoE board's isolated side facing the carrier. **The effect is a suspicion until measured.**
 
 ## 6. Open decisions
 
