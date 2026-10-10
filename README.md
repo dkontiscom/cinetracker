@@ -18,7 +18,8 @@ Status: early rewrite, not working yet. dont use this for anything real.
 
 Building
 
-Needs PlatformIO. board target is teensy41.
+Needs PlatformIO. board target is teensy41. platformio.ini pins the
+platform and library versions, change them there on purpose.
 
   pio run
 

@@ -150,6 +150,22 @@ Subsystems and what drives them:
   changing the divisor to 1000.0 to force floating point division,
   nothing else touched. worth upstreaming to IMS-AS-LUH/t41-tri-sync-ptp,
   see credits.md.
+
+  two more fixes in pulse() itself (2026-10-10), again upstream's own
+  original behaviour. one: the trailing edge (+300mV -> 0mV, bits 10 ->
+  01) was two digitalWriteFast calls, so the output passed through 00
+  (-300mV) for the ~7 instructions between the two stores, which bends
+  the edge once the carrier's analog edges are fast (v0.5c, ~35ns).
+  begin() now checks both pins sit on the same gpio port (pins 2 and 3
+  are GPIO9 bits 4/5) and the trailing edge becomes one store to that
+  port's DR_TOGGLE register, two writes kept as the fallback. two: the
+  vsync broad pulse was ended at the start of the next interrupt, which
+  only lands on 2112T (st0274-2008 10.6 / table 7, bp = 2112T for every
+  system) when the line is 2200 samples. at 24/25/50p it ran 440-550T too
+  long. those rates now end it inside the same interrupt after 1980T, at
+  the cost of ~30us (24/25p) / ~15us (50p) of priority-0 interrupt time
+  on the 5 vsync lines per frame. neither checked on a scope yet. both
+  worth upstreaming too.
 - AES67 / LTC: built, see src/aes67.cpp. mono only (its carrying LTC not
   program audio), only one direction active at a time - AES67_LTC_IN
   (local audio in -> RTP out to network) or AES67_LTC_OUT (RTP in from
