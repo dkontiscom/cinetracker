@@ -1,16 +1,16 @@
-# Ordering the carrier at JLCPCB (v0.5d)
+# Ordering the carrier at JLCPCB (v0.5e)
 
-**Status:** v0.5d is designed but not ordered. The current plan is to order prototypes at v0.6, together with the PoE board.
+**Status:** v0.5e is designed but not ordered. The current plan is to order prototypes at v0.6, together with the PoE board.
 
 ## Files (in `../fab/`)
 
 | File | Upload / use |
 |---|---|
-| `carrier-v0.5d-gerbers.zip` | PCB order. 4 copper layers (In1 = GND, In2 = +3V3), masks, silk, paste, outline, PTH/NPTH Excellon with 6 plated slots |
-| `carrier-v0.5d-BOM-JLCPCB.csv` | Assembly BOM (Comment / Designator / Footprint / LCSC Part #) |
-| `carrier-v0.5d-CPL-JLCPCB.csv` | Assembly placement. Connector points sit at the footprint pad centroids |
-| `carrier-v0.5d-BOM-full.csv` | Manufacturer, MPN, JLC stock, quantity bought and prices |
-| `carrier-v0.5d-1to1-fit-check.pdf` | Print at 100 % and test-fit the real connectors and the Teensy |
+| `carrier-v0.5e-gerbers.zip` | PCB order. 4 copper layers (In1 = GND, In2 = +3V3), masks, silk, paste, outline, PTH/NPTH Excellon with 6 plated slots. The NPTH file includes the two 2.7 mm PoE standoff holes |
+| `carrier-v0.5e-BOM-JLCPCB.csv` | Assembly BOM (Comment / Designator / Footprint / LCSC Part #) |
+| `carrier-v0.5e-CPL-JLCPCB.csv` | Assembly placement. Connector points sit at the footprint pad centroids |
+| `carrier-v0.5e-BOM-full.csv` | Manufacturer, MPN, JLC stock, quantity bought and prices |
+| `carrier-v0.5e-1to1-fit-check.pdf` | Print at 100 % and test-fit the real connectors and the Teensy |
 
 All fab files are exported from `cinetracker-carrier.kicad_pcb` with `kicad-cli` (KiCad 7.0.11).
 

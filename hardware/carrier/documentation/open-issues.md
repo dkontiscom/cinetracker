@@ -1,6 +1,6 @@
 # Carrier: open issues
 
-Updated 2026-10-10 for v0.5d. Most items can only be closed with real boards and a scope.
+Updated 2026-10-10 for v0.5e. Most items can only be closed with real boards and a scope.
 
 ## Firmware items that affect the board
 
@@ -32,8 +32,9 @@ Updated 2026-10-10 for v0.5d. Most items can only be closed with real boards and
 
 ## Before ordering
 
-- [ ] Review the copper. v0.5d is a full re-route.
-- [ ] Print `fab/carrier-v0.5d-1to1-fit-check.pdf` at 100 % and fit the connectors and the Teensy (USB end on the left).
+- [ ] Review the copper. v0.5d was a full re-route; v0.5e only adds the MH5 and MH6 holes.
+- [ ] Print `fab/carrier-v0.5e-1to1-fit-check.pdf` at 100 % and fit the connectors and the Teensy (USB end on the left). Also print `../../poe/fab/poe-v0.1-stack-1to1-fit-check.pdf` for the stack.
 - [ ] In JLC's placement preview, check the IC pin-1 marks and the LED polarity.
 - [ ] Decide the hardware licence (open).
-- [ ] Apply the PoE board changes (standoff holes, J7 height). These are planned for the next carrier revision; see `../../poe/documentation/requirements-v0.1.md`.
+- [x] PoE board standoff holes (MH5, MH6), added in v0.5e.
+- [ ] **J7 ↔ PoE board link:** long-pin header or cable. This decision is open; see `../../poe/documentation/open-issues.md`.

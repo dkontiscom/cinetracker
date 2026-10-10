@@ -7,14 +7,14 @@
   (title_block
     (title "CineTracker carrier board")
     (date "2026-10-10")
-    (rev "v0.5d")
+    (rev "v0.5e")
     (company "CineTracker (github.com/dkontiscom/cinetracker)")
     (comment 1 "Teensy 4.1 carrier: genlock, LTC audio, 3 lens encoders, status UI")
     (comment 2 "Stack: carrier (bottom) / Teensy 4.1 (components up) / PoE board (top)")
   )
   (lib_symbols)
 
-  (text "CineTracker carrier board v0.5d" (at 25.4 25.4 0)
+  (text "CineTracker carrier board v0.5e" (at 25.4 25.4 0)
     (effects (font (size 2.54 2.54) bold) (justify left))
     (uuid 78f31660-3fa8-4252-9e4c-f1977ac89a57)
   )

@@ -7,7 +7,7 @@
   (title_block
     (title "CineTracker carrier: Power and Teensy 4.1")
     (date "2026-10-10")
-    (rev "v0.5d")
+    (rev "v0.5e")
     (company "CineTracker (github.com/dkontiscom/cinetracker)")
     (comment 1 "Generated from the routed board netlist, then maintained in KiCad")
     (comment 2 "Hardware licence: see repository")
@@ -457,7 +457,7 @@
           (name "9" (effects (font (size 1.27 1.27))))
           (number "11" (effects (font (size 1.27 1.27))))
         )
-        (pin bidirectional line (at 8.89 0.0 180) (length 2.54)
+        (pin bidirectional line (at 8.89 0 180) (length 2.54)
           (name "10_CS" (effects (font (size 1.27 1.27))))
           (number "12" (effects (font (size 1.27 1.27))))
         )
@@ -579,7 +579,7 @@
           (name "16" (effects (font (size 1.27 1.27))))
           (number "11" (effects (font (size 1.27 1.27))))
         )
-        (pin bidirectional line (at 8.89 0.0 180) (length 2.54)
+        (pin bidirectional line (at 8.89 0 180) (length 2.54)
           (name "15" (effects (font (size 1.27 1.27))))
           (number "12" (effects (font (size 1.27 1.27))))
         )
@@ -1035,6 +1035,11 @@
     (at 25.4 248.92 0)
     (effects (font (size 1.27 1.27)) (justify left))
     (uuid fdee8b44-d046-4ee5-bbf1-0efc0754a796)
+  )
+  (text "MH5/MH6 (v0.5e): M2.5 standoff holes for the PoE board v0.1, NPTH, no copper within 3.2 mm. Use nylon standoffs."
+    (at 48.26000000000002 228.6 0)
+    (effects (font (size 1.27 1.27)) (justify left))
+    (uuid a92e4f84-4a63-4e0e-9bd1-88eceeb36e1a)
   )
 
   (global_label "+5V" (shape passive) (at 49.53 50.8 0)
@@ -2167,6 +2172,54 @@
       (project "cinetracker-carrier"
         (path "/1c52c95b-6311-489a-85f6-c8f1ae0bb334/e79940d6-0a2e-4ff0-bc9d-ce64fa74edbc"
           (reference "MH4") (unit 1)
+        )
+      )
+    )
+  )
+
+  (symbol (lib_id "Mechanical:MountingHole") (at 190.5 218.44 0) (unit 1)
+    (in_bom no) (on_board yes) (fields_autoplaced)
+    (uuid fff95ec8-30ba-4cb0-a80b-b92353702b59)
+    (property "Reference" "MH5" (id 0) (at 191.77 217.17 0)
+      (effects (font (size 1.27 1.27)) (justify left))
+    )
+    (property "Value" "M2.5 PoE standoff" (id 1) (at 191.77 219.70999999999998 0)
+      (effects (font (size 1.27 1.27)) (justify left))
+    )
+    (property "Footprint" "MountingHole:MountingHole_2.7mm_M2.5" (id 2) (at 190.5 218.44 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "~" (id 3) (at 190.5 218.44 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (instances
+      (project "cinetracker-carrier"
+        (path "/1c52c95b-6311-489a-85f6-c8f1ae0bb334/e79940d6-0a2e-4ff0-bc9d-ce64fa74edbc"
+          (reference "MH5") (unit 1)
+        )
+      )
+    )
+  )
+
+  (symbol (lib_id "Mechanical:MountingHole") (at 226.06 218.44 0) (unit 1)
+    (in_bom no) (on_board yes) (fields_autoplaced)
+    (uuid 3bbab347-0a61-45ce-9f48-a33cdff96854)
+    (property "Reference" "MH6" (id 0) (at 227.33 217.17 0)
+      (effects (font (size 1.27 1.27)) (justify left))
+    )
+    (property "Value" "M2.5 PoE standoff" (id 1) (at 227.33 219.70999999999998 0)
+      (effects (font (size 1.27 1.27)) (justify left))
+    )
+    (property "Footprint" "MountingHole:MountingHole_2.7mm_M2.5" (id 2) (at 226.06 218.44 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "~" (id 3) (at 226.06 218.44 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (instances
+      (project "cinetracker-carrier"
+        (path "/1c52c95b-6311-489a-85f6-c8f1ae0bb334/e79940d6-0a2e-4ff0-bc9d-ce64fa74edbc"
+          (reference "MH6") (unit 1)
         )
       )
     )

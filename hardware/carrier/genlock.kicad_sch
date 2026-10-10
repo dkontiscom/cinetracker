@@ -7,7 +7,7 @@
   (title_block
     (title "CineTracker carrier: Genlock: tri-level sync output")
     (date "2026-10-10")
-    (rev "v0.5d")
+    (rev "v0.5e")
     (company "CineTracker (github.com/dkontiscom/cinetracker)")
     (comment 1 "Generated from the routed board netlist, then maintained in KiCad")
     (comment 2 "Hardware licence: see repository")

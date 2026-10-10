@@ -74,6 +74,7 @@ def clear(board, x, y):
             dx, dy = cx - ax, cy - ay; L = dx * dx + dy * dy; tt = 0 if L == 0 else max(0, min(1, ((x - ax) * dx + (y - ay) * dy) / L))
             d = min(d, math.hypot(x - (ax + tt * dx), y - (ay + tt * dy)) - pcbnew.ToMM(t_.GetWidth()) / 2)
     for f in board.GetFootprints():
+        if f.GetReference() in ("MH5", "MH6"): continue
         cy_ = f.GetCourtyard(pcbnew.F_Cu); bb = cy_.BBox() if cy_.OutlineCount() else f.GetBoundingBox(False, False)
         l, tp, rr, bt = map(pcbnew.ToMM, (bb.GetLeft(), bb.GetTop(), bb.GetRight(), bb.GetBottom()))
         dx = max(l - x, 0, x - rr); dy = max(tp - y, 0, y - bt); d = min(d, math.hypot(dx, dy))
@@ -81,5 +82,9 @@ def clear(board, x, y):
 for ref in ("H1", "H2"):
     f = next(f for f in b.GetFootprints() if f.GetReference() == ref); p = f.GetPosition()
     x, y = pcbnew.ToMM(p.x), pcbnew.ToMM(p.y)
-    print(f"5c. {ref} at ({x:.2f}, {y:.2f}): nearest carrier v0.5d track/via/courtyard {clear(car, x, y)} mm (M2.5 standoff radius about 2.9)")
+    print(f"5c. {ref} at ({x:.2f}, {y:.2f}): nearest carrier track/via/courtyard (holes MH5/MH6 excluded) {clear(car, x, y)} mm (M2.5 standoff radius about 2.9)")
+carh = {f.GetReference(): (round(pcbnew.ToMM(f.GetPosition().x), 2), round(pcbnew.ToMM(f.GetPosition().y), 2)) for f in car.GetFootprints() if f.GetReference() in ("MH5", "MH6")}
+poeh = {f.GetReference(): (round(pcbnew.ToMM(f.GetPosition().x), 2), round(pcbnew.ToMM(f.GetPosition().y), 2)) for f in b.GetFootprints() if f.GetReference() in ("H1", "H2")}
+hm = carh.get("MH5") == poeh["H1"] and carh.get("MH6") == poeh["H2"]
+print("5d. carrier standoff holes MH5/MH6 match PoE H1/H2:", hm, carh, poeh); ok &= hm
 print("ALL OK" if ok else "SOME CHECKS FAILED")

@@ -2,6 +2,16 @@
 
 No revision has been manufactured yet.
 
+## v0.5e (2026-10-10): provisions for the PoE board
+
+- **Standoff holes:** MH5 at (77.0, 48.1) and MH6 at (10.0, 48.5), both M2.5 NPTH for the PoE board v0.1 standoffs.
+  - Each has a 3.2 mm keep-out with no tracks, vias or fill on any layer.
+  - Both spots were already free on v0.5d, so no copper moved.
+  - Use nylon standoffs: the holes sit in the PoE board's isolation band.
+- **Height check:** under the PoE board (underside about 18.9 mm above the carrier), the tallest carrier parts are the panel connectors (about 13 mm) and J7 (8.5 mm).
+- **J7 unchanged.** A standard header on the PoE board cannot reach it, and the long-pin header vs cable choice is open. See `../../poe/documentation/open-issues.md`.
+- **Fab files:** regenerated as v0.5e. The BOM and placement are the same as v0.5d.
+
 ## v0.5d (2026-10-10): Teensy pin fix and move to a KiCad project
 
 - **Critical fix: the Teensy 4.1 socket rows.** From v0.3 to v0.5c the GND/0/1 row was placed where the Teensy's VIN row lands, and the VIN-row pin order was entered as VIN, 23, 22 … instead of VIN, GND, 3.3V, 23, 22 ….
