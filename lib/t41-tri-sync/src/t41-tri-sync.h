@@ -45,6 +45,16 @@ public:
     static constexpr uint32_t VSYNC_START_DELAY = 132 - SAMPLES_PER_EDGE; // st0274-2008 figure 5
     static constexpr uint32_t VSYNC_END_RESET = 44; // st0274-2008 figure 5 (2200 samples per line only)
 
+    // total samples per line, st0274-2008 table 1
+    static constexpr uint32_t SAMPLES_PER_LINE = (FPS == 24) ? 2750 : (FPS == 25 || FPS == 50) ? 2640 : 2200;
+    // broad pulse in progressive systems: starts 132T after 0H, lasts 1980T,
+    // so it ends at 2112T (st0274-2008 10.6, table 7 bp = 2112T, same value for
+    // every system). ending it at the start of the next interrupt (the
+    // VSYNC_END_RESET path) only lands on 2112T when the line is 2200 samples.
+    // at 2640 / 2750 samples it would run 440 / 550T too long, so for those
+    // rates the broad pulse is ended inside the same interrupt instead
+    static constexpr uint32_t VSYNC_BROAD_SAMPLES = 1980;
+
     // DEPENDENT defines
     // 50/60p need double the pixel throughput of 24/25/30p at 1080 lines
     // hence the different clock checked against the real skyworks an377
@@ -71,6 +81,8 @@ public:
     static constexpr uint32_t CYCLES_VSYNC_START_DELAY =
         VSYNC_START_DELAY * 1000 * TRISYNC_MHZ / SAMPLES_PER_MS;
     static constexpr uint32_t CYCLES_VSYNC_END_RESET = VSYNC_END_RESET * 1000 * TRISYNC_MHZ / SAMPLES_PER_MS;
+    static constexpr uint32_t CYCLES_VSYNC_BROAD =
+        static_cast<uint32_t>(static_cast<uint64_t>(VSYNC_BROAD_SAMPLES) * 1000 * TRISYNC_MHZ / SAMPLES_PER_MS);
 
     // internal variables one copy per instantiated fps not shared
     static inline volatile uint32_t linenumber = 0;
@@ -197,6 +209,17 @@ public:
             // start broad vsync pulse
             delayCycles(CYCLES_VSYNC_START_DELAY);
             digitalWriteFast(pinbit0, LOW);
+
+            if constexpr (SAMPLES_PER_LINE != 2200)
+            {
+                // 24/25/50p: end the broad pulse here at 2112T. on the 5 vsync
+                // lines of each frame the interrupt then stays busy for about
+                // 30us of the 35.6/37.0us line at 25/24p, 15us of 17.8us at 50p
+                // (priority 0, so everything else waits). the reset at the start
+                // of the next interrupt is then a no-op
+                delayCycles(CYCLES_VSYNC_BROAD);
+                digitalWriteFast(pinbit0, HIGH);
+            }
         }
 
         // NOTE: non-critical time section
