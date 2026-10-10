@@ -36,6 +36,7 @@ All positions are in **carrier board coordinates** (mm). The origin is the carri
   - **A. Long-pin 1×4 male header**, hand-fitted and cut to the measured length. J7 stays as it is. Not JLC-assembled.
   - **B. Short 2-wire cable with locking connectors** on both boards. It tolerates any stack height and uses JLC parts, but it is one more cable, and J3 and J7 change footprint.
 - **Both options:** measure the real stack (Teensy header plastic, Ethernet header) first.
+- **Decided 2026-10-10: option A**, the long-pin header. The part and its pin length are chosen after the stack is measured.
 
 ### Standoffs
 

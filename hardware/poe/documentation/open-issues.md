@@ -2,12 +2,14 @@
 
 Updated 2026-10-10 for v0.1.
 
-## Decisions needed
+## Decisions
 
-| # | Item | Options |
+| # | Item | Decision |
 |---|---|---|
-| 1 | **J3 ↔ carrier J7 power link.** The gap is about 10.4 mm, and a standard 2.54 mm header cannot bridge it (see [design-notes.md](design-notes.md) section 2) | **A.** A long-pin 1×4 male header, hand-fitted and cut to the measured length. J7 stays as it is. **B.** A short 2-wire cable with locking connectors on both boards, so J3 and J7 change. |
-| 2 | Hardware licence for the repository | Not decided yet |
+| 1 | **J3 ↔ carrier J7 power link.** The gap is about 10.4 mm, and a standard 2.54 mm header cannot bridge it (see [design-notes.md](design-notes.md) section 2) | **Decided 2026-10-10: A**, a long-pin 1×4 male header, hand-fitted and cut to the measured length. J7 stays as it is. Still to do: measure the stack, pick the header part |
+| 2 | Hardware licence for the repository | **Decided 2026-10-10:** CERN-OHL-S-2.0, copyright CineTracker contributors |
+| 3 | M12 shield (pin 9) | **Decided 2026-10-10:** left open (no copper), so the isolation spacing holds |
+| 4 | Buying M12 samples and a cordset | **Decided 2026-10-10:** after funding. Until then the M12 pin mapping stays a suspicion |
 
 ## Check with samples before ordering
 

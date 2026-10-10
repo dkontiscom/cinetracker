@@ -72,6 +72,7 @@ The signal chain:
 **Simulated performance** ([simulation/README.md](../simulation/README.md)):
 - 10–90 % rise of 35.2 / 35.3 / 35.2 ns on the three edges. That is inside both SMPTE ST 274 §10 windows: 33.67–74.07 ns at 24/25/30p and 16.84–37.04 ns at 50/60p.
 - Levels of −299.2 / +299.1 mV against ±300 ± 6 mV.
+- **Resistor tolerance:** with 1 % parts, 96.8 % (normal spread) to 73.4 % (even spread) of boards meet ±6 mV (Monte Carlo). From v0.6 the six level resistors (R1–R5, R15) become 0.1 % thin film; that gives 100 % in both cases.
 
 **What it depends on:**
 - **Firmware, commit `ab11050`:** the trailing edge (10 → 01) must switch both bits at once. The firmware now does this with one write to GPIO9 `DR_TOGGLE`.

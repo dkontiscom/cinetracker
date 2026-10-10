@@ -45,4 +45,4 @@ The PoE board ([../poe](../poe)) sits on top of the Teensy. It plugs onto the Te
 
 The schematic was generated from the routed board's netlist when the design moved into KiCad (v0.5d). From now on the schematic is the source: edit it, then *Update PCB from Schematic*.
 
-Licence: the firmware is AGPL-3.0-or-later (see the repository root). **The hardware licence is not decided yet.**
+Licence: the hardware (everything under `hardware/`) is **CERN-OHL-S-2.0**, copyright CineTracker contributors, see [../LICENSE](../LICENSE). Source location: https://github.com/dkontiscom/cinetracker. The firmware is AGPL-3.0-or-later (see the repository root).

@@ -29,7 +29,18 @@ Status
            rows (see carrier/documentation/changelog.md).
   poe      v0.1: KiCad 7 project (schematic, routed 2-layer board, isolation
            DRC rule) and JLCPCB fab outputs. Not built or ordered.
-           Open: the 5 V link to carrier J7 (long-pin header or cable),
-           see poe/documentation/open-issues.md.
+           The 5 V link to carrier J7 is a long-pin 1x4 header, cut to
+           length once the real stack is measured.
 
 Prototype orders are planned at carrier v0.6, together with the PoE board.
+
+Licence
+
+  Everything under hardware/ (KiCad sources, libraries, fab outputs,
+  documentation) is licensed CERN-OHL-S-2.0, strongly reciprocal, see
+  hardware/LICENSE. Copyright CineTracker contributors.
+  Source location: https://github.com/dkontiscom/cinetracker
+  Boards made from these files carry that source location on their
+  bottom silkscreen; keep it on derived boards.
+  The firmware (everything outside hardware/) is AGPL-3.0-or-later, see
+  the LICENSE at the repository root.

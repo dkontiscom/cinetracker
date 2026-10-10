@@ -46,7 +46,7 @@ The PoE board sits on top of the Teensy 4.1, above the carrier.
 
 ## Open
 
-- **J3 to J7 link:** this needs a decision. A standard header cannot bridge the about 10.4 mm gap. See [documentation/open-issues.md](documentation/open-issues.md).
-- **Sample checks:** the M12 sample and cordset (pin mapping, panel position), the real stack heights, and the real 5 V load.
+- **J3 to J7 link:** decided: a long-pin 1×4 male header, hand-fitted and cut to length after measuring the real stack (a standard header cannot bridge the about 10.4 mm gap). See [documentation/open-issues.md](documentation/open-issues.md).
+- **Sample checks:** the M12 sample and cordset (pin mapping, panel position), after funding. The real stack heights and the real 5 V load.
 
-Licence: the firmware is AGPL-3.0-or-later (see the repository root). **The hardware licence is not decided yet.**
+Licence: the hardware (everything under `hardware/`) is **CERN-OHL-S-2.0**, copyright CineTracker contributors, see [../LICENSE](../LICENSE). Source location: https://github.com/dkontiscom/cinetracker. The firmware is AGPL-3.0-or-later (see the repository root).
