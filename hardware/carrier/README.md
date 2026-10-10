@@ -7,7 +7,7 @@ The carrier holds a Teensy 4.1 and adds everything a camera-side CineTracker nee
 - two status LEDs and a reset button;
 - a 5 V input header for the PoE board, which sits on top of the Teensy.
 
-**Revision: v0.5e (2026-10-10).** Designed, not yet built or ordered. Prototype orders are planned for v0.6.
+**Revision: v0.60 (2026-10-11).** Designed, not yet built or ordered. Next: owner review, then (with funding) a review by a professional PCB designer, then the order. Iterations from here are numbered v0.61, v0.62, ...
 
 The PoE board ([../poe](../poe)) sits on top of the Teensy. It plugs onto the Teensy Ethernet pins and carrier J7, and two M2.5 nylon standoffs (MH5, MH6) hold it.
 
@@ -18,7 +18,7 @@ The PoE board ([../poe](../poe)) sits on top of the Teensy. It plugs onto the Te
 | | |
 |---|---|
 | Size | 80 × 64 mm, 1.6 mm, 4 layers: signal / GND plane / +3V3 plane / signal |
-| Parts | 92 placed parts, 4 mounting holes (M3), 2 PoE-board standoff holes (M2.5, MH5 and MH6). All JLCPCB stock: 37 BOM lines, 18 of them JLC "extended" parts |
+| Parts | 94 placed parts, 4 mounting holes (M3), 2 PoE-board standoff holes (M2.5, MH5 and MH6). All JLCPCB stock: 39 BOM lines, 22 of them JLC "extended" parts |
 | Teensy 4.1 | Plugs in components up, USB end on the left. J8 is the VIN row (top) and J9 the GND/0/1 row (bottom). 8.5 mm tall sockets, because codecs sit underneath |
 | Power | 5 V into J7 (from the PoE board or a bench supply) goes to Teensy VIN. **Cut the Teensy's VUSB–VIN pads.** 3.3 V comes from the Teensy regulator |
 | Connectors | All panel connectors on two edges. Encoders: J3 focus, J4 zoom (M8 6-pin), J2 iris (M8 4-pin). Sync and timecode: J1 BNC 75 Ω, J5 LTC out, J6 LTC in (M8 3-pin). All M8 sockets are female |
@@ -31,15 +31,15 @@ The PoE board ([../poe](../poe)) sits on top of the Teensy. It plugs onto the Te
 | `cinetracker-carrier.kicad_sch` + `power`, `genlock`, `audio`, `encoders`, `ui.kicad_sch` | Hierarchical schematic, the design source |
 | `cinetracker-carrier.kicad_pcb` | Routed board, linked to the schematic |
 | `lib/` | Project symbols (`cinetracker.kicad_sym`) and footprints (`cinetracker.pretty`): Teensy rows, PCM1808, TPD4E1U06, M8 sockets, 75 Ω BNC, TI DPY0002A |
-| `fab/` | JLCPCB outputs for v0.5e: Gerbers + drill, BOM, CPL, full BOM with prices, 1:1 fit-check PDF |
+| `fab/` | JLCPCB outputs for v0.60: Gerbers + drill, BOM, CPL, full BOM with prices, 1:1 fit-check PDF |
 | `documentation/` | Schematic PDF, design notes, ordering, changelog, open issues |
 | `simulation/` | ngspice simulation of the genlock output stage |
 | `tools/check_teensy_pins.py` | Checks the Teensy socket nets against PJRC's pinout card and the firmware pin numbers |
 
-## Checks done on v0.5e
+## Checks done on v0.60
 
-- **Schematic vs board:** the netlist exported from the schematic matches the board, with 98 parts (including the MH5 and MH6 holes), 65 nets and 295 pads identical. Every footprint is linked to its symbol, with the same footprint and value.
-- **DRC (KiCad 7):** 0 unconnected, 0 violations, 0 footprint-library mismatches.
+- **Schematic vs board:** the netlist exported from the schematic matches the board, with 100 parts (including the six holes), 65 nets and 299 pad connections identical. Every footprint is linked to its symbol, with the same footprint and value.
+- **DRC (KiCad 7):** 0 unconnected, 0 violations, 0 footprint-library mismatches. Since v0.60 the BNC and M8 footprints have courtyards drawn from the vendor drawings, so DRC also catches parts placed under a connector body.
 - **Teensy pins:** `tools/check_teensy_pins.py` passes with 0 mismatches. It compares against PJRC's pinout card and the firmware's pin defines.
 - **Genlock:** SPICE-simulated, see `simulation/`. Not yet measured on hardware.
 

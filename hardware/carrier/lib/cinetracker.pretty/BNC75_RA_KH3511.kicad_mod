@@ -15,4 +15,7 @@
   (pad "2" thru_hole circle (at -2.5 -7.5) (size 1.7 1.7) (drill 1) (layers "*.Cu" "*.Mask") (tstamp adf03eb2-eaea-46b2-9761-4b2942ebbe41))
   (pad "2" thru_hole circle (at 2.5 -7.5) (size 1.7 1.7) (drill 1) (layers "*.Cu" "*.Mask") (tstamp b0452acd-2ffe-4ed8-a919-426f4857bceb))
   (pad "2" thru_hole circle (at 5.05 -12.55) (size 3.2 3.2) (drill 2.1) (layers "*.Cu" "*.Mask") (tstamp 6ddc5bad-61f4-4fa8-9233-d26fa72721f6))
+  (fp_poly
+    (pts (xy -7.5 0) (xy 7.5 0) (xy 7.5 -15) (xy -7.5 -15))
+    (stroke (width 0.05) (type default)) (fill none) (layer "F.CrtYd") (tstamp 09a12422-f352-49d7-ab68-ee84fa6bd114))
 )

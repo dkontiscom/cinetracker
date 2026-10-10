@@ -7,7 +7,7 @@
   (title_block
     (title "CineTracker carrier: Status LEDs and reset button")
     (date "2026-10-10")
-    (rev "v0.5e")
+    (rev "v0.60")
     (company "CineTracker (github.com/dkontiscom/cinetracker)")
     (comment 1 "Generated from the routed board netlist, then maintained in KiCad")
     (comment 2 "Copyright CineTracker contributors. CERN-OHL-S-2.0. github.com/dkontiscom/cinetracker")

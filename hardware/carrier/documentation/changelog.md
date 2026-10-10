@@ -2,6 +2,16 @@
 
 No revision has been manufactured yet.
 
+## v0.60 (2026-10-11)
+
+Numbering from here: v0.60, v0.61, v0.62, ... (v0.60 is what was called "v0.6" before).
+
+- **Genlock level resistors:** R1, R2, R4 (2k), R3 (1k), R5 (5.1k) and R15 (5.6k) are now 0.1 % thin film (YAGEO RT0805B, Panasonic ERA6AEB562V). Same 0805 footprints, same values; the schematic value text shows 0.1 %.
+- **MISO pull-ups:** R27 and R28, 10 k 0805 to +3V3 on SPI_MISO and SPI1_MISO, so an unplugged focus or zoom encoder reads 0xFFFF (error flag set) instead of a floating line. R27 at (28.5, 19.25), R28 at (6.75, 36.0); three new vias, five short tracks, nothing else moved.
+- **Connector courtyards:** the BNC and M8 footprints (board and `lib/`) now have courtyards from the vendor drawings. The first placement of R28 landed under J3's body, which DRC could not see before; that is why they were added. No existing part conflicts with them.
+- **Fab files:** regenerated as v0.60. BOM: 39 lines (was 37), 22 extended types (was 18). CPL rows of existing parts are unchanged; R27 and R28 added.
+- **Checks:** schematic vs board 100 parts, 0 mismatches; DRC 0 violations, 0 unconnected; Teensy pin check 0 mismatches.
+
 ## v0.5e update (2026-10-10, same revision, no copper changes)
 
 - **Licence and source location:** CERN-OHL-S-2.0 text on the bottom silkscreen with the repository address; copyright line in every schematic title block. Gerbers and schematic PDF regenerated.

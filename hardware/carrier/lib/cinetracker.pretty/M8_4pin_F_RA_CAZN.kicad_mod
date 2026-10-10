@@ -22,4 +22,7 @@
     (thermal_bridge_angle 45) (tstamp 08a351fd-9066-4342-b47b-249b173e091c))
   (pad "MP" thru_hole oval (at 6.25 -6.18) (size 1.4 3.8) (drill oval 0.8 3.2) (layers "*.Cu" "*.Mask")
     (thermal_bridge_angle 45) (tstamp aaf73dde-38e1-4740-9159-a5eff3cbd469))
+  (fp_poly
+    (pts (xy -6.3 0) (xy 6.3 0) (xy 6.3 -4.18) (xy 7.05 -4.18) (xy 7.05 -8.18) (xy 6.3 -8.18) (xy 6.3 -8.23) (xy -6.3 -8.23) (xy -6.3 -8.18) (xy -7.05 -8.18) (xy -7.05 -4.18) (xy -6.3 -4.18))
+    (stroke (width 0.05) (type default)) (fill none) (layer "F.CrtYd") (tstamp 2dc0c5a2-961d-454a-820e-a24de0c9c4cb))
 )

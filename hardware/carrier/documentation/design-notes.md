@@ -1,4 +1,4 @@
-# Carrier v0.5e design notes
+# Carrier v0.60 design notes
 
 **Source of truth for pin functions:** the firmware in this repository (`include/*.h`, `src/*.cpp`). Datasheet values are cited where they are used. Anything not verified is marked **(unverified)**.
 
@@ -60,6 +60,7 @@ The signal chain:
   - NODE_S–NODE_B is R3 1 k + R13 11 Ω.
   - NODE_B–GND is R4 2 k + R14 22 Ω.
   - The ladder follows Riggers et al., RTCSA 2024, Fig. 3; the odd trims absorb the GPIO output resistance.
+  - R1–R5 and R15 (the six resistors that set the levels) are 0.1 % thin film since v0.60: YAGEO RT0805B (2k C706274, 1k C110774, 5.1k C122968) and Panasonic ERA6AEB562V (5.6k C445654).
 - **Offset:** R15 5k6 to +3V3A and R5 5k1 to GND lift the levels to 0.43 / 1.03 / 1.63 V. That keeps both op-amps inside the OPA356 common-mode range ((V−) − 0.1 V to (V+) − 1.5 V) and above its 0.3 V output-swing limit.
 - **Buffer:** U1 OPA356, unity gain.
 - **Low-pass:** a unity-gain Sallen-Key with RF1 = RF2 = 150 Ω and CF1 = CF2 = 68 pF 1 % C0G, giving Q = 0.5 (no overshoot).
@@ -72,7 +73,7 @@ The signal chain:
 **Simulated performance** ([simulation/README.md](../simulation/README.md)):
 - 10–90 % rise of 35.2 / 35.3 / 35.2 ns on the three edges. That is inside both SMPTE ST 274 §10 windows: 33.67–74.07 ns at 24/25/30p and 16.84–37.04 ns at 50/60p.
 - Levels of −299.2 / +299.1 mV against ±300 ± 6 mV.
-- **Resistor tolerance:** with 1 % parts, 96.8 % (normal spread) to 73.4 % (even spread) of boards meet ±6 mV (Monte Carlo). From v0.6 the six level resistors (R1–R5, R15) become 0.1 % thin film; that gives 100 % in both cases.
+- **Resistor tolerance:** with 1 % parts, 96.8 % (normal spread) to 73.4 % (even spread) of boards would meet ±6 mV (Monte Carlo, `simulation/mc_levels.py`). With the 0.1 % parts used since v0.60 it is 100 % in both cases.
 
 **What it depends on:**
 - **Firmware, commit `ab11050`:** the trailing edge (10 → 01) must switch both bits at once. The firmware now does this with one write to GPIO9 `DR_TOGGLE`.
@@ -101,7 +102,10 @@ The firmware carries LTC as mono on the left channel (channel 0, `src/aes67.cpp`
 - **LTC in:** J6 pin 4 → R24 20 k → R25 10 k to GND → C26 1 µF → VINL.
   - About 10 Vpp reaches ADC full scale. Input impedance is about 28.6 kΩ.
   - D4 TPD1E10B09 protects the line.
-- **Levels (unverified):** no public LTC level specification was checked. The about 1 Vpp out and about 10 Vpp in-range are design choices. To change them, change R23/R26 and R24/R25.
+- **Levels:** about 1 Vpp out and about 10 Vpp in-range are design choices.
+  - Checked 2026-10-11 against published specs: Sound Devices 888 TC in is 0.3–3.0 Vpp at 20 kΩ, TC out 5 Vpp at 75 Ω ([888 brochure](https://cdn.abicart.com/shop/ws42/76342/art27/171496227-4025a3-sound_devices_888_brochure.pdf)). Our output gives about 0.92 Vpp into 20 kΩ, inside that range; our input takes its 5 Vpp at half scale.
+  - ARRI (ALEXA 35, Mini LF), RED (KOMODO, V-RAPTOR) and Blackmagic (URSA) publish no LTC voltage levels in the documents checked; see the sources in `open-issues.md`.
+  - The hardware sets the ceiling (about 0.96 Vpp); firmware or the AES67 timecode source can only lower it. If a camera needs more, R23 (4.7 k) is the one part to change.
 
 ## 5. Lens encoders
 
@@ -122,6 +126,7 @@ Every cable line runs **connector → TVS → 33 Ω → Teensy**:
 - **PTC drop:** worst case R1max 7.5 Ω × 15 mA = 0.11 V, so the encoder sees at least 3.19 V.
 - **I²C:** R11 and R12 are 2 k pull-ups. NXP UM10204 Fast-mode needs tr ≤ 300 ns, so Rp(max) = tr / (0.8473 × Cb), which allows Cb up to 177 pF.
 - **SPI:** AS5048A needs tCLK ≥ 100 ns, and the firmware runs at 8 MHz. Cable length is designed for 40 cm or less.
+- **MISO pull-ups (v0.60):** R27 and R28, 10 k to +3V3 on SPI_MISO and SPI1_MISO (Teensy side of RS3/RS7). With no encoder plugged in, the line reads 0xFFFF, which has the error flag (bit 14) set, so `encoder_detect_presence()` reports the input as not connected instead of reading a floating line. Detection runs once at power-up (decided 2026-10-11).
 
 ## 6. Status UI
 
@@ -139,11 +144,12 @@ Every cable line runs **connector → TVS → 33 Ω → Teensy**:
 - **Panel holes:**
   - M8 sockets: M10 × 0.75, Ø10.1 mm with a 9.1 mm flat.
   - BNC: 1/2-28 UNEF, Ø12.8 mm D-cut.
-- **PoE board (v0.5e):**
+- **PoE board (v0.60):**
   - **Position:** it sits about 18.9 mm above the carrier (suspicion until measured), on the Teensy Ethernet header and J7.
   - **Standoffs:** MH5 (77.0, 48.1) and MH6 (10.0, 48.5) are M2.5 NPTH holes for nylon standoffs, each with a 3.2 mm copper keep-out.
   - **Clearance:** no carrier part under it is taller than the panel connectors (about 13 mm).
   - **Details:** see `../../poe/documentation/design-notes.md`.
+- **Connector courtyards (v0.60):** the BNC and M8 footprints now carry the body outline from the vendor drawings as courtyard (BNC: 14.7 ± 0.3 wide, block 14.5 deep; CAZN M8: 12.5 ± 0.1 wide, 8.13 deep from the board edge; dosinconn M8: about 13 wide, about 8.85 deep, read off the drawing), plus the mounting-post pads. Before v0.60 they had none, so DRC could not see a part under a connector body. Closest existing neighbours: C34 is 1.8 mm from the J5 body, and the PoE standoff at MH6 is 3.5 mm from the BNC body (standoff radius about 2.9 mm).
 
 ## Sources
 
