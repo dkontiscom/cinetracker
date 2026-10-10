@@ -61,6 +61,11 @@ Subsystems and what drives them:
   SMPTE ST0274-2008 tri-level sync generator, cites the actual spec
   sections in its own source, not guesswork.
 
+  update 2026-10-10: the pins do matter now. the planned rework moves
+  the edges onto a hardware timer, and pins 2 and 3 happen to be the A/B
+  outputs of the same FlexPWM block (FlexPWM4 submodule 2), so they stay.
+  dont move them without checking GENLOCK-TIMING.md first.
+
   two things from the paper behind this library (riggers/schleusner/
   renke/blume, rtcsa 2024, "ptp-synchronized tri-level sync generation
   for networked multi-sensor systems") that are worth holding against
