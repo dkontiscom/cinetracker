@@ -22,17 +22,20 @@ repo .gitignore ignores every folder named docs.
 
 Status
 
-  carrier  v0.5e: KiCad 7 project with an editable hierarchical schematic,
+  carrier  v0.60: KiCad 7 project with an editable hierarchical schematic,
            routed board and JLCPCB fab outputs. Not built or ordered.
-           v0.5e adds the two PoE-board standoff holes (MH5, MH6).
+           v0.60: 0.1 % genlock level resistors, MISO pull-ups,
+           connector courtyards (see carrier/documentation/changelog.md).
            Do not build v0.3 to v0.5c: they swapped the two Teensy socket
            rows (see carrier/documentation/changelog.md).
-  poe      v0.1: KiCad 7 project (schematic, routed 2-layer board, isolation
-           DRC rule) and JLCPCB fab outputs. Not built or ordered.
+  poe      v0.60 (v0.1 renumbered, same design): KiCad 7 project
+           (schematic, routed 2-layer board, isolation DRC rule) and
+           JLCPCB fab outputs. Not built or ordered.
            The 5 V link to carrier J7 is a long-pin 1x4 header, cut to
            length once the real stack is measured.
 
-Prototype orders are planned at carrier v0.6, together with the PoE board.
+Revisions go v0.60, v0.61, v0.62, ... Before anything is ordered: owner
+review, then (with funding) a review by a professional PCB designer.
 
 Licence
 

@@ -1,6 +1,6 @@
 # PoE board: open issues
 
-Updated 2026-10-10 for v0.1.
+Updated 2026-10-11 for v0.60 (= v0.1 renumbered).
 
 ## Decisions
 
@@ -17,6 +17,8 @@ Updated 2026-10-10 for v0.1.
   - Check that they mate.
   - Check the pin mapping with a continuity test. The footprint's pin numbers come from LCSC's footprint; the datasheet drawing shows no numbers.
   - Find the panel cut-out and where the panel sits relative to the board edge. Both boards put the edge at y = 64.
+  - Check that the shell is metal. The CAZN datasheet lists the shell as "brass Ni / zinc alloy Ni / PA+GF" without saying which applies to C7423431, and its photo shows a black body; JLC lists it as brass. The enclosure is metal with GND = chassis (decided 2026-10-11), so a metal shell bonds to the panel through its nut.
+  - With a metal shell on the chassis, the 1500 V PoE isolation also depends on the insulation between the contacts and the shell inside the connector. CAZN publishes no withstand voltage for it; ask CAZN, or hipot a sample.
 - [ ] **DP9900LP pins:** check the pin size. The footprint uses a 1.0 mm drill (LCSC uses 0.8 mm) so that a 0.64 mm square pin also fits.
 - [ ] **Stack heights:** measure the real stack, with the Teensy header plastic and a 2×3 2.0 mm male header on the Teensy.
 - [ ] **Load current:** measure the 5 V current of the Teensy plus carrier.

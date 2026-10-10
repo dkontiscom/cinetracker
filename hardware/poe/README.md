@@ -6,7 +6,7 @@ The PoE board sits on top of the Teensy 4.1, above the carrier.
 - **Power:** an isolated 802.3af PoE powered device (SDAPO DP9900LP-5V module) makes 5 V for carrier J7.
 - **Ethernet:** passes 100 Mbit Ethernet through PoE magnetics (CND-tek B1608S) to the Teensy's six Ethernet pins.
 
-**Revision: v0.1 (2026-10-10).** Designed, not built or ordered. Prototype orders are planned together with carrier v0.6.
+**Revision: v0.60 (2026-10-11).** Designed, not built or ordered. Renumbered from v0.1 to match the carrier (v0.60); the circuit and layout are the same as v0.1. Next: owner review, then (with funding) a professional PCB designer review, then the order.
 
 ![Stack, top view](documentation/stack-top-view.png)
 
@@ -34,7 +34,7 @@ The PoE board sits on top of the Teensy 4.1, above the carrier.
 | `documentation/` | Requirements, design notes, ordering, changelog, open issues, schematic PDF, renders |
 | `tools/verify_poe.py` | Checks: schematic vs board, DRC, isolation gaps, and the mechanical match with the carrier |
 
-## Checks done on v0.1
+## Checks done on v0.60
 
 - **Schematic vs board:** the netlist exported from the schematic matches the board, with 26 parts, 24 nets and 85 pads identical. Every footprint is linked to its symbol, with the same value and footprint.
 - **DRC (KiCad 7, project rules):** 0 violations and 0 unconnected.

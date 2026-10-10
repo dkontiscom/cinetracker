@@ -1,4 +1,6 @@
-# PoE board v0.1: design notes
+# PoE board v0.60 design notes
+
+v0.60 is v0.1 renumbered to match the carrier; nothing in the circuit or layout changed. "v0.1" below refers to the same design.
 
 Date: 2026-10-10. Status: designed in KiCad 7; not built or ordered.
 
@@ -41,7 +43,7 @@ All positions are in **carrier board coordinates** (mm). The origin is the carri
 ### Standoffs
 
 - **Holes:** two M2.5 holes (NPTH), H1 at (77.0, 48.1) and H2 at (10.0, 48.5).
-- **Carrier side:** both spots are free on carrier v0.5d. The nearest track, via or courtyard is 5.5 mm and 3.75 mm away (checked by `tools/verify_poe.py`). Carrier v0.5e gets matching holes.
+- **Carrier side:** both spots were free on carrier v0.5d; carrier v0.5e and later have matching holes (MH5, MH6). On carrier v0.60 the nearest track, via or courtyard is 5.5 mm (H1) and 3.5 mm (H2, the BNC body courtyard added in v0.60) away, checked by `tools/verify_poe.py`.
 - **Isolation:** both holes sit inside the isolation band. Use **nylon** standoffs and screws, so no metal links the PoE side to the carrier.
 - **Panel:** the M12 is panel-mounted, so its nut also holds the board at the panel edge.
 

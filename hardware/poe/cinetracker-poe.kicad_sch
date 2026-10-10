@@ -7,7 +7,7 @@
   (title_block
     (title "CineTracker PoE board")
     (date "2026-10-10")
-    (rev "v0.1")
+    (rev "v0.60")
     (company "CineTracker (github.com/dkontiscom/cinetracker)")
     (comment 1 "802.3af/at PD on M12 X-coded, isolated 5 V into the carrier, Ethernet into the Teensy 4.1")
     (comment 2 "Generated from the routed board netlist, then maintained in KiCad")
@@ -1253,7 +1253,7 @@
     (uuid 3405d30d-3a6b-4c8d-b2c2-e959a34fb7b6)
   )
 
-  (text "CineTracker PoE board v0.1" (at 25.4 22.86 0)
+  (text "CineTracker PoE board v0.60" (at 25.4 22.86 0)
     (effects (font (size 2.54 2.54) bold) (justify left))
     (uuid 938e6031-e920-4047-8ca0-0a0c3c4a1a03)
   )

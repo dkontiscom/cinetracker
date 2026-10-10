@@ -2,6 +2,12 @@
 
 No revision has been manufactured yet.
 
+## v0.60 (2026-10-11): renumbered
+
+- Renumbered from v0.1 to v0.60 so the PoE board and the carrier carry the same revision. Iterations from here: v0.61, v0.62, ...
+- No circuit, layout or BOM change. Silkscreen and title block say v0.60; fab files, schematic PDF and renders regenerated under the new name. The stack fit check now shows the carrier v0.60 with its new connector courtyards.
+- Checks: `tools/verify_poe.py` ALL OK (85 pads / 24 nets match, DRC 0, isolation minimum 2.7 mm, J3 = carrier J7, J2 = Teensy Ethernet pins, H1/H2 = carrier MH5/MH6; H2 is 3.5 mm from the carrier BNC body).
+
 ## v0.1 update (2026-10-10, same revision, no copper changes)
 
 - **Licence and source location:** CERN-OHL-S-2.0 text on the bottom silkscreen with the repository address; copyright line in the schematic title block. Gerbers and schematic PDF regenerated.
