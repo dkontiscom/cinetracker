@@ -1,6 +1,6 @@
 # CineTracker PoE board v0.1: requirements
 
-Date: 2026-10-10 (updated the same day after the user's decisions, and again for carrier v0.5d). Status: requirements settled; schematic not started.
+Date: 2026-10-10 (updated the same day after the user's decisions, and again for carrier v0.5d). Status: requirements settled. **v0.1 is designed**; see [design-notes.md](design-notes.md), which supersedes the height estimates below.
 
 > **Geometry corrected for carrier v0.5d.** The earlier version of this file took the Teensy pin positions from carrier v0.5c, which had the two Teensy socket rows swapped. The Ethernet pins are near the VIN row (top), not the GND row. Section 2 now uses v0.5d and PJRC's own drawings.
 
@@ -38,10 +38,10 @@ The carrier is 80 × 64 mm. The origin is the top-left corner and y runs down.
 | Carrier analog genlock section, directly under the PoE board's path | part centres x 15–38, y 45–62 (BNC J1 at x 15) | carrier v0.5d |
 
 **Heights:**
-- **Teensy top surface:** about 10.1 mm above the carrier (8.5 mm socket + 1.57 mm PCB).
+- **Teensy top surface:** about 12.6 mm above the carrier: the 8.5 mm socket, plus about 2.5 mm of Teensy header plastic (**suspicion**: standard header), plus the 1.57 mm PCB. An earlier estimate here said 10.1 mm because it left out the header plastic.
 - **Tallest parts on top of the Teensy:** the micro-B USB is 3.07 mm and the pushbutton 2.5 mm (PJRC drawing). Keep at least 3.1 mm clearance.
-- **Ethernet link:** a 2×3 2 mm male header on the Teensy pointing up, as in PJRC's Ethernet kit, mating with a 2×3 2 mm female socket under the PoE board. This puts the PoE board's underside at roughly 16 mm above the carrier (**suspicion**: depends on the socket chosen).
-- **Reaching J7:** the PoE board's pins must bridge about 7.5–8 mm above J7's 8.5 mm socket, so it needs a long-pin 1×4 header (about 14 mm below the board). The alternative is a taller J7 on the next carrier revision (v0.5e).
+- **Ethernet link:** a 2×3 2 mm male header on the Teensy pointing up, as in PJRC's Ethernet kit, mating with a 2×3 2 mm female socket under the PoE board. With a 4.3 mm socket (C18723065), the PoE board's underside is at about 18.9 mm above the carrier (**suspicion** until measured).
+- **Reaching J7:** the gap above J7's 8.5 mm socket is about 10.4 mm. A standard male header cannot bridge it, and the 11 mm J7 socket JLC stocks does not fix it either. The options are a long-pin header or a short cable. **Open decision**: see [open-issues.md](open-issues.md).
 
 ## 3. Ethernet connector
 
@@ -111,14 +111,14 @@ The cordset cannot fix this. 100 Mbit data must stay on pins 1,2/3,6, and the sp
 
 Carrier v0.5d only fixes the Teensy rows and moves the design into KiCad. These PoE provisions go into v0.5e.
 
-1. Add one or two standoff holes under the PoE board. MH3 and MH4 are in the bottom corners and are not under it.
-2. Choose between a taller J7 and a long-pin header on the PoE board.
+1. Add two M2.5 standoff holes at (77.0, 48.1) and (10.0, 48.5). These spots are free on v0.5d; the PoE board v0.1 uses them.
+2. The J7 link: a long-pin header or a cable (open, see above).
 3. Keep the area under the PoE board free of anything taller than about 5 mm. The current parts there are low: SOT-23, 0805, 1206 and SMA.
 4. **EMI:** the PoE converter will sit directly above the analog genlock and audio section. Put the module over the Teensy's middle (x about 28–50, y about 26–41) rather than over the genlock. The Ethernet pins are at the top of that area (y 28.45–32.45), so the magnetics fit next to them. Also keep a solid ground plane on the PoE board's isolated side facing the carrier. **The effect is a suspicion until measured.**
 
 ## 6. Open decisions
 
-None. Connector, power architecture and PSE type are all decided.
+Connector, power architecture and PSE type are decided. Still open: the J3 ↔ J7 power link (long-pin header or cable), see [open-issues.md](open-issues.md).
 
 **Before ordering v0.1 boards:**
 1. Buy 2–3 of C7423431, a branded RJ45-to-M12 X-coded cordset (Phoenix, binder or Murrelektronik) and a matching panel nut. Check that they mate and that the pins map as in section 3.

@@ -1,0 +1,7 @@
+(version 1)
+# PoE isolation (IEEE 802.3 clause 33.4.1 asks for 1500 V between the MDI and everything accessible).
+# Primary = PoE side (net class Primary). Keep >= 2.6 mm from every other connected copper item.
+# 2.6 mm is the smallest gap on the board: the pad gap of C5 (1812, 2 kV), which bridges the barrier on purpose.
+(rule "PoE isolation"
+  (constraint clearance (min 2.6mm))
+  (condition "A.NetClass == 'Primary' && B.NetClass != 'Primary' && B.NetName != ''"))

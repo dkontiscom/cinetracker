@@ -1,0 +1,42 @@
+# PoE board: open issues
+
+Updated 2026-10-10 for v0.1.
+
+## Decisions needed
+
+| # | Item | Options |
+|---|---|---|
+| 1 | **J3 ↔ carrier J7 power link.** The gap is about 10.4 mm, and a standard 2.54 mm header cannot bridge it (see [design-notes.md](design-notes.md) section 2) | **A.** A long-pin 1×4 male header, hand-fitted and cut to the measured length. J7 stays as it is. **B.** A short 2-wire cable with locking connectors on both boards, so J3 and J7 change. |
+| 2 | Hardware licence for the repository | Not decided yet |
+
+## Check with samples before ordering
+
+- [ ] **M12 sample:** buy 2–3 of C7423431 plus a branded RJ45-to-M12 X-coded cordset.
+  - Check that they mate.
+  - Check the pin mapping with a continuity test. The footprint's pin numbers come from LCSC's footprint; the datasheet drawing shows no numbers.
+  - Find the panel cut-out and where the panel sits relative to the board edge. Both boards put the edge at y = 64.
+- [ ] **DP9900LP pins:** check the pin size. The footprint uses a 1.0 mm drill (LCSC uses 0.8 mm) so that a 0.64 mm square pin also fits.
+- [ ] **Stack heights:** measure the real stack, with the Teensy header plastic and a 2×3 2.0 mm male header on the Teensy.
+- [ ] **Load current:** measure the 5 V current of the Teensy plus carrier.
+  - Under 100 mA: fit R6. The DP9900LP minimum load is 100 mA.
+  - The maximum is 1.4 A.
+- [ ] **Switch detection:** check that your MikroTik (Mode B), UniFi and Cisco (Mode A) switches detect and power the board.
+
+## Bench checks on the first boards
+
+- [ ] 5 V regulation and ripple. The datasheet ripple figure for the DP9900LP-5V is "TBD".
+- [ ] Link at 100 Mbit/s through the M12 cordset on each switch. Check the QNEthernet link status.
+- [ ] Temperature of PS1 at the measured load, inside the enclosure.
+- [ ] Insulation test, primary to secondary (hipot if available).
+- [ ] **Interference:** check genlock and LTC for noise from the PoE converter. The PoE board sits above the carrier's analog section. Compare the scope traces with PoE power and with bench power on J7.
+
+## Known limits
+
+- **Spacing:**
+  - Isolation is by spacing only: ≥ 2.6 mm by DRC rule, measured as 2.7 mm across C5's pads and ≥ 3.2 mm everywhere else.
+  - The board has not been hipot-tested.
+  - The DP9900LP's isolation is rated by impulse test (1500 V peak).
+- **J1 pin 9 (shield) is left open.** The cable shield bonds only through the connector housing and the panel.
+- **802.3af class:** the module does not document a class setting. The board shows up as the default class.
+- **Schematic origin:** the schematic was generated from the routed board, then linked. It is correct and editable, but not hand-drawn.
+- **ERC:** not run. KiCad 7's command line has no ERC, so run it in the KiCad GUI.

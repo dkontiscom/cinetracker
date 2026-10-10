@@ -1,0 +1,3 @@
+(fp_lib_table
+  (lib (name "cinetracker-poe")(type "KiCad")(uri "${KIPRJMOD}/lib/cinetracker-poe.pretty")(options "")(descr "CineTracker PoE board footprints"))
+)

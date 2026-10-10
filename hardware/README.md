@@ -27,7 +27,9 @@ Status
            Do not build v0.3 to v0.5c: they swapped the two Teensy socket
            rows (see carrier/documentation/changelog.md).
            Next revision (v0.5e): mechanical provisions for the PoE board.
-  poe      v0.1 requirements settled, see poe/documentation/requirements-v0.1.md.
-           schematic in progress.
+  poe      v0.1: KiCad 7 project (schematic, routed 2-layer board, isolation
+           DRC rule) and JLCPCB fab outputs. Not built or ordered.
+           Open: the 5 V link to carrier J7 (long-pin header or cable),
+           see poe/documentation/open-issues.md.
 
 Prototype orders are planned at carrier v0.6, together with the PoE board.

@@ -1,0 +1,14 @@
+Comment,Designator,Footprint,LCSC Part #
+10 nF 100 V X7R 0603,"C1,C2,C3,C4",C_0603_1608Metric,C107059
+1 nF 2 kV X7R 1812,C5,C_1812_4532Metric,C118019
+"100 uF 25 V aluminium electrolytic, 6.3 x 5.4",C6,CP_Elec_6.3x5.4,C4747964
+10 uF 25 V X5R 0805,C7,C_0805_2012Metric,C15850
+100 nF 50 V X7R 0603,"C8,C9",C_0603_1608Metric,C14663
+"Bridge rectifier 600 V 1 A, MBS","D1,D2",MBS_MDD,C2487
+"TVS 58 V unidirectional, SMA",D3,D_SMA,C2980408
+LED green 0805,D4,LED_0805_2012Metric,C2297
+"M12 X-coded 8-pin female, right angle, PCB, 60 V, IEC 61076-2-109",J1,M12_X8_F_RA_CAZN,C7423431
+"802.3af PD module, isolated 5 V 1.4 A (7 W at 70 C)",PS1,DP9900LP,C5380108
+75 ohm 1% 0603,"R1,R2,R3,R4",R_0603_1608Metric,C4275
+2.2 kohm 1% 0603,R7,R_0603_1608Metric,C4190
+"10/100 PoE+ LAN transformer with CMC, 720 mA, 1500 Vrms",T1,B1608S,C507596

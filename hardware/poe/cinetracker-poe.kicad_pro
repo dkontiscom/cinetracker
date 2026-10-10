@@ -1,0 +1,159 @@
+{
+  "board": {
+    "design_settings": {
+      "defaults": {},
+      "rules": {
+        "min_clearance": 0.2,
+        "min_track_width": 0.15,
+        "min_via_diameter": 0.6,
+        "min_through_hole_diameter": 0.3,
+        "min_copper_edge_clearance": 0.3,
+        "min_hole_to_hole": 0.25,
+        "min_silk_clearance": 0.0,
+        "min_text_height": 0.8
+      }
+    }
+  },
+  "meta": {
+    "filename": "cinetracker-poe.kicad_pro",
+    "version": 1
+  },
+  "net_settings": {
+    "classes": [
+      {
+        "name": "Default",
+        "clearance": 0.2,
+        "track_width": 0.25,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "line_style": 0,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "wire_width": 6,
+        "bus_width": 12
+      },
+      {
+        "name": "Power",
+        "clearance": 0.2,
+        "track_width": 0.6,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "line_style": 0,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "wire_width": 6,
+        "bus_width": 12
+      },
+      {
+        "name": "Primary",
+        "clearance": 0.3,
+        "track_width": 0.4,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "line_style": 0,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "wire_width": 6,
+        "bus_width": 12
+      }
+    ],
+    "meta": {
+      "version": 3
+    },
+    "netclass_patterns": [
+      {
+        "netclass": "Power",
+        "pattern": "+5V"
+      },
+      {
+        "netclass": "Power",
+        "pattern": "GND"
+      },
+      {
+        "netclass": "Primary",
+        "pattern": "BS1"
+      },
+      {
+        "netclass": "Primary",
+        "pattern": "BS2"
+      },
+      {
+        "netclass": "Primary",
+        "pattern": "BS3"
+      },
+      {
+        "netclass": "Primary",
+        "pattern": "BS4"
+      },
+      {
+        "netclass": "Primary",
+        "pattern": "BS_NODE"
+      },
+      {
+        "netclass": "Primary",
+        "pattern": "CT_12"
+      },
+      {
+        "netclass": "Primary",
+        "pattern": "CT_36"
+      },
+      {
+        "netclass": "Primary",
+        "pattern": "MDI_RX_N"
+      },
+      {
+        "netclass": "Primary",
+        "pattern": "MDI_RX_P"
+      },
+      {
+        "netclass": "Primary",
+        "pattern": "MDI_TX_N"
+      },
+      {
+        "netclass": "Primary",
+        "pattern": "MDI_TX_P"
+      },
+      {
+        "netclass": "Primary",
+        "pattern": "SP_45"
+      },
+      {
+        "netclass": "Primary",
+        "pattern": "SP_78"
+      },
+      {
+        "netclass": "Primary",
+        "pattern": "VIN_N"
+      },
+      {
+        "netclass": "Primary",
+        "pattern": "VIN_P"
+      }
+    ]
+  },
+  "schematic": {
+    "legacy_lib_dir": "",
+    "legacy_lib_list": []
+  },
+  "sheets": [
+    [
+      "9ff9d455-3d0b-4035-8430-33b86a5a4ed0",
+      ""
+    ]
+  ]
+}
