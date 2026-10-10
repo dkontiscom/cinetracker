@@ -78,6 +78,17 @@ public:
     static inline int pinbit0 = 0;
     static inline int pinbit1 = 1;
 
+    // trailing edge (+300mV -> 0mV) is the only edge where both bits change,
+    // 10 -> 01. written as two digitalWriteFast calls the output sits at
+    // 00 (-300mV) for however long the second write takes, and with runtime
+    // pin numbers each write is a pin table lookup plus a store, so that gap
+    // is several cycles. if both pins are on the same gpio port we flip both
+    // with one store to that ports toggle register instead (state before the
+    // trailing edge is always 10, so toggling both gives 01). nullptr = pins
+    // on different ports, fall back to the two writes
+    static inline volatile uint32_t *trail_toggle_reg = nullptr;
+    static inline uint32_t trail_toggle_mask = 0;
+
     // delay routine based on CPU Cycles
     // MIN return in 7 cycles NEAR 20 cycles it gives wait +/- 2 cycles - with sketch timing overhead
     static inline void delayCycles(uint32_t cycles)
@@ -139,6 +150,17 @@ public:
         pinMode(pinbit0, OUTPUT);
         pinMode(pinbit1, OUTPUT);
 
+        if (portToggleRegister(pinbit0) == portToggleRegister(pinbit1))
+        {
+            trail_toggle_reg = portToggleRegister(pinbit0);
+            trail_toggle_mask = digitalPinToBitMask(pinbit0) | digitalPinToBitMask(pinbit1);
+        }
+        else
+        {
+            trail_toggle_reg = nullptr;
+            trail_toggle_mask = 0;
+        }
+
         update_interrupt_counter();
         qindesign::network::EthernetIEEE1588.setChannelInterruptEnable(interrupt_channel, true);
     }
@@ -159,8 +181,15 @@ public:
         delayCycles(CYCLES_PER_EDGE);
         digitalWriteFast(pinbit1, HIGH); // +300mV
         delayCycles(CYCLES_PER_EDGE);
-        digitalWriteFast(pinbit1, LOW);
-        digitalWriteFast(pinbit0, HIGH); // 0mV
+        if (trail_toggle_reg)
+        {
+            *trail_toggle_reg = trail_toggle_mask; // 10 -> 01 in one store, 0mV
+        }
+        else
+        {
+            digitalWriteFast(pinbit1, LOW);
+            digitalWriteFast(pinbit0, HIGH); // 0mV
+        }
 
         // vsync. Broad pulse in lines 1 to 5 (inclusive) st0274-20078 10.7
         if (linenumber < 5)
