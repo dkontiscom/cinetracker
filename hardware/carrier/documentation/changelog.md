@@ -2,6 +2,11 @@
 
 No revision has been manufactured yet.
 
+## v0.5e update (2026-10-10, same revision, no copper changes)
+
+- **Licence and source location:** CERN-OHL-S-2.0 text on the bottom silkscreen with the repository address; copyright line in every schematic title block. Gerbers and schematic PDF regenerated.
+- **Decisions:** J7 link is a long-pin header on the PoE board side, J7 itself unchanged. From v0.6 the six genlock level resistors (R1–R5, R15) become 0.1 % thin film. See `open-issues.md`.
+
 ## v0.5e (2026-10-10): provisions for the PoE board
 
 - **Standoff holes:** MH5 at (77.0, 48.1) and MH6 at (10.0, 48.5), both M2.5 NPTH for the PoE board v0.1 standoffs.

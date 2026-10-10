@@ -32,7 +32,7 @@ All positions are in **carrier board coordinates** (mm). The origin is the carri
 - **The gap:** the top of carrier J7 is at 8.5 mm and the PoE board underside at about 18.9 mm, so the gap is about 10.4 mm.
 - **Why a standard header fails:** a standard 2.54 mm male header (2.5 mm plastic, 6 mm pin) on the PoE underside ends about 1.9 mm above J7, so it never makes contact.
 - **What is needed:** about 12 mm of pin below the plastic, for 3–4 mm of insertion into J7. A taller J7 does not fix this on its own. The 11 mm socket JLC stocks (C41427519) still leaves only about 0.6 mm of insertion.
-- **What v0.1 does:** J3 is a plain 1×4 2.54 mm through-hole footprint at the J7 position. Any of the options below fit it, and **the choice is open**:
+- **What v0.1 does:** J3 is a plain 1×4 2.54 mm through-hole footprint at the J7 position. Both options below fit it:
   - **A. Long-pin 1×4 male header**, hand-fitted and cut to the measured length. J7 stays as it is. Not JLC-assembled.
   - **B. Short 2-wire cable with locking connectors** on both boards. It tolerates any stack height and uses JLC parts, but it is one more cable, and J3 and J7 change footprint.
 - **Both options:** measure the real stack (Teensy header plastic, Ethernet header) first.

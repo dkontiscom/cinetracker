@@ -2,6 +2,11 @@
 
 No revision has been manufactured yet.
 
+## v0.1 update (2026-10-10, same revision, no copper changes)
+
+- **Licence and source location:** CERN-OHL-S-2.0 text on the bottom silkscreen with the repository address; copyright line in the schematic title block. Gerbers and schematic PDF regenerated.
+- **Decisions:** J3 to J7 by a long-pin header; M12 shield pin 9 left open; M12 samples after funding. See `open-issues.md`.
+
 ## v0.1 (2026-10-10): first design
 
 - **Connector:** M12 X-coded 8-pin socket (CAZN, C7423431). All four pairs come in, so the board takes Mode A or Mode B power from any 802.3af/at PSE.
