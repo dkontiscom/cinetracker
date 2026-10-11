@@ -244,8 +244,8 @@ int network_send_freed(const FreedPacket *packet) {
   return -1;
 }
 
-int network_process_frame(const EncoderState encoder_states[3]) {
-  if (!g_initialized) return -1;
+bool network_frame_due() {
+  if (!g_initialized) return false;
 
   uint32_t now = micros();
 
@@ -262,21 +262,33 @@ int network_process_frame(const EncoderState encoder_states[3]) {
   g_have_last_process = true;
 
   // signed diff trick so this still works when micros wraps around
-  if ((int32_t)(now - g_next_frame_time) < 0) return 1;
+  return (int32_t)(now - g_next_frame_time) >= 0;
+}
+
+int network_send_frame(const EncoderState encoder_states[3]) {
+  if (!g_initialized) return -1;
+
+  uint32_t now = micros();
 
   FreedPacket packet;
   network_build_freed_packet(&packet, encoder_states, g_config.camera_id, g_config.user_data);
+
+  // actual fps is the gap between two packets that really went out. it
+  // used to be taken after the send, as now minus the send time that had
+  // just been stored, which is negative and wrapped to ~4e9 us, so the ui
+  // showed about 0 fps the whole time it streamed
+  uint32_t prev_frame_time = g_last_frame_time;
+  bool had_prev_frame = g_have_last_frame;
   int result = network_send_freed(&packet);
+  if (result == 0 && had_prev_frame) {
+    uint32_t delta = g_last_frame_time - prev_frame_time;
+    if (delta > 0) g_stats.actual_fps = 1000000.0f / (float)delta;
+  }
 
   g_next_frame_time += g_frame_interval_us;
   if ((int32_t)(g_next_frame_time - now) < 0) {
     g_stats.missed_frames++;
     g_next_frame_time = now + g_frame_interval_us;
-  }
-
-  if (g_have_last_frame) {
-    uint32_t delta = now - g_last_frame_time;
-    if (delta > 0) g_stats.actual_fps = 1000000.0f / (float)delta;
   }
 
   return result;

@@ -57,7 +57,12 @@ bool network_check_link_status();
 void network_build_freed_packet(FreedPacket *packet, const EncoderState encoder_states[3],
                                  uint8_t camera_id, uint8_t user_data);
 int network_send_freed(const FreedPacket *packet);
-int network_process_frame(const EncoderState encoder_states[3]);
+// the frame schedule is split in two so the caller can read the encoders
+// again between "a frame is due" and building it (read-before-send).
+// network_frame_due() must be called every loop pass while streaming, it
+// also notices when streaming was off and resyncs the schedule
+bool network_frame_due();
+int network_send_frame(const EncoderState encoder_states[3]);
 
 void network_set_camera_id(uint8_t camera_id);
 void network_set_frame_rate(uint8_t fps);

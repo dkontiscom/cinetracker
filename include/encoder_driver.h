@@ -45,6 +45,12 @@ void encoder_stop_sampling();
 // the i2c bus if wire is called from inside another interrupt
 void encoder_process();
 
+// read every active encoder right now, through the same unwrap as the
+// timer samples. call it right before building a FreeD packet so the
+// packet carries a reading a couple of hundred us old at most, instead of
+// the last 1 kHz timer sample which can be up to 1 ms old
+void encoder_refresh_now();
+
 bool encoder_read_angle(uint8_t encoder_id, uint16_t *angle);
 // unwrapped is the multi turn position accumulated at the sample rate, the
 // raw 14 bit value wraps every revolution and is only kept for display

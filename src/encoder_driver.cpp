@@ -279,6 +279,41 @@ void encoder_process() {
   }
 }
 
+void encoder_refresh_now() {
+  uint8_t mask = g_active_mask;
+
+  // iris first, its i2c read is the slow one (~0.15 ms at 400 kHz), so the
+  // fast moving focus and zoom are read last, closest to the packet
+  if (mask & (1 << 1)) {
+    uint16_t angle;
+    if (as5048b_read_reg16(AS5048B_REG_ANGLE_MSB, &angle)) {
+      accumulate(1, angle);
+      g_iris_sample_count++;
+      g_iris_since_read = 0;
+    }
+  }
+
+  // take focus/zoom out of the isr mask while reading them here, same
+  // pattern as encoder_read_angle: the isr preempts the main loop, never
+  // the other way round, so once the bit is clear no isr touches that bus
+  // or that encoder's state until it's put back
+  static const uint8_t spi_ids[2] = {0, 2};
+  uint8_t spi_mask = mask & ((1 << 0) | (1 << 2));
+  g_active_mask = mask & ~spi_mask;
+  for (uint8_t k = 0; k < 2; k++) {
+    uint8_t i = spi_ids[k];
+    if (!(spi_mask & (1 << i))) continue;
+    uint16_t response = as5048_read_register(g_spi_buses[k], AS5048_CMD_ANGLE | AS5048_READ_FLAG);
+    if (!(response & AS5048_EF_ERROR)) {
+      accumulate(i, response & 0x3FFF);
+      g_error_active[i] = false;
+    } else {
+      as5048_clear_error(k, i);
+    }
+  }
+  g_active_mask = mask;
+}
+
 bool encoder_read_angle(uint8_t encoder_id, uint16_t *angle) {
   if (encoder_id >= 3 || !angle) return false;
 

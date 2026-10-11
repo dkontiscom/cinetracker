@@ -268,6 +268,23 @@ Subsystems and what drives them:
   arduino spi/led pin overlap thing) - doesnt matter for us since we're
   using external status leds on 4 and 5 not the builtin one.
 
+  read-before-send: with only the 1khz samples, a freed packet carried
+  whatever the last timer sample was, anywhere from 0 to 1ms old (half a
+  ms on average) by the time it was built. the 1ms goal is the age of the
+  data when unreal decodes it, so that alone ate most of it. now loop()
+  asks network_frame_due() first, and when a frame is due it calls
+  encoder_refresh_now() - iris over i2c first (the slow one, roughly
+  0.15ms at 400khz), then focus and zoom over spi last, through the same
+  accumulate() unwrap - and the packet is built straight after. data age
+  at build should be a couple of hundred us at most, not measured yet.
+  the timer keeps running at 1khz for the multi turn unwrap and the web
+  ui. focus/zoom come out of the isr mask while the loop reads them, same
+  as encoder_read_angle does, so the isr and the loop never share a bus
+  mid frame. the filter still runs once per loop pass like before. found
+  on the way: actual_fps was worked out after the send from the send time
+  just stored, which is negative and wraps, so the ui showed ~0 fps the
+  whole time it streamed. fixed in the same split (network_send_frame).
+
   multi turn: the as5048a/b are single turn absolute encoders, they only
   ever report where the shaft is within one 360 degree revolution with
   zero memory of how many full turns happened. cinetracker mounts the
@@ -633,7 +650,7 @@ Subsystems and what drives them:
   advanced next_frame_time while streaming, so after 36-72 minutes with
   streaming off the signed micros() diff read the stale value as "not
   yet" and nothing went out for up to another 36 minutes while the ui
-  said streaming. now network_process_frame resyncs to now whenever it
+  said streaming. now network_frame_due resyncs to now whenever it
   hasnt been called for over two frame intervals (streaming was off, or
   a hard stall) - one mechanism, no hook into the web handler needed,
   and a resume no longer counts as a missed frame either. and the multi

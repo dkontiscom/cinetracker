@@ -132,6 +132,14 @@ void setup() {
 }
 
 void loop() {
+  // read-before-send: when a FreeD frame is due, read the encoders again
+  // right here, so the packet carries a reading a couple of hundred us old
+  // instead of the last 1 kHz timer sample (up to 1 ms old). the timer
+  // keeps running for the multi turn unwrap and the web ui. the samples
+  // still go through the filter once per loop pass, as before
+  bool send_frame = web_is_streaming() && network_frame_due();
+  if (send_frame) encoder_refresh_now();
+
   for (int i = 0; i < 3; i++) {
     uint16_t angle;
     int32_t unwrapped;
@@ -140,9 +148,7 @@ void loop() {
     }
   }
 
-  if (web_is_streaming()) {
-    network_process_frame(g_encoders);
-  }
+  if (send_frame) network_send_frame(g_encoders);
 
   web_interface_process(&g_web_ctx);
   encoder_process();
