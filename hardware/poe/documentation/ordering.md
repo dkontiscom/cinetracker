@@ -12,7 +12,7 @@
 | `poe-v0.60-BOM-full.csv` | Manufacturer, MPN, JLC stock, quantity bought and prices. It also lists the parts JLC does not fit |
 | `poe-v0.60-stack-1to1-fit-check.pdf` | Carrier and PoE board outlines overlaid in one coordinate system. Print at 100 % |
 
-All fab files come from `cinetracker-poe.kicad_pcb` (KiCad 7.0.11).
+All fab files come from `cinetracker-poe.kicad_pcb`, exported with `kicad-cli` (KiCad 10.0.7).
 
 ## Order settings
 
@@ -22,7 +22,7 @@ All fab files come from `cinetracker-poe.kicad_pcb` (KiCad 7.0.11).
   - **T1 (B1608S):** pin-1 dot at the north-east corner. Pins 1–8 face the Teensy side.
   - **PS1:** pin 1 square pad at the north-east corner. The input pins face the M12.
   - **D1, D2 (MB6S):** "+" at the marked corner.
-  - **D3:** cathode bar towards VIN_P.
+  - **D3:** cathode bar towards /VIN_P.
   - **J1:** the mating face over the board edge.
 - **Not fitted by JLC:**
   - J2, the 2×3 2.0 mm socket on the bottom. Hand-solder it.

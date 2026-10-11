@@ -2,6 +2,22 @@
 
 No revision has been manufactured yet.
 
+## v0.60 moved to KiCad 10 (2026-10-11, same revision, no copper change)
+
+- **KiCad 10.0.7:** schematics, board and project libraries are in the KiCad 10 format now (were KiCad 7.0.11). KiCad 7 can't open them anymore.
+- **First ERC** (KiCad 7's command line had none), 5 errors and 3 warnings, all fixed, none was a wiring fault:
+  - J8 pin 3 and J9 pin 15 are both Teensy 3V3 pins (same regulator) and were both power outputs. J9 pin 15 is passive now.
+  - +5V and GND come in on J7, +3V3A and +5VA through FB1 and FB2, so nothing drove them as far as ERC knows. They have PWR_FLAGs now, on the Power sheet (no footprint, nothing on the board).
+  - The project's copies of the Device:LED and Connector:Conn_Coaxial symbols were refreshed from the KiCad 10 library (same pins and graphics).
+- **Board brought in line with the schematic and the KiCad 10 libraries,** like *Update PCB from Schematic* plus *Update Footprints from Library*:
+  - Stock footprints take the KiCad 10 library graphics (silkscreen, courtyard, fab) and 3D models. Pads are identical; the 1.7 mm socket pads changed from oval to circle of the same size.
+  - Symbol fields (LCSC, Manufacturer, MPN, Description) copied onto the footprints.
+  - The 27 no-connect pads got their KiCad `unconnected-...` nets.
+  - Zones refilled with KiCad 10 (fill area changed by under 0.4 mm² per layer).
+- **Copper unchanged:** all 315 pads, 653 tracks, 103 vias and the outline compared equal with the KiCad 7 file. BOM and CPL came out identical.
+- **Gerbers:** the inner layers are now `GNDPLANE.g1` and `PWRPLANE.g2` (KiCad 7 named them `.g2` and `.g3`), see `ordering.md`.
+- **Checks (KiCad 10):** ERC 0; DRC 0 violations, 0 warnings, 0 unconnected, 0 schematic parity issues, 0 library mismatches; independent netlist compare 100 parts / 65 nets / 299 pads; Teensy pins 0 mismatches. New `tools/verify_carrier.py` runs all of them.
+
 ## v0.60 (2026-10-11)
 
 Numbering from here: v0.60, v0.61, v0.62, ... (v0.60 is what was called "v0.6" before).

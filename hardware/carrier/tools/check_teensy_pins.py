@@ -1,5 +1,5 @@
 """Independent check: Teensy 4.1 pins on the carrier vs PJRC card + firmware.
-usage: python3 check_teensy_pins.py ../cinetracker-carrier.kicad_pcb   (needs KiCad's pcbnew python module)
+usage: python3 check_teensy_pins.py ../cinetracker-carrier.kicad_pcb   (needs KiCad 10's pcbnew python module)
 J8 = VIN-row socket, J9 = GND/0/1-row socket.
 Source of the pin order: PJRC pinout card card11a_rev4 (top view, USB on the left):
 top row VIN GND 3.3V 23..13 GND 41..33, bottom row GND 0..12 3.3V 24..32."""
@@ -27,6 +27,7 @@ for p in pads:
     i=round((x-x0)/2.54); name=(TOP if y==top_y else BOT)[i]
     want=FW.get(name,"")
     got=p.GetNetname()
+    if got.startswith("unconnected-"): got=""   # no-connect pin, KiCad 10 gives it its own unconnected-... net
     if got!=want:
         bad+=1; print(f"MISMATCH {p.GetParent().GetReference()}.{p.GetNumber()} Teensy {name}: board '{got}' expected '{want}'")
 # USB end must be the low-x end and the USB end must be where VIN/GND sit

@@ -2,6 +2,18 @@
 
 No revision has been manufactured yet.
 
+## v0.60 moved to KiCad 10 (2026-10-11, same revision, no copper change)
+
+- **KiCad 10.0.7:** schematic, board and project libraries are in the KiCad 10 format now (were KiCad 7.0.11). KiCad 7 can't open them anymore.
+- **First ERC:** 1 warning (the project's copy of Device:LED differed from the KiCad 10 library in a simulation property), fixed. 0 now.
+- **Board brought in line with the schematic and the KiCad 10 libraries,** like *Update PCB from Schematic* plus *Update Footprints from Library*:
+  - The schematic's local labels make root-sheet nets, which KiCad names with a leading "/": the board nets are renamed to match (VIN_P is /VIN_P, and so on for 22 nets). The Primary net class patterns in the project file follow, so the isolation rule still covers the same nets.
+  - The 7 no-connect pads got their `unconnected-...` nets. The isolation rule leaves those out, same as no-net copper before (see the comment in `cinetracker-poe.kicad_dru`).
+  - Stock footprints take the KiCad 10 library graphics and 3D models (pads identical; oval 1.35/1.7 mm pads on J2/J3 are circles of the same size now). Symbol fields copied onto the footprints.
+  - Zones refilled with KiCad 10.
+- **Copper unchanged:** all 91 pads, 186 tracks, 17 vias and the outline compared equal with the KiCad 7 file. BOM and CPL came out identical.
+- **Checks (KiCad 10):** `tools/verify_poe.py` ALL OK: ERC 0; DRC 0 violations, 0 warnings, 0 unconnected, 0 schematic parity issues; 85 pads / 24 nets match; isolation minimum 2.7 mm (C5), then 3.2 mm; J3 = carrier J7, J2 = Teensy Ethernet pins, H1/H2 = carrier MH5/MH6. The script uses kicad-cli on a temporary copy now.
+
 ## v0.60 (2026-10-11): renumbered
 
 - Renumbered from v0.1 to v0.60 so the PoE board and the carrier carry the same revision. Iterations from here: v0.61, v0.62, ...

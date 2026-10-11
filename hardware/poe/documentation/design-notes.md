@@ -2,7 +2,7 @@
 
 v0.60 is v0.1 renumbered to match the carrier; nothing in the circuit or layout changed. "v0.1" below refers to the same design.
 
-Date: 2026-10-10. Status: designed in KiCad 7; not built or ordered.
+Date: 2026-10-10. Status: designed in KiCad 7, moved to KiCad 10 (10.0.7) on 2026-10-11; not built or ordered.
 
 All positions are in **carrier board coordinates** (mm). The origin is the carrier's top-left corner and y runs down. The PoE board's KiCad file uses the same coordinates, so the Teensy pins, carrier J7 and the standoff holes line up by construction. `tools/verify_poe.py` checks this against the carrier board file.
 
@@ -98,7 +98,7 @@ All positions are in **carrier board coordinates** (mm). The origin is the carri
 - **The band:** a 3.0 mm band (y 46.6–49.6) runs the full width of the board as a KiCad rule area with no tracks, vias or copper fill.
   - Only these cross it: PS1 (input and output rows 11.38 mm apart), T1 (rows 8.4 mm apart), C5 (2 kV part) and the two nylon standoff holes.
   - Everything south of the band is primary.
-- **DRC rule:** the project's `cinetracker-poe.kicad_dru` holds a custom rule. It requires ≥ 2.6 mm between any primary-class copper and any other connected copper.
+- **DRC rule:** the project's `cinetracker-poe.kicad_dru` holds a custom rule. It requires ≥ 2.6 mm between any primary-class copper and any other connected copper. Copper with no net and no-connect pins (KiCad names their nets `unconnected-...`) are left out: T1's NC pins and J1 pin 9.
   - **Measured gaps:** 2.7 mm across C5's own pads (rated 2 kV), then 3.2 mm and up everywhere else. `tools/verify_poe.py` lists every gap below 4 mm.
   - **Rule check:** tightening the rule makes it fire, so it is active.
 - **Limits:**

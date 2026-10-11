@@ -27,19 +27,23 @@ The PoE board ([../poe](../poe)) sits on top of the Teensy. It plugs onto the Te
 
 | Path | What |
 |---|---|
-| `cinetracker-carrier.kicad_pro` | KiCad 7 project. Open this |
+| `cinetracker-carrier.kicad_pro` | KiCad 10 project (10.0.7). Open this |
 | `cinetracker-carrier.kicad_sch` + `power`, `genlock`, `audio`, `encoders`, `ui.kicad_sch` | Hierarchical schematic, the design source |
 | `cinetracker-carrier.kicad_pcb` | Routed board, linked to the schematic |
 | `lib/` | Project symbols (`cinetracker.kicad_sym`) and footprints (`cinetracker.pretty`): Teensy rows, PCM1808, TPD4E1U06, M8 sockets, 75 Ω BNC, TI DPY0002A |
 | `fab/` | JLCPCB outputs for v0.60: Gerbers + drill, BOM, CPL, full BOM with prices, 1:1 fit-check PDF |
 | `documentation/` | Schematic PDF, design notes, ordering, changelog, open issues |
 | `simulation/` | ngspice simulation of the genlock output stage |
+| `tools/verify_carrier.py` | Runs all the checks below: ERC, DRC with schematic parity, an independent netlist compare, the Teensy pin check |
 | `tools/check_teensy_pins.py` | Checks the Teensy socket nets against PJRC's pinout card and the firmware pin numbers |
 
 ## Checks done on v0.60
 
-- **Schematic vs board:** the netlist exported from the schematic matches the board, with 100 parts (including the six holes), 65 nets and 299 pad connections identical. Every footprint is linked to its symbol, with the same footprint and value.
-- **DRC (KiCad 7):** 0 unconnected, 0 violations, 0 footprint-library mismatches. Since v0.60 the BNC and M8 footprints have courtyards drawn from the vendor drawings, so DRC also catches parts placed under a connector body.
+All with KiCad 10.0.7, `tools/verify_carrier.py` runs them.
+
+- **ERC:** 0 errors, 0 warnings.
+- **Schematic vs board:** KiCad's schematic parity check (what *Update PCB from Schematic* compares: parts, footprints, values, fields, nets) finds 0 issues. An independent compare of the exported netlist agrees: 100 parts (including the six holes), 65 nets and 299 pad connections identical.
+- **DRC:** 0 unconnected, 0 violations, 0 warnings, 0 footprint-library mismatches against the KiCad 10 libraries. Since v0.60 the BNC and M8 footprints have courtyards drawn from the vendor drawings, so DRC also catches parts placed under a connector body.
 - **Teensy pins:** `tools/check_teensy_pins.py` passes with 0 mismatches. It compares against PJRC's pinout card and the firmware's pin defines.
 - **Genlock:** SPICE-simulated, see `simulation/`. Not yet measured on hardware.
 

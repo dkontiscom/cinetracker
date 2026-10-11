@@ -12,7 +12,7 @@
 | `carrier-v0.60-BOM-full.csv` | Manufacturer, MPN, JLC stock, quantity bought and prices |
 | `carrier-v0.60-1to1-fit-check.pdf` | Print at 100 % and test-fit the real connectors and the Teensy |
 
-All fab files are exported from `cinetracker-carrier.kicad_pcb` with `kicad-cli` (KiCad 7.0.11).
+All fab files are exported from `cinetracker-carrier.kicad_pcb` with `kicad-cli` (KiCad 10.0.7). Inner layers in the zip: `GNDPLANE.g1` is layer 2 (In1) and `PWRPLANE.g2` is layer 3 (In2); the X2 header of each Gerber says the same, if JLC asks for the layer order.
 
 ## Order settings
 

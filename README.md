@@ -39,8 +39,8 @@ Repo layout
   lib/t41-ptp,
   lib/t41-tri-sync      vendored PTP client and genlock pulse generator,
                         see CREDITS.md and ARCHITECTURE.md for why vendored
-  hardware/carrier/     carrier board, KiCad 7 project, fab files, docs
-  hardware/poe/         PoE board, KiCad 7 project, fab files, docs
+  hardware/carrier/     carrier board, KiCad 10 project, fab files, docs
+  hardware/poe/         PoE board, KiCad 10 project, fab files, docs
   ARCHITECTURE.md       how the firmware works and why, decisions log
   ROADMAP.md            milestones and status
   EXTENDED-FREED.md     extended FreeD packet spec, draft
@@ -66,9 +66,10 @@ This builds firmware.hex under .pio/build/teensy41/. flash it with the
 official Teensy Loader, same as any other Teensy 4.1 project, theres no
 special install step here.
 
-The hardware is KiCad 7 (7.0.11 used). open the .kicad_pro in each board
-folder. the schematics are the source, fab files in fab/ are generated
-from them.
+The hardware is KiCad 10 (10.0.7 used), older KiCad wont open the files.
+open the .kicad_pro in each board folder. the schematics are the source,
+fab files in fab/ are generated from them. tools/ in each board folder
+has the check scripts (ERC, DRC, schematic vs board and more).
 
 License
 

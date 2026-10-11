@@ -43,4 +43,3 @@ Updated 2026-10-11 for v0.60 (= v0.1 renumbered).
 - **J1 pin 9 (shield) is left open.** The cable shield bonds only through the connector housing and the panel.
 - **802.3af class:** the module does not document a class setting. The board shows up as the default class.
 - **Schematic origin:** the schematic was generated from the routed board, then linked. It is correct and editable, but not hand-drawn.
-- **ERC:** not run. KiCad 7's command line has no ERC, so run it in the KiCad GUI.

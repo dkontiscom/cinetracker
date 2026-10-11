@@ -86,63 +86,63 @@
       },
       {
         "netclass": "Primary",
-        "pattern": "BS1"
+        "pattern": "/BS1"
       },
       {
         "netclass": "Primary",
-        "pattern": "BS2"
+        "pattern": "/BS2"
       },
       {
         "netclass": "Primary",
-        "pattern": "BS3"
+        "pattern": "/BS3"
       },
       {
         "netclass": "Primary",
-        "pattern": "BS4"
+        "pattern": "/BS4"
       },
       {
         "netclass": "Primary",
-        "pattern": "BS_NODE"
+        "pattern": "/BS_NODE"
       },
       {
         "netclass": "Primary",
-        "pattern": "CT_12"
+        "pattern": "/CT_12"
       },
       {
         "netclass": "Primary",
-        "pattern": "CT_36"
+        "pattern": "/CT_36"
       },
       {
         "netclass": "Primary",
-        "pattern": "MDI_RX_N"
+        "pattern": "/MDI_RX_N"
       },
       {
         "netclass": "Primary",
-        "pattern": "MDI_RX_P"
+        "pattern": "/MDI_RX_P"
       },
       {
         "netclass": "Primary",
-        "pattern": "MDI_TX_N"
+        "pattern": "/MDI_TX_N"
       },
       {
         "netclass": "Primary",
-        "pattern": "MDI_TX_P"
+        "pattern": "/MDI_TX_P"
       },
       {
         "netclass": "Primary",
-        "pattern": "SP_45"
+        "pattern": "/SP_45"
       },
       {
         "netclass": "Primary",
-        "pattern": "SP_78"
+        "pattern": "/SP_78"
       },
       {
         "netclass": "Primary",
-        "pattern": "VIN_N"
+        "pattern": "/VIN_N"
       },
       {
         "netclass": "Primary",
-        "pattern": "VIN_P"
+        "pattern": "/VIN_P"
       }
     ]
   },

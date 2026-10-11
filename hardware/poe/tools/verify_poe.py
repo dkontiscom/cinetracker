@@ -1,52 +1,44 @@
 #!/usr/bin/env python3
-"""Checks of the PoE board project: schematic vs board, links, DRC (with the PoE isolation rule), every
-primary-to-isolated gap below 4 mm, and the mechanical match with the carrier (J3 on J7, J2 on the Teensy
-Ethernet pins, standoff holes clear of carrier copper).
-Needs KiCad 7 (pcbnew Python module, kicad-cli) and kiutils.  Run: python3 tools/verify_poe.py"""
-import os, re, shutil, subprocess, sys, tempfile
+"""Checks of the PoE board project: ERC, DRC with schematic parity (KiCad's own 'Update PCB from Schematic'
+check), an independent netlist compare, every primary-to-isolated gap below 4 mm, and the mechanical match with the
+carrier (J3 on J7, J2 on the Teensy Ethernet pins, standoff holes clear of carrier copper).
+Needs KiCad 10 (kicad-cli and the pcbnew python module).  Run: python3 tools/verify_poe.py
+kicad-cli runs on a temporary copy of the project, so nothing is written into the repo."""
+import math, os, re, shutil, subprocess, sys, tempfile
 import pcbnew
-from kiutils.schematic import Schematic
-os.environ.setdefault("KICAD7_FOOTPRINT_DIR", "/usr/share/kicad/footprints")
 HERE = os.path.dirname(os.path.abspath(__file__))
 P = os.path.dirname(HERE)
 CAR = os.path.join(P, "..", "carrier", "cinetracker-carrier.kicad_pcb")
-PCB = os.path.join(P, "cinetracker-poe.kicad_pcb"); SCH = os.path.join(P, "cinetracker-poe.kicad_sch")
+PCB = os.path.join(P, "cinetracker-poe.kicad_pcb")
 tmp = tempfile.mkdtemp()
+W = os.path.join(tmp, "poe"); shutil.copytree(P, W, ignore=shutil.ignore_patterns("fab", "documentation", "*.kicad_prl"))
 ok = True
+def cli(*a): return subprocess.run(["kicad-cli", *a], capture_output=True, text=True)
+def found(t, what): m = re.search(r"Found (\d+) " + what, t); return int(m.group(1)) if m else -1
 
-# 1. schematic netlist vs board pads
-net = os.path.join(tmp, "s.net")
-subprocess.run(["kicad-cli", "sch", "export", "netlist", "-o", net, SCH], capture_output=True)
+# 1. ERC
+rep = os.path.join(tmp, "erc.txt"); cli("sch", "erc", "--severity-all", "-o", rep, os.path.join(W, "cinetracker-poe.kicad_sch"))
+t = open(rep).read(); ne = int(re.search(r"ERC messages: (\d+)", t).group(1))
+print(f"1. ERC: {ne} messages"); ok &= ne == 0
+
+# 2. DRC with the project rules and schematic parity
+rep = os.path.join(tmp, "drc.txt"); r = cli("pcb", "drc", "--schematic-parity", "--severity-all", "-o", rep, os.path.join(W, "cinetracker-poe.kicad_pcb"))
+nv, nu, npar = found(r.stdout, "violations"), found(r.stdout, "unconnected"), found(r.stdout, "schematic parity")
+print(f"2. DRC: {nv} violations, {nu} unconnected, {npar} schematic parity issues"); ok &= nv == 0 and nu == 0 and npar == 0
+
+# 3. independent netlist compare
+net = os.path.join(tmp, "s.net"); cli("sch", "export", "netlist", "-o", net, os.path.join(W, "cinetracker-poe.kicad_sch"))
 r = subprocess.run([sys.executable, os.path.join(HERE, "cmp_netlist.py"), net, PCB], capture_output=True, text=True)
-print("1. schematic vs board:", r.stdout.strip().splitlines()[-1]); ok &= r.returncode == 0
-
-# 2. links, values, footprints
-s = Schematic.from_file(SCH)
-syms = {}
-for sym in s.schematicSymbols:
-    pr = {p.key: p.value for p in sym.properties}
-    if not pr["Reference"].startswith("#"): syms[pr["Reference"]] = (sym.uuid, pr["Value"], pr["Footprint"])
-b = pcbnew.LoadBoard(PCB); bad = 0
-for f in b.GetFootprints():
-    u, v, fp = syms[f.GetReference()]
-    if f.GetPath().AsString() != "/" + u or f.GetValue() != v or f"{f.GetFPID().GetLibNickname()}:{f.GetFPID().GetLibItemName()}" != fp: bad += 1
-print(f"2. links: {len(b.GetFootprints())} footprints, {len(syms)} symbols, mismatches {bad}"); ok &= bad == 0 and len(syms) == len(b.GetFootprints())
-
-# 3. DRC with project rules
-rep = os.path.join(tmp, "drc.txt"); pcbnew.WriteDRCReport(b, rep, pcbnew.EDA_UNITS_MILLIMETRES, True)
-t = open(rep).read(); nv = int(re.search(r"Found (\d+) DRC", t).group(1)); nu = int(re.search(r"Found (\d+) unconnected", t).group(1))
-print(f"3. DRC: {nv} violations, {nu} unconnected"); ok &= nv == 0 and nu == 0
+print("3. schematic vs board pads:", r.stdout.strip().splitlines()[-1]); ok &= r.returncode == 0
 
 # 4. isolation: every primary <-> isolated gap below 4 mm
-cp = os.path.join(tmp, "iso"); shutil.copytree(P, cp)
-dru = os.path.join(cp, "cinetracker-poe.kicad_dru"); _r = open(dru).read(); open(dru, "w").write(_r.replace("(min 2.6mm)", "(min 4mm)"))
-rep2 = os.path.join(tmp, "iso.txt")
-subprocess.run([sys.executable, "-c", f"import pcbnew; b=pcbnew.LoadBoard({os.path.join(cp, 'cinetracker-poe.kicad_pcb')!r}); "
-                f"pcbnew.WriteDRCReport(b, {rep2!r}, pcbnew.EDA_UNITS_MILLIMETRES, True)"], capture_output=True)
-gaps = sorted({float(x) for x in re.findall(r"rule PoE isolation clearance 4\.0000 mm; actual ([0-9.]+) mm", open(rep2).read())})
+dru = os.path.join(W, "cinetracker-poe.kicad_dru"); _r = open(dru).read(); open(dru, "w").write(_r.replace("(min 2.6mm)", "(min 4mm)"))
+rep2 = os.path.join(tmp, "iso.txt"); cli("pcb", "drc", "-o", rep2, os.path.join(W, "cinetracker-poe.kicad_pcb"))
+gaps = sorted({float(x) for x in re.findall(r"rule 'PoE isolation' clearance 4\.0000 mm; actual ([0-9.]+) mm", open(rep2).read())})
 print("4. isolation gaps < 4 mm (primary <-> isolated copper):", gaps[:6], "| minimum", gaps[0] if gaps else ">= 4")
-ok &= (not gaps) or gaps[0] >= 2.6
+ok &= bool(gaps) and gaps[0] >= 2.6   # empty would mean the rule matched nothing (net class patterns broken)
 
+b = pcbnew.LoadBoard(PCB)
 # 5. mechanical match with the carrier: J3 on carrier J7, J2 on the Teensy ethernet pins, standoff spots free
 car = pcbnew.LoadBoard(CAR)
 def pads(board, ref):
@@ -56,14 +48,13 @@ j7, j3 = pads(car, "J7"), pads(b, "J3")
 m = all(abs(j3[k][0] - j7[k][0]) < 0.01 and abs(j3[k][1] - j7[k][1]) < 0.01 and j3[k][2] == j7[k][2] for k in j7)
 print("5a. J3 pads = carrier J7 pads (position and net):", m, {k: j7[k] for k in sorted(j7)}); ok &= m
 TEENSY_ETH = {"TX+": (25.77, 32.45), "TX-": (23.77, 32.45), "GND": (25.77, 30.45), "LED": (23.77, 30.45), "RX-": (25.77, 28.45), "RX+": (23.77, 28.45)}
-want = {"TX+": "ETH_TX_P", "TX-": "ETH_TX_N", "GND": "GND", "LED": "", "RX-": "ETH_RX_N", "RX+": "ETH_RX_P"}
+want = {"TX+": "/ETH_TX_P", "TX-": "/ETH_TX_N", "GND": "GND", "LED": "", "RX-": "/ETH_RX_N", "RX+": "/ETH_RX_P"}
 j2 = pads(b, "J2"); mm_ = True
 for sig, (x, y) in TEENSY_ETH.items():
     hit = [v for v in j2.values() if abs(v[0] - x) < 0.01 and abs(v[1] - y) < 0.01]
-    mm_ &= len(hit) == 1 and hit[0][2] == want[sig]
+    mm_ &= len(hit) == 1 and (hit[0][2] if not hit[0][2].startswith("unconnected-") else "") == want[sig]
 print("5b. J2 pads on the Teensy ethernet pins with the right nets:", mm_); ok &= mm_
 # carrier copper/courtyards near the standoff holes
-import math
 def clear(board, x, y):
     d = 1e9
     for t_ in board.GetTracks():

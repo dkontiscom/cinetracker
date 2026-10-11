@@ -22,13 +22,13 @@ repo .gitignore ignores every folder named docs.
 
 Status
 
-  carrier  v0.60: KiCad 7 project with an editable hierarchical schematic,
+  carrier  v0.60: KiCad 10 project with an editable hierarchical schematic,
            routed board and JLCPCB fab outputs. Not built or ordered.
            v0.60: 0.1 % genlock level resistors, MISO pull-ups,
            connector courtyards (see carrier/documentation/changelog.md).
            Do not build v0.3 to v0.5c: they swapped the two Teensy socket
            rows (see carrier/documentation/changelog.md).
-  poe      v0.60 (v0.1 renumbered, same design): KiCad 7 project
+  poe      v0.60 (v0.1 renumbered, same design): KiCad 10 project
            (schematic, routed 2-layer board, isolation DRC rule) and
            JLCPCB fab outputs. Not built or ordered.
            The 5 V link to carrier J7 is a long-pin 1x4 header, cut to
@@ -36,6 +36,10 @@ Status
 
 Revisions go v0.60, v0.61, v0.62, ... Before anything is ordered: owner
 review, then (with funding) a review by a professional PCB designer.
+
+KiCad 10 (10.0.7 used). Both projects pass ERC and DRC with schematic
+parity with 0 errors and 0 warnings; run tools/verify_carrier.py and
+tools/verify_poe.py in the board folders to check again.
 
 Licence
 
