@@ -51,14 +51,25 @@ uint16_t as5048_calculate_parity(uint16_t value) {
   return value;
 }
 
+// cs timing from the AS5048 datasheet DS000298 v1-11, spi timing table:
+// tL (cs low to first clk) min 350 ns, tH (last clk to cs high) min 50 ns,
+// cs high between two frames min 350 ns. used to be 10 us each side,
+// about 30x the spec, so a register read (two frames) took ~44 us and the
+// 1 kHz isr sat on the cpu for ~88 us every ms. now ~6-7 us per read at
+// 8 MHz, with margin left on every minimum
+#define AS5048_T_L_NS 500
+#define AS5048_T_H_NS 100
+#define AS5048_T_CSNH_NS 500
+
 static uint16_t as5048_transfer(const EncoderBus &bus, uint16_t tx) {
   bus.spi->beginTransaction(AS5048_SPI_SETTINGS);
   digitalWrite(bus.cs_pin, LOW);
-  delayMicroseconds(10);
+  delayNanoseconds(AS5048_T_L_NS);
   uint16_t rx = bus.spi->transfer16(tx);
+  delayNanoseconds(AS5048_T_H_NS);
   digitalWrite(bus.cs_pin, HIGH);
   bus.spi->endTransaction();
-  delayMicroseconds(10);
+  delayNanoseconds(AS5048_T_CSNH_NS);
   return rx;
 }
 
@@ -283,7 +294,8 @@ void encoder_refresh_now() {
   uint8_t mask = g_active_mask;
 
   // iris first, its i2c read is the slow one (~0.15 ms at 400 kHz), so the
-  // fast moving focus and zoom are read last, closest to the packet
+  // fast moving focus and zoom (~7 us each over spi) are read last,
+  // closest to the packet
   if (mask & (1 << 1)) {
     uint16_t angle;
     if (as5048b_read_reg16(AS5048B_REG_ANGLE_MSB, &angle)) {

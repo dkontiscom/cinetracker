@@ -275,8 +275,18 @@ Subsystems and what drives them:
   asks network_frame_due() first, and when a frame is due it calls
   encoder_refresh_now() - iris over i2c first (the slow one, roughly
   0.15ms at 400khz), then focus and zoom over spi last, through the same
-  accumulate() unwrap - and the packet is built straight after. data age
-  at build should be a couple of hundred us at most, not measured yet.
+  accumulate() unwrap - and the packet is built straight after. read time
+  before the build should be ~15 us for focus/zoom and ~0.2 ms for iris,
+  worked out from the code not measured yet (on top of the sensor's own
+  ~100 us propagation delay, which no read timing changes).
+
+  spi cs timing: as5048_transfer waited 10 us after cs low and 10 us after
+  cs high, about 30x what the datasheet asks (DS000298 v1-11 spi timing
+  table: 350 ns cs low to first clk, 50 ns last clk to cs high, 350 ns cs
+  high between frames). a register read is two frames, so it took ~44 us
+  and the 1 khz isr held the cpu ~88 us every ms. now 500 / 100 / 500 ns
+  via delayNanoseconds, ~6-7 us per read at 8 mhz, margin on every
+  minimum. the isr also gets that much shorter for everything below it.
   the timer keeps running at 1khz for the multi turn unwrap and the web
   ui. focus/zoom come out of the isr mask while the loop reads them, same
   as encoder_read_angle does, so the isr and the loop never share a bus

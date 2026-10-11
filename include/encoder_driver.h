@@ -47,8 +47,8 @@ void encoder_process();
 
 // read every active encoder right now, through the same unwrap as the
 // timer samples. call it right before building a FreeD packet so the
-// packet carries a reading a couple of hundred us old at most, instead of
-// the last 1 kHz timer sample which can be up to 1 ms old
+// packet carries focus/zoom read ~15 us before (iris ~0.2 ms, i2c),
+// instead of the last 1 kHz timer sample which can be up to 1 ms old
 void encoder_refresh_now();
 
 bool encoder_read_angle(uint8_t encoder_id, uint16_t *angle);

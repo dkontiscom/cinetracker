@@ -133,8 +133,9 @@ void setup() {
 
 void loop() {
   // read-before-send: when a FreeD frame is due, read the encoders again
-  // right here, so the packet carries a reading a couple of hundred us old
-  // instead of the last 1 kHz timer sample (up to 1 ms old). the timer
+  // right here, so the packet carries focus/zoom read ~15 us before it is
+  // built (iris ~0.2 ms, i2c) instead of the last 1 kHz timer sample (up
+  // to 1 ms old). the timer
   // keeps running for the multi turn unwrap and the web ui. the samples
   // still go through the filter once per loop pass, as before
   bool send_frame = web_is_streaming() && network_frame_due();
