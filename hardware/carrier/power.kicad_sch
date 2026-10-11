@@ -6,8 +6,8 @@
 	(paper "A3")
 	(title_block
 		(title "CineTracker carrier: Power and Teensy 4.1")
-		(date "2026-10-10")
-		(rev "v0.60")
+		(date "2026-10-11")
+		(rev "v0.61")
 		(company "CineTracker (github.com/dkontiscom/cinetracker)")
 		(comment 1 "Generated from the routed board netlist, then maintained in KiCad")
 		(comment 2 "Copyright CineTracker contributors. CERN-OHL-S-2.0. github.com/dkontiscom/cinetracker")

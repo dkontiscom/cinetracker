@@ -19833,7 +19833,7 @@
 		(layer "Edge.Cuts")
 		(uuid "08c5a2b1-77be-43ca-a147-91766dc10c86")
 	)
-	(gr_text "CINETRACKER CARRIER v0.60"
+	(gr_text "CINETRACKER CARRIER v0.61"
 		(at 29 62.6 0)
 		(layer "F.SilkS")
 		(uuid "6c93cff1-bd4f-4105-bd60-0c56f27637c4")

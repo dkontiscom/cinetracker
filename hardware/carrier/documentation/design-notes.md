@@ -1,4 +1,4 @@
-# Carrier v0.60 design notes
+# Carrier v0.61 design notes
 
 **Source of truth for pin functions:** the firmware in this repository (`include/*.h`, `src/*.cpp`). Datasheet values are cited where they are used. Anything not verified is marked **(unverified)**.
 
@@ -144,7 +144,7 @@ Every cable line runs **connector → TVS → 33 Ω → Teensy**:
 - **Panel holes:**
   - M8 sockets: M10 × 0.75, Ø10.1 mm with a 9.1 mm flat.
   - BNC: 1/2-28 UNEF, Ø12.8 mm D-cut.
-- **PoE board (v0.60):**
+- **PoE board (v0.61):**
   - **Position:** it sits about 18.9 mm above the carrier (suspicion until measured), on the Teensy Ethernet header and J7.
   - **Standoffs:** MH5 (77.0, 48.1) and MH6 (10.0, 48.5) are M2.5 NPTH holes for nylon standoffs, each with a 3.2 mm copper keep-out.
   - **Clearance:** no carrier part under it is taller than the panel connectors (about 13 mm).

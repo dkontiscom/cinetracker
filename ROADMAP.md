@@ -88,7 +88,7 @@ Milestones from here
 
 M1. [in progress] Repo ready to show (target 2026-11-03)
     readme, this roadmap, extended FreeD spec draft, genlock timing notes,
-    carrier v0.60 and PoE board v0.60 as full KiCad projects with fab files
+    carrier v0.61 and PoE board v0.61 as full KiCad projects with fab files
     and docs. hardware licence CERN-OHL-S-2.0 decided. basics working on
     the firmware side is still the bar: encoders + web interface.
 
@@ -113,8 +113,9 @@ M3. [not started] Unreal LiveLink plugin, receiver side
 
 M4. [not started] Hardware prototypes
     - v0.60 done for both boards (0.1% genlock resistors, MISO pull-ups,
-      connector courtyards on the carrier, poe renumbered from v0.1).
-      iterations go v0.61, v0.62 from here
+      connector courtyards on the carrier, poe renumbered from v0.1)
+    - v0.61 done for both boards: moved to KiCad 10, ERC clean, PoE track
+      moved off the M12 housing pin. next is v0.62
     - my review, then a professional pcb designer review once there's
       funding, fixes go in as the next v0.6x
     - PoE board: whatever the M12 samples show (pin mapping, panel

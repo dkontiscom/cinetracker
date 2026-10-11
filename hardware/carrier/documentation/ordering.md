@@ -1,16 +1,16 @@
-# Ordering the carrier at JLCPCB (v0.60)
+# Ordering the carrier at JLCPCB (v0.61)
 
-**Status:** v0.60 is designed but not ordered. Before any order: owner review, then (with funding) a review by a professional PCB designer. Which revision gets ordered is decided then.
+**Status:** v0.61 is designed but not ordered. Before any order: owner review, then (with funding) a review by a professional PCB designer. Which revision gets ordered is decided then.
 
 ## Files (in `../fab/`)
 
 | File | Upload / use |
 |---|---|
-| `carrier-v0.60-gerbers.zip` | PCB order. 4 copper layers (In1 = GND, In2 = +3V3), masks, silk, paste, outline, PTH/NPTH Excellon with 6 plated slots. The NPTH file includes the two 2.7 mm PoE standoff holes |
-| `carrier-v0.60-BOM-JLCPCB.csv` | Assembly BOM (Comment / Designator / Footprint / LCSC Part #) |
-| `carrier-v0.60-CPL-JLCPCB.csv` | Assembly placement. J1–J6 sit at the pad bounding-box centre (the EasyEDA footprint centre), J7–J9 at pin 1 (KiCad origin); all other parts at the footprint origin |
-| `carrier-v0.60-BOM-full.csv` | Manufacturer, MPN, JLC stock, quantity bought and prices |
-| `carrier-v0.60-1to1-fit-check.pdf` | Print at 100 % and test-fit the real connectors and the Teensy |
+| `carrier-v0.61-gerbers.zip` | PCB order. 4 copper layers (In1 = GND, In2 = +3V3), masks, silk, paste, outline, PTH/NPTH Excellon with 6 plated slots. The NPTH file includes the two 2.7 mm PoE standoff holes |
+| `carrier-v0.61-BOM-JLCPCB.csv` | Assembly BOM (Comment / Designator / Footprint / LCSC Part #) |
+| `carrier-v0.61-CPL-JLCPCB.csv` | Assembly placement. J1–J6 sit at the pad bounding-box centre (the EasyEDA footprint centre), J7–J9 at pin 1 (KiCad origin); all other parts at the footprint origin |
+| `carrier-v0.61-BOM-full.csv` | Manufacturer, MPN, JLC stock, quantity bought and prices |
+| `carrier-v0.61-1to1-fit-check.pdf` | Print at 100 % and test-fit the real connectors and the Teensy |
 
 All fab files are exported from `cinetracker-carrier.kicad_pcb` with `kicad-cli` (KiCad 10.0.7). Inner layers in the zip: `GNDPLANE.g1` is layer 2 (In1) and `PWRPLANE.g2` is layer 3 (In2); the X2 header of each Gerber says the same, if JLC asks for the layer order.
 

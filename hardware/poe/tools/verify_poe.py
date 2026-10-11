@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Checks of the PoE board project: ERC, DRC with schematic parity (KiCad's own 'Update PCB from Schematic'
-check), an independent netlist compare, every primary-to-isolated gap below 4 mm, and the mechanical match with the
-carrier (J3 on J7, J2 on the Teensy Ethernet pins, standoff holes clear of carrier copper).
+check), an independent netlist compare, every primary-to-isolated gap below 4 mm, the copper nearest M12 pin 9, and
+the mechanical match with the carrier (J3 on J7, J2 on the Teensy Ethernet pins, standoff holes clear of carrier copper).
 Needs KiCad 10 (kicad-cli and the pcbnew python module).  Run: python3 tools/verify_poe.py
 kicad-cli runs on a temporary copy of the project, so nothing is written into the repo."""
 import math, os, re, shutil, subprocess, sys, tempfile
@@ -37,6 +37,14 @@ rep2 = os.path.join(tmp, "iso.txt"); cli("pcb", "drc", "-o", rep2, os.path.join(
 gaps = sorted({float(x) for x in re.findall(r"rule 'PoE isolation' clearance 4\.0000 mm; actual ([0-9.]+) mm", open(rep2).read())})
 print("4. isolation gaps < 4 mm (primary <-> isolated copper):", gaps[:6], "| minimum", gaps[0] if gaps else ">= 4")
 ok &= bool(gaps) and gaps[0] >= 2.6   # empty would mean the rule matched nothing (net class patterns broken)
+
+# 4b. M12 pin 9 (housing contact, on the chassis once mounted): nearest copper of any other item
+_r = open(dru).read(); open(dru, "w").write(_r.replace("(min 1.53mm)", "(min 2.5mm)"))
+rep3 = os.path.join(tmp, "pin9.txt"); cli("pcb", "drc", "-o", rep3, os.path.join(W, "cinetracker-poe.kicad_pcb"))
+p9 = [(float(d), a + b) for d, a, b in re.findall(r"rule 'M12 housing contact' clearance 2\.5000 mm; actual ([0-9.]+) mm\)\n.*\n(.*)\n(.*)", open(rep3).read())]
+pads9 = min((d for d, s in p9 if "PTH pad" in s and " of J1" in s), default=None); trk9 = min((d for d, s in p9 if "Track" in s or "Via" in s), default=None)
+print(f"4b. J1 pin 9 (M12 housing): J1 data pads {pads9} mm (the connector's own spacing), nearest track/via {trk9 if trk9 else '>= 2.5'} mm (rule >= 1.53)")
+ok &= pads9 is not None and (trk9 is None or trk9 >= 1.53)
 
 b = pcbnew.LoadBoard(PCB)
 # 5. mechanical match with the carrier: J3 on carrier J7, J2 on the Teensy ethernet pins, standoff spots free

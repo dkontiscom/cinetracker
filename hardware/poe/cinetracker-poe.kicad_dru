@@ -7,3 +7,9 @@
 (rule "PoE isolation"
   (constraint clearance (min 2.6mm))
   (condition "A.NetClass == 'Primary' && B.NetClass != 'Primary' && B.NetName != '' && B.NetName != 'unconnected-*'"))
+
+# M12 pin 9 (J1, housing contact): the housing sits on the chassis (= isolated GND) once the connector is panel
+# mounted, so nothing on the board may come closer to it than the connector's own pins do (1.53 mm, pad to pad).
+(rule "M12 housing contact"
+  (constraint clearance (min 1.53mm))
+  (condition "A.NetName == 'unconnected-(J1-SHIELD-Pad9)'"))

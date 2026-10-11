@@ -6,7 +6,7 @@ The PoE board sits on top of the Teensy 4.1, above the carrier.
 - **Power:** an isolated 802.3af PoE powered device (SDAPO DP9900LP-5V module) makes 5 V for carrier J7.
 - **Ethernet:** passes 100 Mbit Ethernet through PoE magnetics (CND-tek B1608S) to the Teensy's six Ethernet pins.
 
-**Revision: v0.60 (2026-10-11).** Designed, not built or ordered. Renumbered from v0.1 to match the carrier (v0.60); the circuit and layout are the same as v0.1. Next: owner review, then (with funding) a professional PCB designer review, then the order.
+**Revision: v0.61 (2026-10-11).** Designed, not built or ordered. Same circuit as v0.1/v0.60; v0.61 moved one track away from the M12 housing pin. Next: owner review, then (with funding) a professional PCB designer review, then the order. The next revision is v0.62.
 
 ![Stack, top view](documentation/stack-top-view.png)
 
@@ -28,13 +28,13 @@ The PoE board sits on top of the Teensy 4.1, above the carrier.
 | `cinetracker-poe.kicad_pro` | KiCad 10 project (10.0.7). Open this |
 | `cinetracker-poe.kicad_sch` | Schematic, the design source |
 | `cinetracker-poe.kicad_pcb` | Routed board, linked to the schematic |
-| `cinetracker-poe.kicad_dru` | Custom DRC rule for the PoE isolation spacing |
+| `cinetracker-poe.kicad_dru` | Custom DRC rules: PoE isolation spacing, clearance to the M12 housing pin |
 | `lib/` | Project symbols and footprints: M12 X-coded socket, DP9900LP, B1608S, MBS bridge |
 | `fab/` | JLCPCB outputs: Gerbers and drill, BOM, CPL, full BOM with prices, 1:1 stack fit-check PDF |
 | `documentation/` | Requirements, design notes, ordering, changelog, open issues, schematic PDF, renders |
 | `tools/verify_poe.py` | Checks: ERC, DRC with schematic parity, schematic vs board, isolation gaps, and the mechanical match with the carrier |
 
-## Checks done on v0.60
+## Checks done on v0.61
 
 All with KiCad 10.0.7, `tools/verify_poe.py` runs them.
 
@@ -42,6 +42,7 @@ All with KiCad 10.0.7, `tools/verify_poe.py` runs them.
 - **Schematic vs board:** KiCad's schematic parity check finds 0 issues. An independent compare of the exported netlist agrees: 26 parts, 24 nets and 85 pads identical.
 - **DRC (project rules):** 0 violations, 0 warnings, 0 unconnected, 0 footprint-library mismatches against the KiCad 10 libraries.
 - **Isolation:** every primary-to-isolated gap under 4 mm is listed. The smallest is 2.7 mm (C5, 2 kV), then 3.2 mm.
+- **M12 housing pin (J1 pin 9):** DRC rule keeps everything ≥ 1.53 mm away (the connector's own pin spacing). Nearest track: 1.79 mm.
 - **Carrier fit:** J3 pads match carrier J7 pads in position and net. J2 pads match the Teensy Ethernet pins (PJRC) with the right nets. The standoff spots are 5.5 mm and 3.45 mm from the nearest carrier copper or courtyard.
 - **Not done:** anything on hardware.
 

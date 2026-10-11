@@ -49,9 +49,9 @@ Repo layout
 
 Hardware status, details in hardware/README.md:
 
-  carrier  v0.60, designed in KiCad, not built. dont build v0.3 to v0.5c,
+  carrier  v0.61, designed in KiCad, not built. dont build v0.3 to v0.5c,
            they had the teensy socket rows swapped
-  poe      v0.60, designed in KiCad, not built
+  poe      v0.61, designed in KiCad, not built
   revisions go v0.60, v0.61, v0.62. before ordering: my review, then a
   professional pcb designer when the funding is there
 

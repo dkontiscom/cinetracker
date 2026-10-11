@@ -1,6 +1,6 @@
 # PoE board: open issues
 
-Updated 2026-10-11 for v0.60 (= v0.1 renumbered).
+Updated 2026-10-11 for v0.61.
 
 ## Decisions
 
@@ -8,7 +8,7 @@ Updated 2026-10-11 for v0.60 (= v0.1 renumbered).
 |---|---|---|
 | 1 | **J3 ↔ carrier J7 power link.** The gap is about 10.4 mm, and a standard 2.54 mm header cannot bridge it (see [design-notes.md](design-notes.md) section 2) | **Decided 2026-10-10: A**, a long-pin 1×4 male header, hand-fitted and cut to the measured length. J7 stays as it is. Still to do: measure the stack, pick the header part |
 | 2 | Hardware licence for the repository | **Decided 2026-10-10:** CERN-OHL-S-2.0, copyright CineTracker contributors |
-| 3 | M12 shield (pin 9) | **Decided 2026-10-10:** left open (no copper), so the isolation spacing holds |
+| 3 | M12 shield (pin 9) | **Decided 2026-10-10:** left open (no copper). Its housing sits on the chassis, so since v0.61 a DRC rule keeps everything ≥ 1.53 mm from it |
 | 4 | Buying M12 samples and a cordset | **Decided 2026-10-10:** after funding. Until then the M12 pin mapping stays a suspicion |
 
 ## Check with samples before ordering
@@ -40,6 +40,6 @@ Updated 2026-10-11 for v0.60 (= v0.1 renumbered).
   - Isolation is by spacing only: ≥ 2.6 mm by DRC rule, measured as 2.7 mm across C5's pads and ≥ 3.2 mm everywhere else.
   - The board has not been hipot-tested.
   - The DP9900LP's isolation is rated by impulse test (1500 V peak).
-- **J1 pin 9 (shield) is left open.** The cable shield bonds only through the connector housing and the panel.
+- **J1 pin 9 (shield) is left open.** The cable shield bonds only through the connector housing and the panel. Inside the connector pin 9 is 1.53 mm from the data pins; that, not the board, sets the PoE-to-chassis spacing there (see the M12 sample check above).
 - **802.3af class:** the module does not document a class setting. The board shows up as the default class.
 - **Schematic origin:** the schematic was generated from the routed board, then linked. It is correct and editable, but not hand-drawn.

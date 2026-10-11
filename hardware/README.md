@@ -13,7 +13,8 @@ Two boards, stacked as a sandwich with the Teensy 4.1 in the middle:
 Layout
 
   hardware/carrier/                 KiCad project, fab outputs (gerbers, bom, cpl)
-  hardware/carrier/documentation/   design notes, simulation results, order notes
+  hardware/carrier/documentation/   design notes, simulation results, order notes,
+                                    encoder cable build guide (encoder-cables.md)
   hardware/poe/                     KiCad project, fab outputs
   hardware/poe/documentation/       requirements, design notes
 
@@ -22,15 +23,18 @@ repo .gitignore ignores every folder named docs.
 
 Status
 
-  carrier  v0.60: KiCad 10 project with an editable hierarchical schematic,
+  carrier  v0.61: KiCad 10 project with an editable hierarchical schematic,
            routed board and JLCPCB fab outputs. Not built or ordered.
            v0.60: 0.1 % genlock level resistors, MISO pull-ups,
-           connector courtyards (see carrier/documentation/changelog.md).
+           connector courtyards. v0.61: moved to KiCad 10, no copper
+           change (see carrier/documentation/changelog.md).
            Do not build v0.3 to v0.5c: they swapped the two Teensy socket
            rows (see carrier/documentation/changelog.md).
-  poe      v0.60 (v0.1 renumbered, same design): KiCad 10 project
-           (schematic, routed 2-layer board, isolation DRC rule) and
-           JLCPCB fab outputs. Not built or ordered.
+  poe      v0.61: KiCad 10 project (schematic, routed 2-layer board,
+           isolation DRC rules) and JLCPCB fab outputs. Not built or
+           ordered. v0.61: moved to KiCad 10, and one track moved so
+           nothing comes closer than 1.53 mm to the M12 housing pin
+           (see poe/documentation/changelog.md).
            The 5 V link to carrier J7 is a long-pin 1x4 header, cut to
            length once the real stack is measured.
 

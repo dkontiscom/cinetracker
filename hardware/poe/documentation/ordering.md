@@ -1,16 +1,16 @@
-# Ordering the PoE board at JLCPCB (v0.60)
+# Ordering the PoE board at JLCPCB (v0.61)
 
-**Status:** v0.60 (= v0.1 renumbered) is designed but not ordered. Before any order: owner review, then (with funding) a professional PCB designer review. Before ordering, close the items in [open-issues.md](open-issues.md), especially the J3 interconnect and the sample fit checks.
+**Status:** v0.61 is designed but not ordered. Before any order: owner review, then (with funding) a professional PCB designer review. Before ordering, close the items in [open-issues.md](open-issues.md), especially the J3 interconnect and the sample fit checks.
 
 ## Files (in `../fab/`)
 
 | File | Upload / use |
 |---|---|
-| `poe-v0.60-gerbers.zip` | PCB order: 2 layers, masks, silk, paste, outline, PTH and NPTH Excellon |
-| `poe-v0.60-BOM-JLCPCB.csv` | Assembly BOM (Comment / Designator / Footprint / LCSC Part #) |
-| `poe-v0.60-CPL-JLCPCB.csv` | Assembly placement. Through-hole parts sit at their pin centroid |
-| `poe-v0.60-BOM-full.csv` | Manufacturer, MPN, JLC stock, quantity bought and prices. It also lists the parts JLC does not fit |
-| `poe-v0.60-stack-1to1-fit-check.pdf` | Carrier and PoE board outlines overlaid in one coordinate system. Print at 100 % |
+| `poe-v0.61-gerbers.zip` | PCB order: 2 layers, masks, silk, paste, outline, PTH and NPTH Excellon |
+| `poe-v0.61-BOM-JLCPCB.csv` | Assembly BOM (Comment / Designator / Footprint / LCSC Part #) |
+| `poe-v0.61-CPL-JLCPCB.csv` | Assembly placement. Through-hole parts sit at their pin centroid |
+| `poe-v0.61-BOM-full.csv` | Manufacturer, MPN, JLC stock, quantity bought and prices. It also lists the parts JLC does not fit |
+| `poe-v0.61-stack-1to1-fit-check.pdf` | Carrier and PoE board outlines overlaid in one coordinate system. Print at 100 % |
 
 All fab files come from `cinetracker-poe.kicad_pcb`, exported with `kicad-cli` (KiCad 10.0.7).
 

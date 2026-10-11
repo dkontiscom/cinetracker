@@ -1,6 +1,6 @@
-# PoE board v0.60 design notes
+# PoE board v0.61 design notes
 
-v0.60 is v0.1 renumbered to match the carrier; nothing in the circuit or layout changed. "v0.1" below refers to the same design.
+v0.60 is v0.1 renumbered to match the carrier. v0.61 is the same circuit; it moved MDI_TX_P (and MDI_RX_N to the bottom layer) so no track comes near the M12 housing pin. "v0.1" below refers to the same design.
 
 Date: 2026-10-10. Status: designed in KiCad 7, moved to KiCad 10 (10.0.7) on 2026-10-11; not built or ordered.
 
@@ -91,6 +91,7 @@ All positions are in **carrier board coordinates** (mm). The origin is the carri
   - Each of the four pairs gets 75 Ω + 10 nF 100 V. The capacitors are needed because PoE puts DC on the pairs.
   - The common node goes through C5 (1 nF 2 kV) to the isolated GND. Through the BNC shell that GND is the chassis ground.
 - **J1 pin 9** (shield / housing contact) **is left open.** It sits 1.5 mm from the data pins inside the connector, so tying it to anything on the PCB would undercut the isolation spacing. The housing bonds to a metal panel through its nut.
+  - With GND on the chassis, that puts pin 9 on the isolated side. A DRC rule keeps every track and via ≥ 1.53 mm from it, the connector's own pin-to-pin-9 spacing. Up to v0.60 MDI_TX_P ran through the middle of the pin circle, 0.45 mm from it; v0.61 routes it round the outside, and MDI_RX_N moved to B.Cu next to MDI_RX_P so they both pass between the J1 posts. Nearest track now 1.79 mm.
 
 ## 5. Isolation
 
