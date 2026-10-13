@@ -7,7 +7,7 @@ The carrier holds a Teensy 4.1 and adds everything a camera-side CineTracker nee
 - two status LEDs and a reset button;
 - a 5 V input header for the PoE board, which sits on top of the Teensy.
 
-**Revision: v0.61 (2026-10-11).** Designed, not yet built or ordered. Next: owner review, then (with funding) a review by a professional PCB designer, then the order. The next revision is v0.62.
+**Revision: v0.62 (2026-10-13, in review).** Designed, not yet built or ordered. v0.62 collects the fixes from the desk review series (see `documentation/changelog.md`). Next: owner review, then (with funding) a review by a professional PCB designer, then the order.
 
 The PoE board ([../poe](../poe)) sits on top of the Teensy. It plugs onto the Teensy Ethernet pins and carrier J7, and two M2.5 nylon standoffs (MH5, MH6) hold it.
 
@@ -31,14 +31,14 @@ The PoE board ([../poe](../poe)) sits on top of the Teensy. It plugs onto the Te
 | `cinetracker-carrier.kicad_sch` + `power`, `genlock`, `audio`, `encoders`, `ui.kicad_sch` | Hierarchical schematic, the design source |
 | `cinetracker-carrier.kicad_pcb` | Routed board, linked to the schematic |
 | `lib/` | Project symbols (`cinetracker.kicad_sym`) and footprints (`cinetracker.pretty`): Teensy rows, PCM1808, TPD4E1U06, M8 sockets, 75 Ω BNC, TI DPY0002A |
-| `fab/` | JLCPCB outputs for v0.61: Gerbers + drill, BOM, CPL, full BOM with prices, 1:1 fit-check PDF |
+| `fab/` | JLCPCB outputs for v0.62: Gerbers + drill, BOM, CPL, full BOM with prices, 1:1 fit-check PDF |
 | `documentation/` | Schematic PDF, design notes, ordering, changelog, open issues |
 | `documentation/encoder-cables.md` | How to build the three encoder cables (M8 cordset to the ams AS5048 adapter boards) |
 | `simulation/` | ngspice simulation of the genlock output stage |
 | `tools/verify_carrier.py` | Runs all the checks below: ERC, DRC with schematic parity, an independent netlist compare, the Teensy pin check |
 | `tools/check_teensy_pins.py` | Checks the Teensy socket nets against PJRC's pinout card and the firmware pin numbers |
 
-## Checks done on v0.61
+## Checks done on v0.62
 
 All with KiCad 10.0.7, `tools/verify_carrier.py` runs them.
 

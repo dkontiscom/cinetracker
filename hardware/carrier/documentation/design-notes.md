@@ -1,4 +1,4 @@
-# Carrier v0.61 design notes
+# Carrier v0.62 design notes
 
 **Source of truth for pin functions:** the firmware in this repository (`include/*.h`, `src/*.cpp`). Datasheet values are cited where they are used. Anything not verified is marked **(unverified)**.
 
@@ -67,6 +67,7 @@ The signal chain:
 - **Line driver:** U7 OPA356.
 - **DC block:** C1 47 µF, with R7 10 k bleed.
 - **Output:** R6 75 Ω into J1 (Kinghelm KH-BNC75-3511, 75 Ω). D5 TPD1E10B09 (bidirectional, ±9 V) handles ESD.
+- **J1 footprint (fixed in v0.62):** per the Kinghelm drawing (p. 1, side and PCB views) the two Ø1.8 mm mounting posts sit 7.5 mm behind the body front and the signal / ground leads 12.55 mm behind it. Up to v0.61 the footprint had the two rows swapped, so the part could only have gone in facing into the board. JLC's own footprint for C2837588 has the same layout as v0.62. The drawing shows one ground lead beside the centre pin; the footprint keeps a ground hole on each side, so it fits whichever side the real part has it.
 
 **Levels at the camera** (75 Ω cable into 75 Ω): firmware states (BIT1, BIT0) 00 = −300 mV, 01 = 0 mV (blanking), 10 = +300 mV.
 

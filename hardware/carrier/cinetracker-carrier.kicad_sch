@@ -6,8 +6,8 @@
 	(paper "A4")
 	(title_block
 		(title "CineTracker carrier board")
-		(date "2026-10-11")
-		(rev "v0.61")
+		(date "2026-10-13")
+		(rev "v0.62")
 		(company "CineTracker (github.com/dkontiscom/cinetracker)")
 		(comment 1 "Teensy 4.1 carrier: genlock, LTC audio, 3 lens encoders, status UI")
 		(comment 2 "Stack: carrier (bottom) / Teensy 4.1 (components up) / PoE board (top)")
@@ -25,7 +25,7 @@
 		)
 		(uuid "40a68a77-2ac8-4fa0-acdc-8216478734c0")
 	)
-	(text "CineTracker carrier board v0.61"
+	(text "CineTracker carrier board v0.62"
 		(exclude_from_sim no)
 		(at 25.4 25.4 0)
 		(effects

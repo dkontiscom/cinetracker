@@ -2,6 +2,17 @@
 
 No revision has been manufactured yet.
 
+## v0.62 (in review, started 2026-10-13): fixes from the desk review series
+
+Fixes land here as each review finishes; v0.62 is not final until the series and the re-checks are done.
+
+- **Review A1 (carrier footprints, pins, placement rotations):**
+  - **J1 BNC footprint (blocker):** the lead row and the post row were swapped. Kinghelm drawing p. 1: posts 7.5 mm behind the body front, leads 12.55 mm. The real part could only have gone in facing into the board. Pads moved (library and board), body courtyard and position unchanged, genlock output re-routed to the new centre pin.
+  - **D5** moved 0.4 mm to the right so its new courtyard clears the J1 body; its tracks re-routed.
+  - **CPL in JLC's orientation:** U1 90, U7 180, U4–U6 180, U2/U3 270, J2 0, J5/J6 270, J7–J9 0 at the row centre. Uploaded with KiCad rotations, U1/U7 would have lost V− (genlock dead) and U4–U6 their ground. See `ordering.md`.
+  - **D3–D5 footprint (TI DPY0002A):** now an SMD part with a courtyard and a fab outline. The project's DRC checks for missing courtyards and footprint type are switched on (they pass).
+  - Checks: ERC 0; DRC 0 violations / 0 unconnected / 0 schematic parity; netlist compare 100 parts / 65 nets / 299 pads; Teensy pins 0 mismatches. BOM unchanged.
+
 ## v0.61 (2026-10-11): KiCad 10, no copper change
 
 - **Revision:** v0.61, together with the PoE board v0.61. Silkscreen, title blocks and fab file names say v0.61.
