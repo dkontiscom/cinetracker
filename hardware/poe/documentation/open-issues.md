@@ -1,6 +1,6 @@
 # PoE board: open issues
 
-Updated 2026-10-11 for v0.61.
+Updated 2026-10-13 for v0.62 (in review).
 
 ## Decisions
 
@@ -17,8 +17,10 @@ Updated 2026-10-11 for v0.61.
   - Check that they mate.
   - Check the pin mapping with a continuity test. The footprint's pin numbers come from LCSC's footprint; the datasheet drawing shows no numbers.
   - Find the panel cut-out and where the panel sits relative to the board edge. Both boards put the edge at y = 64.
-  - Check that the shell is metal. The CAZN datasheet lists the shell as "brass Ni / zinc alloy Ni / PA+GF" without saying which applies to C7423431, and its photo shows a black body; JLC lists it as brass. The enclosure is metal with GND = chassis (decided 2026-10-11), so a metal shell bonds to the panel through its nut.
+  - Check that the shell is metal. The CAZN datasheet lists the shell as "brass Ni / zinc alloy Ni / PA+GF" without saying which applies to C7423431, and its photo shows a black body. (LCSC's "Brass" attribute is the contact material, not the shell.) LCSC's product photos show it sold with a nickel-plated housing, hex nut and O-ring that the CAZN drawing doesn't show. The enclosure is metal with GND = chassis (decided 2026-10-11), so a metal shell bonds to the panel through its nut.
   - With a metal shell on the chassis, the 1500 V PoE isolation also depends on the insulation between the contacts and the shell inside the connector. CAZN publishes no withstand voltage for it; ask CAZN, or hipot a sample.
+  - Measure the housing the drawing leaves out: nut across corners, panel thread, O-ring stack, and shoulder to board edge. The panel position relative to y = 64 can only come from this.
+  - Pin 9 carries an X-shaped metal plate on the board-facing side (LCSC photo). Check whether it sits flush on the board and how far its arms reach. If flush beyond about 3.3 mm from pin 9, the F.Cu SP_45 track at (46.24, 55.35)–(43.79, 57.79) is under it with only solder mask between: move that segment to B.Cu or beyond about 4.2 mm.
 - [ ] **DP9900LP pins:** check the pin size. The footprint uses a 1.0 mm drill (LCSC uses 0.8 mm) so that a 0.64 mm square pin also fits.
 - [ ] **Stack heights:** measure the real stack, with the Teensy header plastic and a 2×3 2.0 mm male header on the Teensy.
 - [ ] **Load current:** measure the 5 V current of the Teensy plus carrier.

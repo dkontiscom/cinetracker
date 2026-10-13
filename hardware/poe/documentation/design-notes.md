@@ -1,4 +1,4 @@
-# PoE board v0.61 design notes
+# PoE board v0.62 design notes
 
 v0.60 is v0.1 renumbered to match the carrier. v0.61 is the same circuit; it moved MDI_TX_P (and MDI_RX_N to the bottom layer) so no track comes near the M12 housing pin. "v0.1" below refers to the same design.
 

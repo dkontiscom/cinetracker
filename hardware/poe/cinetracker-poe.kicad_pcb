@@ -6180,7 +6180,7 @@
 			)
 		)
 	)
-	(gr_text "CINETRACKER POE v0.61"
+	(gr_text "CINETRACKER POE v0.62"
 		(at 39 27.5 0)
 		(layer "F.SilkS")
 		(uuid "47d7addd-6d7f-4735-be2a-957cef75d98f")
@@ -6215,7 +6215,7 @@
 			(justify mirror)
 		)
 	)
-	(gr_text "+5V +5V GND GND"
+	(gr_text "GND GND +5V +5V"
 		(at 43.3 42.5 0)
 		(layer "B.SilkS")
 		(uuid "8cf4b412-5a46-4322-87bb-d061f88556ed")

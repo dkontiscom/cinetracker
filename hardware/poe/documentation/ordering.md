@@ -1,16 +1,16 @@
-# Ordering the PoE board at JLCPCB (v0.61)
+# Ordering the PoE board at JLCPCB (v0.62)
 
-**Status:** v0.61 is designed but not ordered. Before any order: owner review, then (with funding) a professional PCB designer review. Before ordering, close the items in [open-issues.md](open-issues.md), especially the J3 interconnect and the sample fit checks.
+**Status:** v0.62 is designed but not ordered. Before any order: owner review, then (with funding) a professional PCB designer review. Before ordering, close the items in [open-issues.md](open-issues.md), especially the J3 interconnect and the sample fit checks.
 
 ## Files (in `../fab/`)
 
 | File | Upload / use |
 |---|---|
-| `poe-v0.61-gerbers.zip` | PCB order: 2 layers, masks, silk, paste, outline, PTH and NPTH Excellon |
-| `poe-v0.61-BOM-JLCPCB.csv` | Assembly BOM (Comment / Designator / Footprint / LCSC Part #) |
-| `poe-v0.61-CPL-JLCPCB.csv` | Assembly placement. Through-hole parts sit at their pin centroid |
-| `poe-v0.61-BOM-full.csv` | Manufacturer, MPN, JLC stock, quantity bought and prices. It also lists the parts JLC does not fit |
-| `poe-v0.61-stack-1to1-fit-check.pdf` | Carrier and PoE board outlines overlaid in one coordinate system. Print at 100 % |
+| `poe-v0.62-gerbers.zip` | PCB order: 2 layers, masks, silk, paste, outline, PTH and NPTH Excellon |
+| `poe-v0.62-BOM-JLCPCB.csv` | Assembly BOM (Comment / Designator / Footprint / LCSC Part #) |
+| `poe-v0.62-CPL-JLCPCB.csv` | Assembly placement. Through-hole parts sit at their pin centroid |
+| `poe-v0.62-BOM-full.csv` | Manufacturer, MPN, JLC stock, quantity bought and prices. It also lists the parts JLC does not fit |
+| `poe-v0.62-stack-1to1-fit-check.pdf` | Carrier and PoE board outlines overlaid in one coordinate system. Print at 100 % |
 
 All fab files come from `cinetracker-poe.kicad_pcb`, exported with `kicad-cli` (KiCad 10.0.7).
 
@@ -21,9 +21,12 @@ All fab files come from `cinetracker-poe.kicad_pcb`, exported with `kicad-cli` (
 - **Placement preview:** the CPL uses KiCad rotations, and four footprints are project footprints. Check each of these:
   - **T1 (B1608S):** pin-1 dot at the north-east corner. Pins 1–8 face the Teensy side.
   - **PS1:** pin 1 square pad at the north-east corner. The input pins face the M12.
-  - **D1, D2 (MB6S):** "+" at the marked corner.
+  - **D1, D2 (MB6S):** "+" lead on the north-west pad (VIN_P), "−" on the south-west pad, AC leads on the two east pads.
   - **D3:** cathode bar towards /VIN_P.
   - **J1:** the mating face over the board edge.
+  - **D4 (LED):** cathode on the east pad (GND).
+  - **C6 (electrolytic):** "+" on the west pad; the chamfered base corners point west.
+  - The CPL rotations already match JLC's library footprints for all 21 rows (review A2, 2026-10-13); the preview is still the final check.
 - **Not fitted by JLC:**
   - J2, the 2×3 2.0 mm socket on the bottom. Hand-solder it.
   - J3, the J7 link. Its type is still to be decided.
