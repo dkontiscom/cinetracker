@@ -50,6 +50,21 @@ AGPL-3.0-or-later, which is why all of CineTracker ends up AGPL too,
 rather than the MIT license t41-ptp, t41-tri-sync-ptp and AES67Teensy's
 own code uses.
 
+hardware (everything under hardware/, CERN-OHL-S-2.0):
+the genlock output stage follows the reference circuit (fig. 3) of the
+paper above: Riggers, Schleusner, Renke, Blume, "PTP-Synchronized
+Tri-Level Sync Generation for Networked Multi-Sensor Systems", IEEE
+RTCSA 2024, pp. 91-96, doi:10.1109/RTCSA62462.2024.00022.
+symbols, footprints and 3d models from the stock KiCad 10 libraries are
+CC-BY-SA 4.0 with the KiCad library exception,
+https://www.kicad.org/libraries/license/ . the +3V3A and +5VA symbols in
+hardware/carrier/lib are KiCad power symbols with a new name, same
+licence. the project footprints in hardware/*/lib follow the makers'
+own datasheets and drawings (the source is in each footprint's
+description and in the design notes).
+TI's SPICE models used for the genlock simulation are not in the repo
+(TI copyright), see hardware/carrier/simulation/README.md.
+
 all of the above are used under their own licenses. if youre one of the
 people/projects above and something here is wrong or missing, open an
 issue.

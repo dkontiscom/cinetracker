@@ -3,6 +3,7 @@
 	(generator "pcbnew")
 	(generator_version "10.0")
 	(layer "F.Cu")
+	(descr "CAZN M8-S3A-GPLM10 (LCSC C42931206), M8 3-pin A-coded female, right angle. Hole pattern from the CAZN M8-S*A-GPL M10 family drawing (M8-S4A-GPL-M10-JD datasheet p. 2); pin numbers by the IEC face numbering.")
 	(property "Reference" "REF**"
 		(at 0 0 0)
 		(layer "F.SilkS")

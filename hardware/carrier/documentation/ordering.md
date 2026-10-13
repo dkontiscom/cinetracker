@@ -37,7 +37,10 @@ All fab files are exported from `cinetracker-carrier.kicad_pcb` with `kicad-cli`
     | D1, D2, D6 | as KiCad | cathode mark on the −X pad (pad 1) |
 
   - JLC places by the silkscreen when silk and CPL disagree (pin-1 marks are on every IC), but the CPL should be right on its own.
-- **Stock:** the tightest lines on 2026-10-11 were DS869FPR0470-6P (53, 2 per board), KH-BNC75-3511 (734), OPA356AIDBVR (947) and the 0.1 % 5.6k ERA6AEB562V (8,029). Check again at upload, and don't accept substitutes for these or for any 0.1 % resistor.
+- **Stock on 2026-10-13 (JLC):**
+  - **DS869FPR0470-6P (J3/J4, C42395389): 53**, unchanged since 2026-10-01, 2 per board. Single source, no part with the same land pattern at JLC/LCSC. Five boards need 10; a batch over 26 boards can't be built from this stock. Buy the parts into your JLC parts library as soon as the order is certain.
+  - KH-BNC75-3511: 733. OPA356AIDBVR: 3,935 (was 947 on 10-11; OPA356AIDBVT, C2060087, is the same part on a smaller reel). ERA6AEB562V 0.1 %: 8,019 (YAGEO RT0805BRD075K6L, C865578, is a 0.1 % / 25 ppm 0805 drop-in).
+  - Check again at upload, and don't accept JLC's own substitutes for these or for any 0.1 % resistor.
 
 ## After the boards arrive
 
@@ -66,7 +69,7 @@ All fab files are exported from `cinetracker-carrier.kicad_pcb` with `kicad-cli`
 
 **Not included:**
 - Cyprus VAT (19 %, if charged at checkout).
-- Teensy 4.1 boards.
+- Teensy 4.1 **with the Ethernet chip**: PJRC TEENSY41 (or TEENSY41_LOCK), not the `_NE` versions, which have no Ethernet PHY and so no network. Shops now sell them without header strips, so add 2 × 1×24 2.54 mm male headers.
 - M8 male cordsets.
 - The PoE board.
 

@@ -30,6 +30,10 @@ Fixes land here as each review finishes; v0.62 is not final until the series and
   - **Fab script in the repo:** `hardware/tools/make_fab.py` rebuilds or checks every fab output (export settings, JLC rotation table, BOM/CPL rules). The board now stores the plot settings the fab files use, and a title block with the revision.
   - `ordering.md`: green mask, copper weights and stack-up stated; "order number at a specified location" no longer exists at JLC (mark: none); order remark for the parts on the edge; CPL rule worded exactly.
   - Checks: ERC 0; DRC 0 / 0 / 0 with the JLC rules; `tools/verify_carrier.py` ALL OK; `make_fab.py --check` same CSVs. BOM and CPL unchanged.
+- **Review D2 (stock, alternates, licences):** every part can be bought for 5 boards on 2026-10-13. No copper change.
+  - `ordering.md`: stock updated. J3/J4 (DS869FPR0470-6P) has 53, single source: buy them into the JLC parts library early, and note that a batch over 26 boards needs another source. Drop-in alternates named for OPA356 and the 0.1 % 5.6k. Teensy 4.1 must be the version **with** the Ethernet chip (not `_NE`); headers are no longer included.
+  - `encoder-cables.md`: the AS5048 adapter boards are out of stock / back-ordered to December 2026; order early.
+  - Licences: each project footprint now names the vendor drawing it follows (description field); `hardware/LICENSE` is CERN's verbatim text (was SPDX's copy, 2 words different); board title block carries the copyright and licence line like the schematics; `CREDITS.md` has a hardware paragraph (paper DOI, KiCad library licence, renamed power symbols); simulation README: rename TI's `OPA356.LIB`, never commit TI's files.
 
 ## v0.61 (2026-10-11): KiCad 10, no copper change
 

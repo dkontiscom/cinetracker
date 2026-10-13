@@ -15,11 +15,13 @@ Updated 2026-10-13 for v0.62 (in review).
 
 - [ ] **M12 sample:** buy 2–3 of C7423431 plus a branded RJ45-to-M12 X-coded cordset.
   - Check that they mate.
-  - Check the pin mapping with a continuity test. The footprint's pin numbers come from LCSC's footprint; the datasheet drawing shows no numbers.
+  - Check the pin mapping with a continuity test. The footprint's pin numbers follow the CAZN catalogue (2025, p. 49, X-coded female face); the part drawing itself shows no numbers.
   - Find the panel cut-out and where the panel sits relative to the board edge. Both boards put the edge at y = 64.
   - Check that the shell is metal. The CAZN datasheet lists the shell as "brass Ni / zinc alloy Ni / PA+GF" without saying which applies to C7423431, and its photo shows a black body. (LCSC's "Brass" attribute is the contact material, not the shell.) LCSC's product photos show it sold with a nickel-plated housing, hex nut and O-ring that the CAZN drawing doesn't show. The enclosure is metal with GND = chassis (decided 2026-10-11), so a metal shell bonds to the panel through its nut.
   - With a metal shell on the chassis, the 1500 V PoE isolation also depends on the insulation between the contacts and the shell inside the connector. CAZN publishes no withstand voltage for it; ask CAZN, or hipot a sample.
   - Measure the housing the drawing leaves out: nut across corners, panel thread, O-ring stack, and shoulder to board edge. The panel position relative to y = 64 can only come from this.
+  - CAZN's catalogue rates X-coded M12 at 0.5 A per contact (JLC's attribute says 2 A). 0.5 A still covers 802.3af/at.
+  - **Second source:** buy one Toponelec C12B-MAX-RM-8-SH (C22387824) with the CAZN samples. Its drawing has the same PCB layout and adds the panel cut-out, but it states a rated impulse voltage of only 800 V: include it in the contacts-to-shell insulation test above.
   - Pin 9 carries an X-shaped metal plate on the board-facing side (LCSC photo). Check whether it sits flush on the board and how far its arms reach. If flush beyond about 3.3 mm from pin 9, the F.Cu SP_45 track at (46.24, 55.35)–(43.79, 57.79) is under it with only solder mask between: move that segment to B.Cu or beyond about 4.2 mm.
 - [ ] **DP9900LP pins:** check the pin size. The footprint uses a 1.0 mm drill (LCSC uses 0.8 mm) so that a 0.64 mm square pin also fits.
 - [ ] **Stack heights:** measure the real stack, with the Teensy header plastic and a 2×3 2.0 mm male header on the Teensy.
@@ -31,7 +33,7 @@ Updated 2026-10-13 for v0.62 (in review).
 
 ## Before ordering
 
-- [ ] **Primary copper next to the panel edge (review D1, open).** The board edge at y = 64 is the panel line, and the panel is chassis (= isolated GND). Primary copper comes within 0.54 mm of that edge: the SP_45 track along the bottom (15 mm long), the CT_36 via and track (0.94–1.04 mm), D2's lower pads (1.35 mm), BS_NODE and VIN_N (1.57–1.72 mm); 34 primary items are closer than the board's own 2.6 mm isolation rule. Whether that's a real problem depends on where the panel's inner face sits relative to y = 64, which only the M12 sample and the enclosure drawing can tell. Fix options: re-route the primary side away from the edge, or keep the panel (or an insulating sheet) far enough from the board edge.
+- [ ] **Primary copper next to the panel edge (review D1, open).** The board edge at y = 64 is the panel line, and the panel is chassis (= isolated GND). Primary copper comes within 0.54 mm of that edge: the SP_45 track along the bottom (15 mm long), the CT_36 via and track (0.94–1.04 mm), D2's lower pads (1.30 mm), BS_NODE and VIN_N (1.57–1.72 mm); 34 primary items are closer than the board's own 2.6 mm isolation rule. Whether that's a real problem depends on where the panel's inner face sits relative to y = 64, which only the M12 sample and the enclosure drawing can tell. Fix options: re-route the primary side away from the edge, or keep the panel (or an insulating sheet) far enough from the board edge.
 
 ## Bench checks on the first boards
 

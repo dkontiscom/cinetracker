@@ -18,7 +18,7 @@ All fab files come from `cinetracker-poe.kicad_pcb`, exported with `kicad-cli` (
 
 - **PCB:** 2 layers, 1.6 mm, any finish, green mask, 1 oz copper (JLC default). Mark on PCB: none (JLC dropped "order number at a specified location" in May 2026).
 - **DRC:** `cinetracker-poe.kicad_dru` holds JLC's limits for these options next to the isolation rules (sources in the file).
-- **Order remark:** J1 (M12) overhangs the panel edge by design, and D2, C1, C2, R4, C5 are 1.35–2.4 mm from an edge, under JLC's 2.5 mm assembly rule. Expect a DFM question; if JLC wants edge rails, they can't go on the M12 edge.
+- **Order remark:** J1 (M12) overhangs the panel edge by design, and D2, C1, C2, R4, C5 are 1.3–2.4 mm from an edge, under JLC's 2.5 mm assembly rule. Expect a DFM question; if JLC wants edge rails, they can't go on the M12 edge.
 - **Assembly:** Economic PCBA, top side, with *Confirm Parts Placement* ticked. J1 (M12) and PS1 (DP9900LP) are through-hole parts that JLC hand-solders.
 - **Placement preview:** the CPL uses KiCad rotations, and four footprints are project footprints. Check each of these:
   - **T1 (B1608S):** pin-1 dot at the north-east corner. Pins 1–8 face the Teensy side.
@@ -33,7 +33,8 @@ All fab files come from `cinetracker-poe.kicad_pcb`, exported with `kicad-cli` (
   - J2, the 2×3 2.0 mm socket on the bottom. Hand-solder it.
   - J3, the J7 link. Its type is still to be decided.
   - R6, the bleeder option.
-- **Stock on 2026-10-10:** the M12 socket C7423431 had **48** at JLC. Five boards use 5. Check again at upload.
+- **Stock on 2026-10-13 (JLC):** the M12 socket C7423431 had **48** (unchanged since 2026-10-10), the DP9900LP-5V 461 (single source, no drop-in). Five boards use 5 of each. Check again at upload.
+  - For a batch over 48: Toponelec C12B-MAX-RM-8-SH (C22387824, 143 in stock, $13.12) has the same PCB layout and body dimensions on its drawing. Qualify a sample first (see open-issues.md).
 
 ## Cost estimate: 5 assembled boards
 
@@ -46,14 +47,15 @@ All fab files come from `cinetracker-poe.kicad_pcb`, exported with `kicad-cli` (
 | Extended-part loading, 8 types × $3.07 | 24.56 | JLC published fee |
 | THT hand soldering, 85 joints × $0.0164 | 1.39 | JLC published fee |
 | Hand-soldering labour | 3.58 | JLC published fee |
-| Components, including attrition | 91.22 | JLC live prices, 2026-10-10 (the M12 alone is $50.33 and the DP9900LP $34.35) |
-| **Subtotal without PCB and shipping** | **130.91** | about $26 per board |
+| Components, including attrition | 88.30 | JLC live prices, 2026-10-13 (the M12 alone is $50.40 and the DP9900LP $31.36) |
+| **Subtotal without PCB and shipping** | **127.99** | about $26 per board |
 
 **Not included:**
 - the PCB;
 - shipping;
 - Cyprus VAT;
 - J2, the J3 header or cable, the 2×3 2.0 mm male header for the Teensy;
+- the Teensy 4.1 itself **with the Ethernet chip**: PJRC TEENSY41 (or TEENSY41_LOCK), not the `_NE` versions, which have no Ethernet PHY and so no network. Shops now sell them without header strips, so add 2 × 1×24 2.54 mm male headers;
 - nylon M2.5 standoffs;
 - M12 X-coded cordsets.
 

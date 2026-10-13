@@ -3,6 +3,7 @@
 	(generator "pcbnew")
 	(generator_version "10.0")
 	(layer "F.Cu")
+	(descr "dosinconn DS869FPR0470-6P (LCSC C42395389), M8 6-pin A-coded female, right angle. Pin holes and posts from the dosinconn drawing p. 1 (suggested PCB holes, 6P); pin numbers from its front view.")
 	(property "Reference" "REF**"
 		(at 0 0 0)
 		(layer "F.SilkS")

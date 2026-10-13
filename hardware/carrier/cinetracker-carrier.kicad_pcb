@@ -11,6 +11,7 @@
 		(title "CineTracker carrier")
 		(date "2026-10-13")
 		(rev "v0.62")
+		(comment 1 "Copyright CineTracker contributors. CERN-OHL-S-2.0. github.com/dkontiscom/cinetracker")
 	)
 	(layers
 		(0 "F.Cu" signal)
@@ -4580,6 +4581,7 @@
 		(layer "F.Cu")
 		(uuid "333c8c19-1fef-4072-a07e-ff0ddb640984")
 		(at 15 67)
+		(descr "Kinghelm KH-BNC75-3511 (LCSC C2837588), 75 ohm BNC, right angle, THT. Lead and post holes from the Kinghelm drawing KH-801-0039 p. 1 (PCB layout). Board edge 3.0 mm behind the body front.")
 		(property "Reference" "J1"
 			(at 0 0 0)
 			(layer "F.SilkS")
@@ -6037,6 +6039,7 @@
 		(layer "F.Cu")
 		(uuid "41fd4212-263a-4c09-8638-d756189129df")
 		(at 47.5 50.5)
+		(descr "TI DPY0002A (X1SON-2, 1.0 x 0.6 mm). Pads 0.3 x 0.5 at ±0.35 from TI's land pattern (TPD1E10B09 datasheet SLLSEB0E p. 19-20).")
 		(property "Reference" "D3"
 			(at 0 0 0)
 			(layer "F.SilkS")
@@ -6870,6 +6873,7 @@
 		(layer "F.Cu")
 		(uuid "45e673f9-5a59-42ba-a109-c6def4cae6e4")
 		(at 44 64)
+		(descr "CAZN M8-S3A-GPLM10 (LCSC C42931206), M8 3-pin A-coded female, right angle. Hole pattern from the CAZN M8-S*A-GPL M10 family drawing (M8-S4A-GPL-M10-JD datasheet p. 2); pin numbers by the IEC face numbering.")
 		(property "Reference" "J5"
 			(at 0 0 0)
 			(layer "F.SilkS")
@@ -8326,6 +8330,7 @@
 		(layer "F.Cu")
 		(uuid "626c9856-c95f-41e1-aaff-6c302d1d843c")
 		(at 17 0 180)
+		(descr "dosinconn DS869FPR0470-6P (LCSC C42395389), M8 6-pin A-coded female, right angle. Pin holes and posts from the dosinconn drawing p. 1 (suggested PCB holes, 6P); pin numbers from its front view.")
 		(property "Reference" "J3"
 			(at 0 0 180)
 			(layer "F.SilkS")
@@ -11844,6 +11849,7 @@
 		(layer "F.Cu")
 		(uuid "9579e817-c040-4a2e-8c23-7660c247e090")
 		(at 65 64)
+		(descr "CAZN M8-S3A-GPLM10 (LCSC C42931206), M8 3-pin A-coded female, right angle. Hole pattern from the CAZN M8-S*A-GPL M10 family drawing (M8-S4A-GPL-M10-JD datasheet p. 2); pin numbers by the IEC face numbering.")
 		(property "Reference" "J6"
 			(at 0 0 0)
 			(layer "F.SilkS")
@@ -13974,6 +13980,7 @@
 		(layer "F.Cu")
 		(uuid "adaca938-8f84-432f-8fef-697b8343e5ab")
 		(at 40 0 180)
+		(descr "dosinconn DS869FPR0470-6P (LCSC C42395389), M8 6-pin A-coded female, right angle. Pin holes and posts from the dosinconn drawing p. 1 (suggested PCB holes, 6P); pin numbers from its front view.")
 		(property "Reference" "J4"
 			(at 0 0 180)
 			(layer "F.SilkS")
@@ -14337,6 +14344,7 @@
 		(layer "F.Cu")
 		(uuid "b17eca37-70f2-4f3e-93e8-05a2fa3b4e39")
 		(at 23.6 60.6)
+		(descr "TI DPY0002A (X1SON-2, 1.0 x 0.6 mm). Pads 0.3 x 0.5 at ±0.35 from TI's land pattern (TPD1E10B09 datasheet SLLSEB0E p. 19-20).")
 		(property "Reference" "D5"
 			(at 0 0 0)
 			(layer "F.SilkS")
@@ -14470,6 +14478,7 @@
 		(layer "F.Cu")
 		(uuid "b82eb91e-54ca-4961-bc4f-0448983699d3")
 		(at 69 50.5)
+		(descr "TI DPY0002A (X1SON-2, 1.0 x 0.6 mm). Pads 0.3 x 0.5 at ±0.35 from TI's land pattern (TPD1E10B09 datasheet SLLSEB0E p. 19-20).")
 		(property "Reference" "D4"
 			(at 0 0 0)
 			(layer "F.SilkS")
@@ -17927,6 +17936,7 @@
 		(layer "F.Cu")
 		(uuid "de906739-1f2b-4579-a6f5-9959e1210a68")
 		(at 63 0 180)
+		(descr "CAZN M8-S4A-GPL M10-JD (LCSC C19108970), M8 4-pin A-coded female, right angle. Hole pattern from the CAZN drawing p. 2; pin numbers by the IEC face numbering.")
 		(property "Reference" "J2"
 			(at 0 0 180)
 			(layer "F.SilkS")

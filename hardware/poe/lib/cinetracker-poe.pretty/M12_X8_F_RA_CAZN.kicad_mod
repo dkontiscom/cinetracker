@@ -3,7 +3,7 @@
 	(generator "pcbnew")
 	(generator_version "10.0")
 	(layer "F.Cu")
-	(descr "M12 X-coded 8-pin female socket, right angle, PCB, CAZN M12-S8X-GPLM12-BJD (LCSC C7423431). Board edge at the flange rear face, y = +7.0. Pin 9 = shield/housing contact.")
+	(descr "M12 X-coded 8-pin female socket, right angle, PCB, CAZN M12-S8X-GPLM12-BJD (LCSC C7423431). Pins, posts and edge from the CAZN drawing p. 2 (8 x Ø1.0 at 27 deg on Ø6.26, centre Ø1.1); pin numbers from the CAZN catalogue 2025 p. 49 (X-coded female face). Board edge at the flange rear face, y = +7.0. Pin 9 = shield/housing contact.")
 	(tags "M12 X-coded ethernet 8P PoE")
 	(property "Reference" "REF**"
 		(at 0 -1 0)
@@ -263,7 +263,7 @@
 		(uuid "14e1dc9a-60a2-45f7-b20e-0a8f309feb01")
 	)
 	(pad "1" thru_hole circle
-		(at -1.42 2.79)
+		(at -1.421 2.789)
 		(size 1.5 1.5)
 		(drill 1)
 		(layers "*.Cu" "*.Mask")
@@ -271,7 +271,7 @@
 		(uuid "c5a8de0d-5cab-4b62-ac98-b56ea28d1824")
 	)
 	(pad "2" thru_hole circle
-		(at -2.79 1.425)
+		(at -2.789 1.421)
 		(size 1.5 1.5)
 		(drill 1)
 		(layers "*.Cu" "*.Mask")
@@ -279,7 +279,7 @@
 		(uuid "67923669-4fc9-4217-8b71-1a1e10e6268a")
 	)
 	(pad "3" thru_hole circle
-		(at -2.79 -1.425)
+		(at -2.789 -1.421)
 		(size 1.5 1.5)
 		(drill 1)
 		(layers "*.Cu" "*.Mask")
@@ -287,7 +287,7 @@
 		(uuid "230a89ad-abb2-4301-b73e-2ab3f93908c9")
 	)
 	(pad "4" thru_hole circle
-		(at -1.42 -2.79)
+		(at -1.421 -2.789)
 		(size 1.5 1.5)
 		(drill 1)
 		(layers "*.Cu" "*.Mask")
@@ -295,7 +295,7 @@
 		(uuid "fa90ea8a-9c74-429b-b836-e03e483406d0")
 	)
 	(pad "5" thru_hole circle
-		(at 1.42 -2.79)
+		(at 1.421 -2.789)
 		(size 1.5 1.5)
 		(drill 1)
 		(layers "*.Cu" "*.Mask")
@@ -303,7 +303,7 @@
 		(uuid "2643cb7d-6479-4d6c-bb26-5a3ea4ff8c13")
 	)
 	(pad "6" thru_hole circle
-		(at 2.79 -1.425)
+		(at 2.789 -1.421)
 		(size 1.5 1.5)
 		(drill 1)
 		(layers "*.Cu" "*.Mask")
@@ -311,7 +311,7 @@
 		(uuid "61bd5338-fea1-4176-888b-175933b9d84c")
 	)
 	(pad "7" thru_hole circle
-		(at 2.79 1.425)
+		(at 2.789 1.421)
 		(size 1.5 1.5)
 		(drill 1)
 		(layers "*.Cu" "*.Mask")
@@ -319,7 +319,7 @@
 		(uuid "c9a0516c-078e-44f8-a144-62b4f328402b")
 	)
 	(pad "8" thru_hole circle
-		(at 1.42 2.79)
+		(at 1.421 2.789)
 		(size 1.5 1.5)
 		(drill 1)
 		(layers "*.Cu" "*.Mask")

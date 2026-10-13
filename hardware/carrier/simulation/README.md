@@ -45,3 +45,5 @@ These ngspice simulations sized the tri-level sync output stage of the carrier: 
 **TI model files are not included because of TI's licence.** Download them and put them in this folder:
 - `OPA356.lib`, from [SBOM848](https://www.ti.com/lit/zip/sbom848).
 - `OPA365.lib`, from [SBOC133](https://www.ti.com/lit/zip/SBOC133). This one is only needed for `sim.py`.
+
+The OPA356 zip has the model as `OPA356_PSPICE_AIO/OPA356.LIB` (upper case); rename it to `OPA356.lib`, the netlists include it in lower case. **Don't commit TI's files:** they're TI copyright ("All rights reserved") and can't go into this CERN-OHL-S tree. `git status` will show them as untracked; leave them that way.

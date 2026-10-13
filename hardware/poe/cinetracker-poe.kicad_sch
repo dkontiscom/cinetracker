@@ -4673,7 +4673,7 @@
 				)
 			)
 		)
-		(property "MPN" "MB6S"
+		(property "MPN" "MB6S-50MIL"
 			(at 317.5 116.84 0)
 			(hide yes)
 			(show_name no)
@@ -6191,7 +6191,7 @@
 				)
 			)
 		)
-		(property "MPN" "MB6S"
+		(property "MPN" "MB6S-50MIL"
 			(at 358.14 116.84 0)
 			(hide yes)
 			(show_name no)

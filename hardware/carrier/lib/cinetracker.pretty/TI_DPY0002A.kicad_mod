@@ -3,6 +3,7 @@
 	(generator "pcbnew")
 	(generator_version "10.0")
 	(layer "F.Cu")
+	(descr "TI DPY0002A (X1SON-2, 1.0 x 0.6 mm). Pads 0.3 x 0.5 at ±0.35 from TI's land pattern (TPD1E10B09 datasheet SLLSEB0E p. 19-20).")
 	(property "Reference" "REF**"
 		(at 0 0 0)
 		(layer "F.SilkS")

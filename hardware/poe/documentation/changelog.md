@@ -23,6 +23,13 @@ Fixes land here as each review finishes; v0.62 is not final until the series and
   - Plot settings and a title block with the revision stored in the board; fab files rebuilt by `hardware/tools/make_fab.py`.
   - **Open, not changed yet:** primary copper comes within 0.54 mm of the panel edge (y = 64). See `open-issues.md`, "Before ordering".
   - Checks: ERC 0; DRC 0 / 0 / 0 with the JLC rules; `tools/verify_poe.py` ALL OK. BOM and CPL unchanged.
+- **Review D2 (stock, alternates, licences):**
+  - **J1 (M12) footprint redrawn from the CAZN drawing** (8 pins at 27° on Ø6.26). The old pads were LCSC/EasyEDA library data, whose terms don't allow redistribution. Pads move by 0.005 mm at most; track ends follow.
+  - **D1/D2 (MBS) footprint redrawn from MDD's suggested pad layout** (datasheet Rev 2024A2 p. 3): pads 1.84 × 1.2 at ±3.0 (were 2.0 × 1.1 at ±3.1, the LCSC copy). Track ends follow. D2's lower pads are now 1.30 mm from the panel edge (were 1.35, see the open item in `open-issues.md`).
+  - MPN of D1/D2 now "MB6S-50MIL", JLC's current name for C2487 (same datasheet).
+  - `ordering.md`: stock updated (M12 48, DP9900LP 461), Toponelec C12B-MAX-RM-8-SH as a second-source M12 to qualify with the samples, components $88.30 / subtotal $127.99 (2026-10-13; the old $91.22 didn't match BOM-full), Teensy with Ethernet chip.
+  - `open-issues.md`: M12 pin numbers from the CAZN catalogue; 0.5 A contact rating; Toponelec sample (800 V rated impulse voltage) in the insulation test.
+  - Checks: ERC 0; DRC 0 / 0 / 0; `tools/verify_poe.py` ALL OK.
 
 ## v0.61 (2026-10-11): KiCad 10, track moved off the M12 housing pin
 

@@ -16,6 +16,7 @@ Checked against carrier v0.62 (schematic sheet "Encoders") and the ams adapter b
 - Keep each cable at **40 cm or less**. That's what the design assumes; not tested on a bench yet.
 - Focus and zoom cables are the same. Iris is different, so don't swap them: the panel labels tell them apart.
 - Any mix of encoders works. Plug in only the ones you use.
+- Order the adapter boards early. On 2026-10-13 LCSC had none, and RS showed them back-ordered until 7 Dec (AS5048A) and 9 Dec 2026 (AS5048B). Check DigiKey, Mouser and Farnell too.
 
 ## The adapter board connector (P1)
 
@@ -91,4 +92,5 @@ From the v0.62 schematic, sheet "Encoders":
 - [NXP i.MX RT1060 datasheet IMXRT1060CEC](https://www.nxp.com/docs/en/data-sheet/IMXRT1060CEC.pdf), table 27: 23 Ω output driver at full drive strength (DSE 111)
 - [TI TPD4E1U06](https://www.ti.com/lit/ds/symlink/tpd4e1u06.pdf), p. 5: breakdown voltage 6.5 V minimum
 - [33 Ω resistor RS1–RS10, LCSC C17634](https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0805w8f330jt5e_C17634.html): 125 mW
+- Adapter board stock, read 2026-10-13: [RS UK 201-8309 (AS5048A board)](https://uk.rs-online.com/web/p/sensor-development-tools/2018309), [RS IE 201-8314 (AS5048B board)](https://ie.rs-online.com/web/p/sensor-development-tools/2018314); LCSC C17375201 / C17547840 (0 in stock)
 - [AS5048A-TS_EK_AB at DigiKey](https://www.digikey.com/en/products/detail/ams/AS5048A-TS_EK_AB/3188612), [AS5048B-TS_EK_AB at DigiKey](https://www.digikey.com/en/products/detail/ams-osram-usa-inc/AS5048B-TS-EK-AB/3188613)
