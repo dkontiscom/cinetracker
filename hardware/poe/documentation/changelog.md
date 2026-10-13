@@ -11,6 +11,7 @@ Fixes land here as each review finishes; v0.62 is not final until the series and
   - `ordering.md`: D4 and C6 added to the placement preview checks; D1/D2 "+" corner named.
   - `open-issues.md`: M12 sample check now also measures the housing (nut, thread, O-ring, shoulder) and checks the X-shaped plate on pin 9 against the SP_45 track; LCSC's "Brass" is the contact material, not the shell.
   - Silkscreen, title block and fab files v0.62. Checks: `tools/verify_poe.py` ALL OK.
+- **Review B (pins against datasheets):** PS1, bridges, TVS, magnetics and the PHY-side centre taps match SDAPO's typical circuit and TI's DP83825I circuit. Design notes: the SMAJ58A clamps at 93.6 V, above the DP9900's 80 V surge rating (SDAPO's own part choice; normal PoE is far below it).
 
 ## v0.61 (2026-10-11): KiCad 10, track moved off the M12 housing pin
 

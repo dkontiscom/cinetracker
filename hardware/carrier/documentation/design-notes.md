@@ -62,6 +62,7 @@ The signal chain:
   - The ladder follows Riggers et al., RTCSA 2024, Fig. 3; the odd trims absorb the GPIO output resistance.
   - R1–R5 and R15 (the six resistors that set the levels) are 0.1 % thin film since v0.60: YAGEO RT0805B (2k C706274, 1k C110774, 5.1k C122968) and Panasonic ERA6AEB562V (5.6k C445654).
 - **Offset:** R15 5k6 to +3V3A and R5 5k1 to GND lift the levels to 0.43 / 1.03 / 1.63 V. That keeps both op-amps inside the OPA356 common-mode range ((V−) − 0.1 V to (V+) − 1.5 V) and above its 0.3 V output-swing limit.
+- **Bypass:** C2 (U1) and C34 (U7) are 10 µF 0805 at each op-amp's V+ pin since v0.62. TI's OPA356 datasheet (SBOS212A p. 10) names 10 µF ceramic as the minimum; up to v0.61 they were 100 nF.
 - **Buffer:** U1 OPA356, unity gain.
 - **Low-pass:** a unity-gain Sallen-Key with RF1 = RF2 = 150 Ω and CF1 = CF2 = 68 pF 1 % C0G, giving Q = 0.5 (no overshoot).
 - **Line driver:** U7 OPA356.
@@ -113,7 +114,7 @@ The firmware carries LTC as mono on the left channel (channel 0, `src/aes67.cpp`
 Every cable line runs **connector → TVS → 33 Ω → Teensy**:
 - **TVS:** TPD4E1U06, 4 unidirectional channels on pins 1/3/4/6, GND on pin 2, pin 5 NC (TI datasheet).
 - **Series resistors:** RS1–RS10.
-- **Supply fuses:** each encoder supply has its own PTC (Bourns MF-PSMF010X: 0.1 A hold, 0.3 A trip) plus 100 nF. A shorted cable only trips its own fuse.
+- **Supply fuses:** each encoder supply has its own PTC (Bourns MF-PSMF010X: 0.1 A hold, 0.3 A trip) plus 100 nF. A dead short on one cable can briefly pull the whole 3.3 V rail down before its fuse trips (the PTC's 1.0–7.5 Ω cold resistance can draw more than the Teensy regulator's current limit), so the CineTracker may reboot once and then run without that encoder. Nothing is damaged. This is a suspicion until tested (Bourns MF-PSMF datasheet p. 1, TI TLV757P §5.5).
 
 | Connector | Encoder | Pins |
 |---|---|---|

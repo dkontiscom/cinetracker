@@ -1139,7 +1139,7 @@
 		)
 		(uuid "47c9a618-3ba1-4675-9485-d0f6ad05ecc0")
 	)
-	(text "inside both ST 274 windows (24/25/30p 33.7-74.1 ns, 50/60p 16.8-37.0 ns). See documentation/genlock-simulation.md."
+	(text "inside both ST 274 windows (24/25/30p 33.7-74.1 ns, 50/60p 16.8-37.0 ns). See simulation/README.md."
 		(exclude_from_sim no)
 		(at 25.4 166.37 0)
 		(effects
@@ -3823,7 +3823,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "100n"
+		(property "Value" "10u"
 			(at 96.52 92.71 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -3856,7 +3856,7 @@
 				)
 			)
 		)
-		(property "Description" "100nF 50V X7R 0805"
+		(property "Description" "10uF 25V X5R 0805"
 			(at 99.06 91.44 0)
 			(hide yes)
 			(show_name no)
@@ -3867,7 +3867,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C49678"
+		(property "LCSC" "C15850"
 			(at 99.06 91.44 0)
 			(hide yes)
 			(show_name no)
@@ -3878,7 +3878,7 @@
 				)
 			)
 		)
-		(property "Manufacturer" "YAGEO"
+		(property "Manufacturer" "Samsung"
 			(at 99.06 91.44 0)
 			(hide yes)
 			(show_name no)
@@ -3889,7 +3889,7 @@
 				)
 			)
 		)
-		(property "MPN" "CC0805KRX7R9BB104"
+		(property "MPN" "CL21A106KAYNNNE"
 			(at 99.06 91.44 0)
 			(hide yes)
 			(show_name no)
@@ -4780,7 +4780,7 @@
 				(justify right)
 			)
 		)
-		(property "Value" "100n"
+		(property "Value" "10u"
 			(at 294.64 92.71 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -4813,7 +4813,7 @@
 				)
 			)
 		)
-		(property "Description" "100nF 50V X7R 0805"
+		(property "Description" "10uF 25V X5R 0805"
 			(at 297.18 91.44 0)
 			(hide yes)
 			(show_name no)
@@ -4824,7 +4824,7 @@
 				)
 			)
 		)
-		(property "LCSC" "C49678"
+		(property "LCSC" "C15850"
 			(at 297.18 91.44 0)
 			(hide yes)
 			(show_name no)
@@ -4835,7 +4835,7 @@
 				)
 			)
 		)
-		(property "Manufacturer" "YAGEO"
+		(property "Manufacturer" "Samsung"
 			(at 297.18 91.44 0)
 			(hide yes)
 			(show_name no)
@@ -4846,7 +4846,7 @@
 				)
 			)
 		)
-		(property "MPN" "CC0805KRX7R9BB104"
+		(property "MPN" "CL21A106KAYNNNE"
 			(at 297.18 91.44 0)
 			(hide yes)
 			(show_name no)

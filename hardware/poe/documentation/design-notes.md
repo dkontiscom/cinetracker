@@ -79,7 +79,7 @@ All positions are in **carrier board coordinates** (mm). The origin is the carri
 - **Power inputs:** the circuit follows the DP9900 typical connection (datasheet fig. 3).
   - **Mode A:** D1 (MB6S) takes the T1 cable-side centre taps.
   - **Mode B:** D2 (MB6S) takes the spare pairs.
-  - **TVS:** D3 (SMAJ58A) sits across VIN.
+  - **TVS:** D3 (SMAJ58A) sits across VIN, as SDAPO's typical circuit specifies. Its clamping voltage (93.6 V at rated pulse current) is above the DP9900's 80 V surge rating, so a large surge could still reach the module; normal PoE (57 V max) is far below its 58 V standoff.
 - **PS1, DP9900LP-5V:**
   - Rated 5 V at 1.4 A, 7 W at 70 °C, with 1500 V impulse isolation.
   - ADJ is left open, which gives 5.00 V.

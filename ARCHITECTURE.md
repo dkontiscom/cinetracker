@@ -854,6 +854,14 @@ with INPUT_PULLUP, active low, hold to confirm not a single tap so a
 bump on set cant trigger it by accident.
 
 Open items, still not resolved:
+- aes67 media clock: the i2s sample clock (PLL4, set once) is free running, nothing steers it from
+  ptp, and the rtp timestamp starts at 0 - but the sdp announces ts-refclk ptp and
+  mediaclk:direct=0, which per RFC 7273 means "rtp time = ptp time x 48 kHz". a receiver that
+  trusts that places our packets at the wrong time, and against ptp-locked gear the free running
+  rate slips a packet every so often (once every ~67 s at 30 ppm, which is the paper's drift figure
+  not a measured teensy one). fix in firmware: steer PLL4's numerator from the ptp servo and derive
+  the rtp timestamp from ptp time, or stop announcing direct=0. found by review B, 2026-10-13, to
+  be tested against a real aes67 receiver.
 - genlock clock servo rate limit: genlock.cpp passes 800 ns/s at 4 Hz,
   the source paper measured 375 ns/s at 10 Hz against a real camera and
   showed the stable range narrows at lower update rates. if a camera

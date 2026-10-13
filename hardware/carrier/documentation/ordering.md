@@ -55,8 +55,8 @@ All fab files are exported from `cinetracker-carrier.kicad_pcb` with `kicad-cli`
 | Extended-part loading, 22 types × $3.07 | 67.54 | JLC published fee |
 | THT hand soldering, 445 joints × $0.0164 | 7.30 | JLC published fee |
 | Hand-soldering labour | 3.58 | JLC published fee |
-| Components, including attrition | 163.75 | JLC live prices, 2026-10-11 |
-| **Subtotal** | **278.84** | |
+| Components, including attrition | 164.24 | JLC live prices, 2026-10-11 (v0.62: C2/C34 now 10 µF) |
+| **Subtotal** | **279.33** | |
 | DHL (DDP) to Cyprus | about 23–30 | JLC live: $22.93 at 0.21 kg (PCB only); rises with assembled weight |
 | **Total before VAT** | **about $302–309** | about $60–62 per board |
 

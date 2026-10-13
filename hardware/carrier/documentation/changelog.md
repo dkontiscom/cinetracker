@@ -12,6 +12,10 @@ Fixes land here as each review finishes; v0.62 is not final until the series and
   - **CPL in JLC's orientation:** U1 90, U7 180, U4–U6 180, U2/U3 270, J2 0, J5/J6 270, J7–J9 0 at the row centre. Uploaded with KiCad rotations, U1/U7 would have lost V− (genlock dead) and U4–U6 their ground. See `ordering.md`.
   - **D3–D5 footprint (TI DPY0002A):** now an SMD part with a courtyard and a fab outline. The project's DRC checks for missing courtyards and footprint type are switched on (they pass).
   - Checks: ERC 0; DRC 0 violations / 0 unconnected / 0 schematic parity; netlist compare 100 parts / 65 nets / 299 pads; Teensy pins 0 mismatches. BOM unchanged.
+- **Review B (every IC pin against its datasheet and the firmware):** codecs, genlock op-amps, ESD parts, encoder interfaces, LEDs, button and every Teensy pin agree with their datasheets and with the firmware (I²S: Teensy master, 12.288 MHz MCLK, 48 kHz, I²S format; both codecs strapped to match).
+  - **C2 and C34** (U1 / U7 OPA356 bypass) are now 10 µF 0805 (C15850, already on the BOM) instead of 100 nF: TI names 10 µF ceramic as the minimum (SBOS212A p. 10). Same footprint, no layout change. Components +$0.49 per 5-board order.
+  - Genlock schematic note now points to `simulation/README.md` (the old path didn't exist).
+  - Design notes: a dead short on one encoder cable can reboot the CineTracker once before the fuse trips (suspicion until tested).
 
 ## v0.61 (2026-10-11): KiCad 10, no copper change
 
