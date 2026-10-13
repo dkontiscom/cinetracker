@@ -1,0 +1,79 @@
+(version 1)
+# JLCPCB limits for the CineTracker carrier: 4 layers, 1.6 mm, ENIG, JLC defaults 1 oz outer / 0.5 oz inner,
+# JLC standard stack-up, Economic PCBA top side.
+# Sources: [CAP] https://jlcpcb.com/capabilities/pcb-capabilities (Rigid PCB, read 2026-10-13), "section > row";
+#          [T&C] https://jlcpcb.com/help/article/61-Terms-and-Conditions-of-JLCPCB-Assembly-Service (updated 2026-09-09).
+# KiCad 10: a custom rule REPLACES the Board Setup minimum for the items it matches (tested on 10.0.7), so no rule
+# here is looser than the project's own settings. Limits the project's Board Setup / net classes already meet
+# (via 0.3/0.6, via annular 0.1, hole clearance 0.25, via hole-to-hole 0.25, copper-edge 0.5, clearance 0.2)
+# stay in Board Setup.
+
+# [CAP] Traces > "Min. track width and spacing (1 oz)", multilayer 0.09 mm. Board Setup min track width is 0.
+(rule "JLC track width"
+  (condition "A.Type == 'Track' || A.Type == 'Arc'")
+  (constraint track_width (min 0.09mm)))
+
+# [CAP] Traces > "PTH annular ring", multilayer 1 oz: absolute minimum 0.15 mm (0.20 recommended).
+# [CAP] Drilling > "Drill Diameter", multilayer up to 6.3 mm (holes >= 6.3 are routed).
+(rule "JLC PTH pad"
+  (condition "A.Type == 'Pad' && A.Pad_Type == 'Through-hole'")
+  (constraint hole_size (min 0.3mm) (max 6.3mm))
+  (constraint annular_width (min 0.15mm)))
+
+# [CAP] Drilling > "Min. Plated Slots Width", multi-layer 0.35 mm (length >= 2 x width: not checkable in DRC).
+(rule "JLC plated slot"
+  (condition "A.Type == 'Pad' && A.Pad_Type == 'Through-hole' && A.Hole_Size_X != A.Hole_Size_Y")
+  (constraint hole_size (min 0.35mm) (max 6.3mm)))
+
+# [CAP] Drilling > "Min. Non-plated holes" 0.50 mm; "Min. Non-Plated Slots" 1.0 mm.
+(rule "JLC NPTH"
+  (condition "A.Pad_Type == 'NPTH, mechanical'")
+  (constraint hole_size (min 0.5mm) (max 6.3mm)))
+(rule "JLC NPTH slot"
+  (condition "A.Pad_Type == 'NPTH, mechanical' && A.Hole_Size_X != A.Hole_Size_Y")
+  (constraint hole_size (min 1.0mm) (max 6.3mm)))
+
+# [CAP] Drilling > "Pad Hole-to-Hole Spacing" 0.45 mm ("Via Hole-to-Hole Spacing" 0.2 mm: Board Setup 0.25 covers it).
+(rule "JLC pad hole to hole"
+  (condition "A.Type == 'Pad' || B.Type == 'Pad'")
+  (constraint hole_to_hole (min 0.45mm)))
+
+# [CAP] Traces > "PTH to Track" 0.28 mm (0.35 recommended); "Inner layer PTH pad hole to copper clearance" 0.3 mm.
+(rule "JLC PTH hole to copper (outer)"
+  (layer outer)
+  (condition "A.Type == 'Pad' && A.Pad_Type == 'Through-hole'")
+  (constraint hole_clearance (min 0.28mm)))
+(rule "JLC PTH hole to copper (inner)"
+  (layer inner)
+  (condition "A.Type == 'Pad' && A.Pad_Type == 'Through-hole'")
+  (constraint hole_clearance (min 0.3mm)))
+
+# [CAP] Legend > "Minimum text height" 1.0 mm, "Minimum Line Width" 0.15 mm (KiCad checks it on text strokes only),
+# "Pad To Silkscreen" 0.15 mm.
+(rule "JLC silk text"
+  (condition "A.Layer == 'F.Silkscreen' || A.Layer == 'B.Silkscreen'")
+  (constraint text_height (min 1.0mm))
+  (constraint text_thickness (min 0.15mm)))
+(rule "JLC pad to silk"
+  (condition "A.Type == 'Pad' || B.Type == 'Pad'")
+  (constraint silk_clearance (min 0.15mm)))
+
+# No via hole inside or touching an SMD pad. [T&C] 5.6: via in pad -> "skewed parts, tombstoning ... JLC will not
+# take the consequential responsibility". 0.1 mm = [CAP] Soldermask > "Soldermask bridge". physical_hole_clearance
+# ignores nets, so same-net vias are caught too.
+(rule "JLC no via hole in SMD pad"
+  (condition "A.Type == 'Via' && B.Type == 'Pad' && B.Pad_Type == 'SMD'")
+  (constraint physical_hole_clearance (min 0.1mm)))
+
+# [T&C] 2.3: "The distance between the body of the components and the edge of the board must be equal or greater
+# than 2.5mm." KiCad can't measure bodies to the edge; SMD pad copper is the proxy (warning only).
+(rule "JLC SMD part to board edge"
+  (severity warning)
+  (condition "A.Type == 'Pad' && A.Pad_Type == 'SMD'")
+  (constraint edge_clearance (min 2.5mm)))
+
+# Thermal reliefs on THT pads (review D1-07, for JLC's hand soldering). Three GND pads have no room for two spokes on
+# an outer pour (tracks or the board edge in the way), so they keep the solid connection they had before.
+(rule "Solid zone connection where spokes don't fit"
+  (condition "A.Type == 'Pad' && ((A.memberOfFootprint('J5') && A.Pad_Number == 'MP') || (A.memberOfFootprint('J8') && A.Pad_Number == '2') || (A.memberOfFootprint('J9') && A.Pad_Number == '1'))")
+  (constraint zone_connection solid))

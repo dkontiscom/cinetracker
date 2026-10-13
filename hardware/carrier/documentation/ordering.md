@@ -8,15 +8,17 @@
 |---|---|
 | `carrier-v0.62-gerbers.zip` | PCB order. 4 copper layers (In1 = GND, In2 = +3V3), masks, silk, paste, outline, PTH/NPTH Excellon with 6 plated slots. The NPTH file includes the two 2.7 mm PoE standoff holes |
 | `carrier-v0.62-BOM-JLCPCB.csv` | Assembly BOM (Comment / Designator / Footprint / LCSC Part #) |
-| `carrier-v0.62-CPL-JLCPCB.csv` | Assembly placement in **JLC's orientation** (since v0.62): rotations and origins are those of JLC's own (LCSC/EasyEDA) footprint for each part, not KiCad's. J1–J6 sit at the pad bounding-box centre and J7–J9 at the middle of the row (both = the LCSC footprint origin); all other parts at the footprint origin |
+| `carrier-v0.62-CPL-JLCPCB.csv` | Assembly placement in **JLC's orientation** (since v0.62): rotations and origins are those of JLC's own (LCSC/EasyEDA) footprint for each part, not KiCad's. J1–J9 sit at the centre of the bounding box of their pad centre points (= the LCSC footprint origin; for J7–J9 the middle of the row); all other parts at the footprint origin |
 | `carrier-v0.62-BOM-full.csv` | Manufacturer, MPN, JLC stock, quantity bought and prices |
 | `carrier-v0.62-1to1-fit-check.pdf` | Print at 100 % and test-fit the real connectors and the Teensy |
 
-All fab files are exported from `cinetracker-carrier.kicad_pcb` with `kicad-cli` (KiCad 10.0.7). Inner layers in the zip: `GNDPLANE.g1` is layer 2 (In1) and `PWRPLANE.g2` is layer 3 (In2); the X2 header of each Gerber says the same, if JLC asks for the layer order.
+All fab files are exported from `cinetracker-carrier.kicad_pcb` with `kicad-cli` (KiCad 10.0.7). Rebuild or check them from the repo with `python3 hardware/tools/make_fab.py carrier=v0.62 poe=v0.62 --check` (or `--write`); it needs KiCad 10 and rsvg-convert, and holds every export setting, the JLC rotation table and the BOM/CPL rules. Inner layers in the zip: `GNDPLANE.g1` is layer 2 (In1) and `PWRPLANE.g2` is layer 3 (In2); the X2 header of each Gerber says the same, if JLC asks for the layer order.
 
 ## Order settings
 
-- **PCB:** 4 layers, 1.6 mm, ENIG (flat pads for the 0.3 mm X1SON and the TSSOPs). Order number at a specified location.
+- **PCB:** 4 layers, 1.6 mm, ENIG (flat pads for the 0.3 mm X1SON and the TSSOPs), green mask (Economic PCBA offers ENIG only in green), 1 oz outer / 0.5 oz inner copper (JLC default), JLC's standard stack-up. Mark on PCB: none (JLC dropped "order number at a specified location" in May 2026).
+- **DRC:** `cinetracker-carrier.kicad_dru` holds JLC's limits for exactly these options (sources in the file), so a clean DRC means JLC can build it. Other copper weights change the limits.
+- **Order remark:** the BNC (J1) overhangs the bottom edge by 3.0 mm and the M8 sockets sit on the edges by design; please don't add edge rails on those edges.
 - **Assembly:** Economic PCBA, top side, with *Confirm Parts Placement* ticked.
 - **Placement preview:**
   - The CPL already carries JLC's rotations (from a comparison with JLC's library footprints). The preview is still the final check. Correct looks like this (board top view):

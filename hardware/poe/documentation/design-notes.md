@@ -126,6 +126,7 @@ All positions are in **carrier board coordinates** (mm). The origin is the carri
   | Primary | all PoE-side nets | 0.4 mm | 0.3 mm |
 
 - **Primary clearance:** 0.3 mm between primary nets, which see up to 57 V. This is my choice and has not been checked against IPC-2221. The M12 pads themselves are only 0.43 mm apart.
+- **JLC limits in DRC (v0.62, review D1):** `cinetracker-poe.kicad_dru` adds JLCPCB's published limits for this order (2 layers, 1 oz, Economic PCBA) after the isolation rules: PTH annular ring 0.18 mm, hole-to-hole 0.45 mm, PTH hole to copper 0.28 mm, silk text 1.0 / 0.15 mm, pad-to-silk 0.15 mm, no via hole within 0.1 mm of an SMD pad, SMD parts ≥ 2.5 mm from the edge (D2, C1, C2, R4 and C5 are known exceptions, see `ordering.md`). Sources are in the file.
 - **How it was made:** the board was placed by script, routed with Freerouting, and the schematic generated from the routed board. **From now on the schematic is the source.**
 
 ## Sources

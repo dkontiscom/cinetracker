@@ -39,7 +39,7 @@ Updated 2026-10-13 for v0.62 (in review). Most items can only be closed with rea
 ## Before ordering
 
 - [ ] Owner review of v0.62, then (with funding) a review by a professional PCB designer, then the order.
-- [ ] Review the copper. v0.5d was a full re-route; v0.5e added the MH5/MH6 holes; v0.60 adds R27/R28 with three vias and five short tracks; v0.61 changes no copper; v0.62 moves the J1 BNC holes (footprint fix), re-routes the genlock output to it and moves D5 by 0.4 mm, and moves RESET_BUTTON and SPI1_MISO out of the J3/J5/J6 pin fields (review C).
+- [ ] Review the copper. v0.5d was a full re-route; v0.5e added the MH5/MH6 holes; v0.60 adds R27/R28 with three vias and five short tracks; v0.61 changes no copper; v0.62 moves the J1 BNC holes (footprint fix), re-routes the genlock output to it and moves D5 by 0.4 mm, moves RESET_BUTTON and SPI1_MISO out of the J3/J5/J6 pin fields (review C), moves three GND vias off the R5/R14 pads and gives THT pads thermal reliefs (review D1).
 - [ ] Print `fab/carrier-v0.62-1to1-fit-check.pdf` at 100 % and fit the connectors and the Teensy (USB end on the left). Also print `../../poe/fab/poe-v0.62-stack-1to1-fit-check.pdf` for the stack.
 - [ ] In JLC's placement preview, check the IC pin-1 marks and the LED polarity, and that every connector sits on its footprint: the CPL puts J1–J6 at the pad bounding-box centre and J7–J9 at pin 1.
 - [x] Hardware licence: CERN-OHL-S-2.0, copyright CineTracker contributors (decided 2026-10-10).

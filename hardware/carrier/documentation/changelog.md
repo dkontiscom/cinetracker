@@ -22,6 +22,14 @@ Fixes land here as each review finishes; v0.62 is not final until the series and
   - Design notes: D6 doesn't cover a reversed or hot-plugged bench supply (section 2), bench supply rule in `ordering.md`; the Teensy 4.1 has used the NCV8186 regulator since March 2022 (same 6.0 V limit); LTC ports take ±9 V (section 4); ESD residual through the 33 Ω (section 5, suspicion); the unprotected-track rule (section 7).
   - Bench checks added: PoE start-up with the real stack (scope 5 V and 3.3 V), J5/J6 shell-to-tab continuity.
   - Checks: ERC 0; DRC 0 violations / 0 unconnected / 0 schematic parity; `tools/verify_carrier.py` ALL OK. BOM unchanged.
+- **Review D1 (JLC limits, Gerbers in another viewer, clean clone, fab reproducibility):** the committed Gerbers, drills, BOM, CPL, PDFs and fit checks match the board, and a clean clone opens with stock KiCad 10. Changes:
+  - **JLC limits as DRC rules:** new `cinetracker-carrier.kicad_dru` (JLC capabilities read 2026-10-13, sources in the file); Board Setup minimum clearance 0 → 0.09 mm and solder mask web 0 → 0.1 mm. Before, a 0.05 mm track passed DRC.
+  - **Three GND vias** sat in or touching the R5 and R14 pads (paste could wick into the via); now one via between the pads and one above each (layout).
+  - **Thermal reliefs on THT pads** for JLC's hand soldering (all four zones; SMD pads and vias stay solid; J5 MP, J8.2, J9.1 stay solid, no room for two spokes).
+  - **Silkscreen:** J2–J6 pin-1 marks and the back URL text up to JLC's 1.0 mm / 0.15 mm (board and project footprints).
+  - **Fab script in the repo:** `hardware/tools/make_fab.py` rebuilds or checks every fab output (export settings, JLC rotation table, BOM/CPL rules). The board now stores the plot settings the fab files use, and a title block with the revision.
+  - `ordering.md`: green mask, copper weights and stack-up stated; "order number at a specified location" no longer exists at JLC (mark: none); order remark for the parts on the edge; CPL rule worded exactly.
+  - Checks: ERC 0; DRC 0 / 0 / 0 with the JLC rules; `tools/verify_carrier.py` ALL OK; `make_fab.py --check` same CSVs. BOM and CPL unchanged.
 
 ## v0.61 (2026-10-11): KiCad 10, no copper change
 

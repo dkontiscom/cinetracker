@@ -29,6 +29,10 @@ Updated 2026-10-13 for v0.62 (in review).
   - The maximum is 1.4 A.
 - [ ] **Switch detection:** check that your MikroTik (Mode B), UniFi and Cisco (Mode A) switches detect and power the board.
 
+## Before ordering
+
+- [ ] **Primary copper next to the panel edge (review D1, open).** The board edge at y = 64 is the panel line, and the panel is chassis (= isolated GND). Primary copper comes within 0.54 mm of that edge: the SP_45 track along the bottom (15 mm long), the CT_36 via and track (0.94–1.04 mm), D2's lower pads (1.35 mm), BS_NODE and VIN_N (1.57–1.72 mm); 34 primary items are closer than the board's own 2.6 mm isolation rule. Whether that's a real problem depends on where the panel's inner face sits relative to y = 64, which only the M12 sample and the enclosure drawing can tell. Fix options: re-route the primary side away from the edge, or keep the panel (or an insulating sheet) far enough from the board edge.
+
 ## Bench checks on the first boards
 
 - [ ] 5 V regulation and ripple. The datasheet ripple figure for the DP9900LP-5V is "TBD".

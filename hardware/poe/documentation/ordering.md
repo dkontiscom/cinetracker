@@ -8,15 +8,17 @@
 |---|---|
 | `poe-v0.62-gerbers.zip` | PCB order: 2 layers, masks, silk, paste, outline, PTH and NPTH Excellon |
 | `poe-v0.62-BOM-JLCPCB.csv` | Assembly BOM (Comment / Designator / Footprint / LCSC Part #) |
-| `poe-v0.62-CPL-JLCPCB.csv` | Assembly placement. Through-hole parts sit at their pin centroid |
+| `poe-v0.62-CPL-JLCPCB.csv` | Assembly placement. Through-hole parts sit at their pin centroid. Hand-fitted parts (J2, J3) are excluded by their "exclude from position files" flag |
 | `poe-v0.62-BOM-full.csv` | Manufacturer, MPN, JLC stock, quantity bought and prices. It also lists the parts JLC does not fit |
 | `poe-v0.62-stack-1to1-fit-check.pdf` | Carrier and PoE board outlines overlaid in one coordinate system. Print at 100 % |
 
-All fab files come from `cinetracker-poe.kicad_pcb`, exported with `kicad-cli` (KiCad 10.0.7).
+All fab files come from `cinetracker-poe.kicad_pcb`, exported with `kicad-cli` (KiCad 10.0.7). Rebuild or check them from the repo with `python3 hardware/tools/make_fab.py carrier=v0.62 poe=v0.62 --check` (or `--write`); it needs KiCad 10 and rsvg-convert, and holds every export setting, the JLC rotation table and the BOM/CPL rules.
 
 ## Order settings
 
-- **PCB:** 2 layers, 1.6 mm, any finish. Order number at a specified location.
+- **PCB:** 2 layers, 1.6 mm, any finish, green mask, 1 oz copper (JLC default). Mark on PCB: none (JLC dropped "order number at a specified location" in May 2026).
+- **DRC:** `cinetracker-poe.kicad_dru` holds JLC's limits for these options next to the isolation rules (sources in the file).
+- **Order remark:** J1 (M12) overhangs the panel edge by design, and D2, C1, C2, R4, C5 are 1.35–2.4 mm from an edge, under JLC's 2.5 mm assembly rule. Expect a DFM question; if JLC wants edge rails, they can't go on the M12 edge.
 - **Assembly:** Economic PCBA, top side, with *Confirm Parts Placement* ticked. J1 (M12) and PS1 (DP9900LP) are through-hole parts that JLC hand-solders.
 - **Placement preview:** the CPL uses KiCad rotations, and four footprints are project footprints. Check each of these:
   - **T1 (B1608S):** pin-1 dot at the north-east corner. Pins 1–8 face the Teensy side.

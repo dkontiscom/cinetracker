@@ -157,8 +157,8 @@
 		(uuid "6324a15e-9221-47d1-8fcd-09127fc9c4d6")
 		(effects
 			(font
-				(size 0.8 0.8)
-				(thickness 0.12)
+				(size 1 1)
+				(thickness 0.15)
 			)
 		)
 	)
@@ -168,8 +168,8 @@
 		(uuid "d6d030d8-f8b2-4744-a108-3102a39fe2f1")
 		(effects
 			(font
-				(size 0.8 0.8)
-				(thickness 0.12)
+				(size 1 1)
+				(thickness 0.15)
 			)
 		)
 	)

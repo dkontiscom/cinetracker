@@ -16,6 +16,13 @@ Fixes land here as each review finishes; v0.62 is not final until the series and
   - Hipot only by the 802.3 impulse test (1500 V 10/700 µs). 1500 Vrms or 2250 V DC puts 2.07–2.20 kV on C5, rated 2 kV.
   - Bench tests of the PoE board alone need a ≥ 100 mA load (47 Ω 1 W on the R6 footprint); without it the DP9900 is below its minimum load.
   - C6 is a 2000 h / 105 °C part: measure its temperature next to PS1. Common-mode current path with pin 9 open written down. Start-up with the real stack added to the bench checks.
+- **Review D1 (JLC limits, Gerbers, clean clone, fab reproducibility):**
+  - **JLC limits as DRC rules** appended to `cinetracker-poe.kicad_dru` (sources in the file); solder mask web 0.1 mm.
+  - **Silkscreen:** the PRIMARY / ISOLATED labels, the D1/D2 "+" and "~" marks and the back texts up to JLC's 1.0 mm / 0.15 mm (board and MBS footprint); the back URL now on two lines; the J1 outline moved 0.05 mm off the M12 post holes (≥ 0.15 mm).
+  - **J2 and J3** (hand-fitted) carry "exclude from position files" in the schematic and on the board, so no BOM/CPL route can put J2 into the JLC order.
+  - Plot settings and a title block with the revision stored in the board; fab files rebuilt by `hardware/tools/make_fab.py`.
+  - **Open, not changed yet:** primary copper comes within 0.54 mm of the panel edge (y = 64). See `open-issues.md`, "Before ordering".
+  - Checks: ERC 0; DRC 0 / 0 / 0 with the JLC rules; `tools/verify_poe.py` ALL OK. BOM and CPL unchanged.
 
 ## v0.61 (2026-10-11): KiCad 10, track moved off the M12 housing pin
 

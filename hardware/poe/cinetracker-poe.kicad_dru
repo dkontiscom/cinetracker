@@ -13,3 +13,61 @@
 (rule "M12 housing contact"
   (constraint clearance (min 1.53mm))
   (condition "A.NetName == 'unconnected-(J1-SHIELD-Pad9)'"))
+
+# ---- JLCPCB limits for the PoE board (review D1): 2 layers, 1.6 mm, 1 oz, Economic PCBA top side.
+# KiCad 10: a custom rule replaces the Board Setup minimum for the items it matches; none of these is looser.
+# Sources: [CAP] https://jlcpcb.com/capabilities/pcb-capabilities (Rigid PCB, read 2026-10-13), "section > row";
+#          [T&C] https://jlcpcb.com/help/article/61-Terms-and-Conditions-of-JLCPCB-Assembly-Service (updated 2026-09-09).
+# Board Setup already meets: track 0.15 >= 0.10, clearance 0.2 >= 0.10, via 0.3/0.6, hole clearance 0.25, via
+# hole-to-hole 0.25, copper-edge 0.3 >= 0.2.
+
+# [CAP] Traces > "PTH annular ring", 2-layer 1 oz: absolute minimum 0.18 mm (0.25 recommended).
+(rule "JLC PTH pad"
+  (condition "A.Type == 'Pad' && A.Pad_Type == 'Through-hole'")
+  (constraint hole_size (min 0.3mm) (max 6.3mm))
+  (constraint annular_width (min 0.18mm)))
+
+# [CAP] Drilling > "Min. Plated Slots Width", 2-layer 0.5 mm.
+(rule "JLC plated slot"
+  (condition "A.Type == 'Pad' && A.Pad_Type == 'Through-hole' && A.Hole_Size_X != A.Hole_Size_Y")
+  (constraint hole_size (min 0.5mm) (max 6.3mm)))
+
+# [CAP] Drilling > "Min. Non-plated holes" 0.50 mm; "Min. Non-Plated Slots" 1.0 mm.
+(rule "JLC NPTH"
+  (condition "A.Pad_Type == 'NPTH, mechanical'")
+  (constraint hole_size (min 0.5mm) (max 6.3mm)))
+(rule "JLC NPTH slot"
+  (condition "A.Pad_Type == 'NPTH, mechanical' && A.Hole_Size_X != A.Hole_Size_Y")
+  (constraint hole_size (min 1.0mm) (max 6.3mm)))
+
+# [CAP] Drilling > "Pad Hole-to-Hole Spacing" 0.45 mm.
+(rule "JLC pad hole to hole"
+  (condition "A.Type == 'Pad' || B.Type == 'Pad'")
+  (constraint hole_to_hole (min 0.45mm)))
+
+# [CAP] Traces > "PTH to Track" 0.28 mm (0.35 recommended).
+(rule "JLC PTH hole to copper"
+  (condition "A.Type == 'Pad' && A.Pad_Type == 'Through-hole'")
+  (constraint hole_clearance (min 0.28mm)))
+
+# [CAP] Legend > "Minimum text height" 1.0 mm, "Minimum Line Width" 0.15 mm, "Pad To Silkscreen" 0.15 mm.
+(rule "JLC silk text"
+  (condition "A.Layer == 'F.Silkscreen' || A.Layer == 'B.Silkscreen'")
+  (constraint text_height (min 1.0mm))
+  (constraint text_thickness (min 0.15mm)))
+(rule "JLC pad to silk"
+  (condition "A.Type == 'Pad' || B.Type == 'Pad'")
+  (constraint silk_clearance (min 0.15mm)))
+
+# [T&C] 5.6 via in pad; 0.1 mm = [CAP] Soldermask > "Soldermask bridge".
+(rule "JLC no via hole in SMD pad"
+  (condition "A.Type == 'Via' && B.Type == 'Pad' && B.Pad_Type == 'SMD'")
+  (constraint physical_hole_clearance (min 0.1mm)))
+
+# [T&C] 2.3: component body >= 2.5 mm from the board edge. SMD pad copper as the proxy (warning only).
+# Known and accepted for now: D2, C1, C2, R4 (1.35-2.4 mm from the panel edge, see open-issues.md) and C5 (by the H2
+# ear). JLC may ask for edge rails: see ordering.md. Any other SMD part near an edge is flagged.
+(rule "JLC SMD part to board edge"
+  (severity warning)
+  (condition "A.Type == 'Pad' && A.Pad_Type == 'SMD' && !A.memberOfFootprint('D2') && !A.memberOfFootprint('C1') && !A.memberOfFootprint('C2') && !A.memberOfFootprint('R4') && !A.memberOfFootprint('C5')")
+  (constraint edge_clearance (min 2.5mm)))
