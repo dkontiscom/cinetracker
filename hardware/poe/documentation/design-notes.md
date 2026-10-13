@@ -86,6 +86,7 @@ All positions are in **carrier board coordinates** (mm). The origin is the carri
   - **Minimum load is 100 mA.** Below that it can whine and the PSE can drop the port (datasheet note 2).
   - R6 is an unfitted 2512 bleeder footprint, in case the measured Teensy + carrier load is under 100 mA. A 47 Ω part draws about 106 mA at about 0.53 W.
 - **Output capacitors:** C6 100 µF 25 V and C7 10 µF, as in the datasheet's typical circuit.
+  - C6 (KNSCHA RST) is the short-life electrolytic class: 2000 h at 105 °C. With the usual rule (life doubles every 10 °C cooler, Würth SN008a) that's about 0.9 years of continuous use at 85 °C, 2.6 years at 70 °C and 10 years at 50 °C. For a 24/7 install that matters, so measure C6's temperature next to PS1 in the bench check; if it runs hot, use a same-size 105 °C part rated 5000 h or more.
 - **D4:** a green "5 V present" LED for bring-up.
 - **Bob Smith terminations**, as in [TI SLUA454](https://www.ti.com/lit/an/slua454/slua454.pdf) section 1.4:
   - Each of the four pairs gets 75 Ω + 10 nF 100 V. The capacitors are needed because PoE puts DC on the pairs.
@@ -105,6 +106,8 @@ All positions are in **carrier board coordinates** (mm). The origin is the carri
 - **Limits:**
   - This is spacing only. It is not a hipot test.
   - The DP9900LP is rated by a 1500 V impulse test, not 1500 Vrms. 802.3 accepts that as one of its three test options.
+  - **If you hipot it, use the impulse test** (802.3 option c: 1500 V, 10/700 µs, 10 pulses 60 s apart). In an MDI-to-GND test C5 takes about 98 % of the voltage, because the four 10 nF Bob Smith caps sit in series with it. 1500 Vrms (2.07 kV peak on C5) or 2250 V DC (2.20 kV) for 60 s would overstress C5, which is rated 2 kV and proof-tested by Yageo at 1.2 × 2 kV for 1–5 s only. The impulse puts about 1.46 kV on it.
+- **Common-mode path:** with J1 pin 9 open, common-mode current from the cable doesn't return through the M12 housing. It goes through the Bob Smith network (about 93 mm of track) and C5 into the isolated GND, then through J2/J3 into the Teensy and carrier ground and out through the BNC/M8 shells to the panel. In the 802.3 impulse test that's about 0.15 A through the ground copper for the 10 µs front (1 nF × 1500 V / 10 µs), which should be harmless (suspicion). Worth remembering if ESD testing at the M12 upsets the Teensy.
 
 ## 6. Board
 
@@ -136,6 +139,10 @@ All positions are in **carrier board coordinates** (mm). The origin is the carri
   - [CND-tek B1608S](https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2405301629_CND-tek-B1608S_C507596.pdf)
   - [CAZN M12-S8X-GPLM12-BJD](https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2307120959_CAZN-M12-S8X-PPL_C7423431.pdf)
   - [MDD MB6S](https://datasheet.lcsc.com/datasheet/pdf/d166b641999f7c4a86c69b88af3f89c6.pdf)
+  - [C5, Yageo CC1812KKX7RDBB102 (LCSC C118019)](https://www.lcsc.com/product-detail/multilayer-ceramic-capacitors-mlcc-smd-smt_yageo-cc1812kkx7rdbb102_C118019.html): Yageo high-voltage MLCC spec V.16, "Voltage Proof": Ur ≥ 1 kV → 1.2 Ur for 1–5 s
+  - [C6, KNSCHA RST100UF25V004 (LCSC C4747964)](https://www.lcsc.com/product-detail/aluminum-electrolytic-capacitors-smd_knscha-rst100uf25v004_C4747964.html): 2000 h at 105 °C, 88 mA ripple at 120 Hz
+  - [Würth SN008a, electrolytic capacitor lifetime](https://www.we-online.com/components/media/o173043v410%20SN008a%20EN.pdf): life doubles per 10 °C
+- **IEEE 802.3 clause 33.4.1**, isolation test options (a) 1500 Vrms 60 s, (b) 2250 V DC 60 s, (c) 1500 V 10/700 µs impulse × 10: quoted in [law_2_0705](https://www.ieee802.org/3/poep_study/public/jul05/law_2_0705.pdf)
 - **TI:**
   - [DP83825I datasheet](https://www.ti.com/lit/ds/symlink/dp83825i.pdf)
   - [SLUA454: EMI-compliant PoE PD design](https://www.ti.com/lit/an/slua454/slua454.pdf)

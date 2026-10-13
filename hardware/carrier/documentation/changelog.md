@@ -16,6 +16,12 @@ Fixes land here as each review finishes; v0.62 is not final until the series and
   - **C2 and C34** (U1 / U7 OPA356 bypass) are now 10 µF 0805 (C15850, already on the BOM) instead of 100 nF: TI names 10 µF ceramic as the minimum (SBOS212A p. 10). Same footprint, no layout change. Components +$0.49 per 5-board order.
   - Genlock schematic note now points to `simulation/README.md` (the old path didn't exist).
   - Design notes: a dead short on one encoder cable can reboot the CineTracker once before the fuse trips (suspicion until tested).
+- **Review C (ratings, currents, misuse, back-power, ESD, chassis, start-up):** no part is over its rating in normal use. Changes:
+  - **Two unprotected Teensy-pin tracks moved out of the panel-connector pin fields** (layout). RESET_BUTTON ran on F.Cu between the J5 and J6 pins, 0.26 mm from the LTC pins, and SPI1_MISO looped round the J3 pins under the M8 body. Both have no clamp on the Teensy side, and TI's TVS layout rule says to keep such tracks away. Now RESET_BUTTON runs on B.Cu under the J9 row (2 vias), SPI1_MISO on B.Cu below the RS row (2 vias). No Teensy-side track or via is within 1.5 mm of any J1–J6 pad; SPI1_MISO is about 19 mm shorter.
+  - `encoder-cables.md`: check every signal pin for shorts, not only +3.3 V (a shorted wire pulls about 60 mA from a Teensy pin); power encoders only from the box, no 5 V logic.
+  - Design notes: D6 doesn't cover a reversed or hot-plugged bench supply (section 2), bench supply rule in `ordering.md`; the Teensy 4.1 has used the NCV8186 regulator since March 2022 (same 6.0 V limit); LTC ports take ±9 V (section 4); ESD residual through the 33 Ω (section 5, suspicion); the unprotected-track rule (section 7).
+  - Bench checks added: PoE start-up with the real stack (scope 5 V and 3.3 V), J5/J6 shell-to-tab continuity.
+  - Checks: ERC 0; DRC 0 violations / 0 unconnected / 0 schematic parity; `tools/verify_carrier.py` ALL OK. BOM unchanged.
 
 ## v0.61 (2026-10-11): KiCad 10, no copper change
 

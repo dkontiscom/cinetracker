@@ -25,6 +25,7 @@ Updated 2026-10-13 for v0.62 (in review).
 - [ ] **Stack heights:** measure the real stack, with the Teensy header plastic and a 2×3 2.0 mm male header on the Teensy.
 - [ ] **Load current:** measure the 5 V current of the Teensy plus carrier.
   - Under 100 mA: fit R6. The DP9900LP minimum load is 100 mA.
+  - The PoE board alone, or on a carrier without a Teensy, is always below it (a few mA), so bench tests of the PoE board need a ≥ 100 mA load: a 47 Ω 2512 1 W resistor (for example LCSC C15261) on the R6 footprint draws 106–112 mA.
   - The maximum is 1.4 A.
 - [ ] **Switch detection:** check that your MikroTik (Mode B), UniFi and Cisco (Mode A) switches detect and power the board.
 
@@ -32,8 +33,9 @@ Updated 2026-10-13 for v0.62 (in review).
 
 - [ ] 5 V regulation and ripple. The datasheet ripple figure for the DP9900LP-5V is "TBD".
 - [ ] Link at 100 Mbit/s through the M12 cordset on each switch. Check the QNEthernet link status.
-- [ ] Temperature of PS1 at the measured load, inside the enclosure.
-- [ ] Insulation test, primary to secondary (hipot if available).
+- [ ] Temperature of PS1 **and C6** at the measured load, inside the enclosure. C6 is a 2000 h / 105 °C part, about 2.6 years of continuous use at 70 °C (design-notes.md section 4).
+- [ ] Insulation test, primary to secondary. If hipot: **impulse only** (802.3 option c, 1500 V 10/700 µs). 1500 Vrms or 2250 V DC for 60 s puts 2.07–2.20 kV on C5, which is rated 2 kV (design-notes.md section 5).
+- [ ] Start-up with the real stack: scope 5 V and 3.3 V at PoE power-on (no hiccup; carrier `open-issues.md` has the details).
 - [ ] **Interference:** check genlock and LTC for noise from the PoE converter. The PoE board sits above the carrier's analog section. Compare the scope traces with PoE power and with bench power on J7.
 
 ## Known limits

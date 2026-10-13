@@ -23,10 +23,14 @@ Updated 2026-10-13 for v0.62 (in review). Most items can only be closed with rea
 - [ ] **LTC levels** in and out with real recorders and cameras.
 - [ ] **Encoders on 40 cm cables:** SPI at 8 MHz, I²C at 400 kHz (check the rise time with the 2 k pull-ups).
 - [ ] **Unplugged encoder inputs:** with R27/R28 fitted, an empty focus or zoom input must read 0xFFFF and show as not detected at power-up.
+- [ ] **Start-up from PoE with the real stack:** scope +5V and +3V3 at PoE power-on. Look for a hiccup (the 5 V rail carries about 190 µF nominal, and the DP9900 datasheet gives no start-up or capacitive-load limit), and check that 3.3 V rises at 360 V/s or faster (NXP IMXRT1060CEC §4.2.1.1).
+- [ ] **J5/J6 shell grounding:** the LTC sockets' part number (CAZN, C42931206) has no "-JD" (grounded) suffix and no datasheet. Check continuity from the shell to the MP tabs. Without it the shell only bonds through the panel nut: fine in the metal box, floating in the 3D-printed one.
 
 ## Known limits
 
-- D6 (SMAJ5.0A) only handles transients. A sustained input above 6 V on J7 exceeds the Teensy regulator's absolute maximum.
+- D6 (SMAJ5.0A) is a surge clamp only. A sustained input above 6 V on J7 exceeds the Teensy regulator's absolute maximum, and D6 doesn't cover a reversed or hot-plugged bench supply either (design-notes.md section 2). Bench bring-up rule in `ordering.md`.
+- **LTC ports:** fine up to ±9 V from any source; a stiff source above about ±9.5 V can kill D3/D4 (design-notes.md section 4).
+- **Encoder cables:** a shorted signal wire or a foreign 5 V signal isn't stopped by the carrier; the cable doc tells builders what to check (`encoder-cables.md`).
 - The genlock simulation uses TI's typical OPA356 model, with no corner models. The margin to the 50/60p limit (37.04 ns) is 0.33 ns at RC +4 %, and 1 % parts move RC by at most ±2 %.
 - **Level resistors (done in v0.60):** R1–R5 and R15 are 0.1 % thin film (2k C706274, 1k C110774, 5.1k C122968, 5.6k C445654). With 1 % parts only 96.8 % (normal spread) to 73.4 % (even spread) of boards would meet ±6 mV; with 0.1 % it is 100 % (Monte Carlo, `simulation/mc_levels.py`). Cost: four more JLC extended part types, about $15 more per 5-board order.
 - **LTC levels:** checked against the only published spec found (Sound Devices 888); ARRI, RED and Blackmagic publish none. See design-notes.md section 4 and the sources below.
@@ -35,7 +39,7 @@ Updated 2026-10-13 for v0.62 (in review). Most items can only be closed with rea
 ## Before ordering
 
 - [ ] Owner review of v0.62, then (with funding) a review by a professional PCB designer, then the order.
-- [ ] Review the copper. v0.5d was a full re-route; v0.5e added the MH5/MH6 holes; v0.60 adds R27/R28 with three vias and five short tracks; v0.61 changes no copper; v0.62 moves the J1 BNC holes (footprint fix), re-routes the genlock output to it and moves D5 by 0.4 mm.
+- [ ] Review the copper. v0.5d was a full re-route; v0.5e added the MH5/MH6 holes; v0.60 adds R27/R28 with three vias and five short tracks; v0.61 changes no copper; v0.62 moves the J1 BNC holes (footprint fix), re-routes the genlock output to it and moves D5 by 0.4 mm, and moves RESET_BUTTON and SPI1_MISO out of the J3/J5/J6 pin fields (review C).
 - [ ] Print `fab/carrier-v0.62-1to1-fit-check.pdf` at 100 % and fit the connectors and the Teensy (USB end on the left). Also print `../../poe/fab/poe-v0.62-stack-1to1-fit-check.pdf` for the stack.
 - [ ] In JLC's placement preview, check the IC pin-1 marks and the LED polarity, and that every connector sits on its footprint: the CPL puts J1–J6 at the pad bounding-box centre and J7–J9 at pin 1.
 - [x] Hardware licence: CERN-OHL-S-2.0, copyright CineTracker contributors (decided 2026-10-10).

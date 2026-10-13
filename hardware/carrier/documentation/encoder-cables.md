@@ -2,7 +2,7 @@
 
 How to wire the three lens encoders to the carrier. You build these cables yourself: a ready-made M8 cordset on the box end, soldered to the ams adapter board on the encoder end.
 
-Checked against carrier v0.61 (schematic sheet "Encoders") and the ams adapter board manual AS5048-AB-1.1. Sources at the end.
+Checked against carrier v0.62 (schematic sheet "Encoders") and the ams adapter board manual AS5048-AB-1.1. Sources at the end.
 
 ## What you need
 
@@ -66,14 +66,18 @@ Colours vary between cordset makers, so go by the pin numbers on your cordset's 
 
 ## Before you plug it in
 
-1. With the cable unplugged, measure between M8 pins 1 and 2 (6-pin) or pins 1 and 3 (4-pin), i.e. +3.3 V to GND. It must not be a short.
+1. With the cable unplugged, check for shorts with a meter. None of these may be a short:
+   - +3.3 V to GND: M8 pins 1 and 2 (6-pin) or pins 1 and 3 (4-pin).
+   - Every signal pin to GND, and every signal pin to pin 1 (+3.3 V). Signal pins are 3–6 on the 6-pin, 2 and 4 on the 4-pin.
+   - Why the signal pins too: nothing trips on a shorted signal wire. A chip select or clock shorted to GND or +3.3 V pulls about 60 mA out of a Teensy pin for as long as the box is on (3.3 V across the pin's 23 Ω driver plus the 33 Ω resistor). PJRC recommends 4 mA at most, and the 33 Ω resistor then runs at 92 % of its 125 mW rating.
 2. Check every M8 pin against the tables above with a meter.
 3. Plug the encoders in **before** powering the box. Encoders are detected once, at power-up. An input that is empty at power-up stays off until the next power cycle.
-4. An unplugged focus/zoom input reads as not connected, not as a wrong value (the carrier has pull-ups on MISO for this). Each input has its own resettable fuse (0.1 A hold, 0.3 A trip) on the 3.3 V pin, which limits what a shorted cable can draw.
+4. Power the encoders **only from the box**. Never connect another supply, or 5 V logic, to an encoder cable. The Teensy pins are not 5 V tolerant (PJRC), and the carrier's ESD clamps only start conducting at 6.5 V, so a 5 V signal goes straight through to the Teensy pin. A 5 V supply on pin 1 would back-feed the box's 3.3 V rail through the fuse.
+5. An unplugged focus/zoom input reads as not connected, not as a wrong value (the carrier has pull-ups on MISO for this). Each input has its own resettable fuse (0.1 A hold, 0.3 A trip) on the 3.3 V pin, which limits what a shorted cable can draw.
 
 ## Carrier side, for reference
 
-From the v0.61 schematic, sheet "Encoders":
+From the v0.62 schematic, sheet "Encoders":
 
 - **J3 focus / J4 zoom** (dosinconn DS869FPR0470-6P): 1 = +3.3 V (via F1 / F2), 2 = GND, 3 = SCK, 4 = MOSI, 5 = MISO, 6 = CSn. Focus is on the Teensy's SPI (CS pin 10), zoom on SPI1 (CS pin 0).
 - **J2 iris** (CAZN M8-S4A-GPL M10-JD): 1 = +3.3 V (via F3), 2 = SDA, 3 = GND, 4 = SCL. Teensy Wire (pins 18/19).
@@ -83,4 +87,8 @@ From the v0.61 schematic, sheet "Encoders":
 
 - [ams AS5048 adapter board manual, AS5048-AB-1.1, table 1 (copy from Arrow, on manuals.plus)](https://manuals.plus/ams/as5048-14-bit-rotary-position-sensor-with-digital-angle-and-pwm-output-manual): P1 pinout, P1-7 note
 - [ams AS5048A/AS5048B datasheet, revision 1.3 (Mouser)](https://www.mouser.com/pdfdocs/AS5048_Datasheet_EN_v4.PDF): section 4.1 (3 V operation), sections 4.3 and 4.3.4 and figure 13 (I²C address from A1/A2)
+- [PJRC Teensy 4.1](https://www.pjrc.com/store/teensy41.html): "The recommended maximum output current is 4mA", "The pins are not 5V tolerant"
+- [NXP i.MX RT1060 datasheet IMXRT1060CEC](https://www.nxp.com/docs/en/data-sheet/IMXRT1060CEC.pdf), table 27: 23 Ω output driver at full drive strength (DSE 111)
+- [TI TPD4E1U06](https://www.ti.com/lit/ds/symlink/tpd4e1u06.pdf), p. 5: breakdown voltage 6.5 V minimum
+- [33 Ω resistor RS1–RS10, LCSC C17634](https://www.lcsc.com/product-detail/chip-resistor-surface-mount_uni-royal-uniroyal-elec-0805w8f330jt5e_C17634.html): 125 mW
 - [AS5048A-TS_EK_AB at DigiKey](https://www.digikey.com/en/products/detail/ams/AS5048A-TS_EK_AB/3188612), [AS5048B-TS_EK_AB at DigiKey](https://www.digikey.com/en/products/detail/ams-osram-usa-inc/AS5048B-TS-EK-AB/3188613)

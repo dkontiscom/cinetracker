@@ -12,6 +12,10 @@ Fixes land here as each review finishes; v0.62 is not final until the series and
   - `open-issues.md`: M12 sample check now also measures the housing (nut, thread, O-ring, shoulder) and checks the X-shaped plate on pin 9 against the SP_45 track; LCSC's "Brass" is the contact material, not the shell.
   - Silkscreen, title block and fab files v0.62. Checks: `tools/verify_poe.py` ALL OK.
 - **Review B (pins against datasheets):** PS1, bridges, TVS, magnetics and the PHY-side centre taps match SDAPO's typical circuit and TI's DP83825I circuit. Design notes: the SMAJ58A clamps at 93.6 V, above the DP9900's 80 V surge rating (SDAPO's own part choice; normal PoE is far below it).
+- **Review C (ratings, currents, misuse, ESD, start-up):** no board change. Docs:
+  - Hipot only by the 802.3 impulse test (1500 V 10/700 µs). 1500 Vrms or 2250 V DC puts 2.07–2.20 kV on C5, rated 2 kV.
+  - Bench tests of the PoE board alone need a ≥ 100 mA load (47 Ω 1 W on the R6 footprint); without it the DP9900 is below its minimum load.
+  - C6 is a 2000 h / 105 °C part: measure its temperature next to PS1. Common-mode current path with pin 9 open written down. Start-up with the real stack added to the bench checks.
 
 ## v0.61 (2026-10-11): KiCad 10, track moved off the M12 housing pin
 

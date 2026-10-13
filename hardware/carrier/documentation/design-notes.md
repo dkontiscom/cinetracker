@@ -32,7 +32,12 @@ Unused Teensy pins are left unconnected. The Teensy's 6 Ethernet pins are not us
 - **J7, 5 V input:** a 1×4 2.54 mm female header, 8.5 mm tall (XKB X6511FV-04-C85D32). Pins 1–2 are +5V and pins 3–4 are GND. It feeds Teensy VIN.
   - Teensy VIN accepts 3.6–5.5 V (PJRC card).
   - **Cut the Teensy's VUSB–VIN pads** so USB carries data only (PJRC: *"a pair of pads on the bottom side may be cut apart, to separate VUSB from VIN"*).
-- **D6, SMAJ5.0A:** clamps hot-plug and surge transients. It conducts if the supply is reversed. Its 6.4–7.0 V breakdown is above the Teensy LDO's 6.0 V absolute maximum (TI TLV757P), so it does **not** protect against a sustained over-voltage.
+- **D6, SMAJ5.0A:** a surge clamp, and only a partial one. It starts conducting at 6.4–7.0 V and clamps at 9.2 V (at 43.5 A), both above the 6.0 V absolute maximum of the Teensy regulator (TI TLV757P, or onsemi NCV8186 on Teensy 4.1 boards made after March 2022, PJRC). So it does **not** protect against:
+  - a sustained input above 6 V;
+  - a reversed supply: D6 conducts, but +5V still sits at about −0.7 to −1.1 V (typical), past the PCM1808's −0.3 V minimum on VCC (via FB2);
+  - a bench supply plugged in live: the ceramic bulk caps can ring to about twice the supply (ADI/LT AN88 fig. 2: 24 V into 10 µF peaks at 57.2 V).
+  - In use the PoE board feeds J7, so this only matters on the bench. Bring-up rule in `ordering.md`.
+- **Teensy 4.1 regulator:** PJRC: *"Teensy 4.1 manufactured after March 2022 has TLV75733P (U4) replaced by NCV8186AMN330TAG"*. Both have a 6.0 V absolute maximum on IN. The NCV8186 current limit is 1.1 A minimum, 1.4 A typical.
 - **Bulk capacitors:** C29 47 µF and Cb1 10 µF on +5V; Cb2 10 µF on +3V3.
 - **+3V3:** comes from the Teensy regulator. PJRC: *"The recommended maximum for external 3.3V usage is 250mA."*
 - **+3V3A:** +3V3 through ferrite FB1 (600 Ω at 100 MHz), with C27 10 µF. It feeds the DAC analog supplies and the genlock op-amps.
@@ -104,6 +109,7 @@ The firmware carries LTC as mono on the left channel (channel 0, `src/aes67.cpp`
 - **LTC in:** J6 pin 4 → R24 20 k → R25 10 k to GND → C26 1 µF → VINL.
   - About 10 Vpp reaches ADC full scale. Input impedance is about 28.6 kΩ.
   - D4 TPD1E10B09 protects the line.
+- **Over-voltage on LTC in/out:** any source up to ±9 V is fine indefinitely (D3/D4 working voltage, TI SLLSEB0E §6.3), which covers every TC source. Above about ±9.5 V (D4 breakdown minimum) from a stiff source, such as a pro line or speaker output, the clamp conducts with no resistor in front of it and can fail short (162 mW rating, not for steady-state breakdown, §6.4). The PCM1808 itself is safe behind R24 20 k.
 - **Levels:** about 1 Vpp out and about 10 Vpp in-range are design choices.
   - Checked 2026-10-11 against published specs: Sound Devices 888 TC in is 0.3–3.0 Vpp at 20 kΩ, TC out 5 Vpp at 75 Ω ([888 brochure](https://cdn.abicart.com/shop/ws42/76342/art27/171496227-4025a3-sound_devices_888_brochure.pdf)). Our output gives about 0.92 Vpp into 20 kΩ, inside that range; our input takes its 5 Vpp at half scale.
   - ARRI (ALEXA 35, Mini LF), RED (KOMODO, V-RAPTOR) and Blackmagic (URSA) publish no LTC voltage levels in the documents checked; see the sources in `open-issues.md`.
@@ -114,7 +120,9 @@ The firmware carries LTC as mono on the left channel (channel 0, `src/aes67.cpp`
 Every cable line runs **connector → TVS → 33 Ω → Teensy**:
 - **TVS:** TPD4E1U06, 4 unidirectional channels on pins 1/3/4/6, GND on pin 2, pin 5 NC (TI datasheet).
 - **Series resistors:** RS1–RS10.
-- **Supply fuses:** each encoder supply has its own PTC (Bourns MF-PSMF010X: 0.1 A hold, 0.3 A trip) plus 100 nF. A dead short on one cable can briefly pull the whole 3.3 V rail down before its fuse trips (the PTC's 1.0–7.5 Ω cold resistance can draw more than the Teensy regulator's current limit), so the CineTracker may reboot once and then run without that encoder. Nothing is damaged. This is a suspicion until tested (Bourns MF-PSMF datasheet p. 1, TI TLV757P §5.5).
+- **Supply fuses:** each encoder supply has its own PTC (Bourns MF-PSMF010X: 0.1 A hold, 0.3 A trip) plus 100 nF. A dead short on one cable can briefly pull the whole 3.3 V rail down before its fuse trips (the PTC's 1.0–7.5 Ω cold resistance can draw more than the Teensy regulator's current limit), so the CineTracker may reboot once and then run without that encoder. Nothing is damaged. This is a suspicion until tested (Bourns MF-PSMF datasheet p. 1; TI TLV757P §5.5; onsemi NCV8186 p. 3, current limit 1.1 A min).
+- **ESD residual (suspicion):** behind the TPD4E1U06, an 8 kV contact discharge still pushes roughly 0.25–0.8 A for a few hundred ns through the 33 Ω into the Teensy pin (TI SLVSBQ9D fig. 3, clamp at about 12–30 V). That's about what the RT1062's own 1 kV HBM rating covers (NXP IMXRT1060CEC table 7). The recessed female M8 contacts help. A larger RS (68–100 Ω) would cut it 2–3×, but check the SPI and I²C timing first; left for the PCB designer review.
+- **Cable shorts and foreign voltages:** a shorted signal wire loads a Teensy pin with about 60 mA, and a 5 V signal passes the clamps (6.5 V minimum breakdown). The cable doc covers both: `encoder-cables.md`, "Before you plug it in".
 
 | Connector | Encoder | Pins |
 |---|---|---|
@@ -141,6 +149,7 @@ Every cable line runs **connector → TVS → 33 Ω → Teensy**:
 
 - **Layers:** In1 is a solid GND plane and In2 a solid +3V3 plane. +5V is a routed track in the "Power" net class (0.5 mm), about 103 mm long.
 - **Under the Teensy:** the codecs and their passives sit there, which is why the sockets are 8.5 mm tall.
+- **Unprotected tracks away from the panel connectors (v0.62, review C):** Teensy-side signals with no clamp (RESET_BUTTON, and SPI1_MISO on the Teensy side of RS7) no longer pass through the J3/J5/J6 pin fields. RESET_BUTTON runs on B.Cu under the J9 row, SPI1_MISO on B.Cu below the RS row. No Teensy-side track or via is within 1.5 mm of any J1–J6 pad now. TI's layout rule for both TVS parts: keep unprotected traces away from the protected ones between the TVS and the connector (SLVSBQ9D §10.1, SLLSEB0E §8.4.1).
 - **Genlock node:** the high-impedance ladder node (GENLOCK_NODE_S) is about 11 mm of copper.
 - **Panel connectors:** the M8 flange rear face sits on the board edge. The BNC overhangs the edge by 3.0 mm so its face lines up with the M8s.
 - **Panel holes:**
@@ -167,6 +176,11 @@ Every cable line runs **connector → TVS → 33 Ω → Teensy**:
   - [TPD1E10B09](https://www.ti.com/lit/ds/symlink/tpd1e10b09.pdf)
   - [DP83825I](https://www.ti.com/lit/ds/symlink/dp83825i.pdf)
   - [TLV757P](https://www.ti.com/lit/ds/symlink/tlv757p.pdf)
+- **Other datasheets and notes:**
+  - [onsemi NCV8186](https://www.onsemi.com/pdf/datasheet/ncv8186-d.pdf) (Teensy 4.1 regulator since March 2022)
+  - [NXP i.MX RT1060 IMXRT1060CEC](https://www.nxp.com/docs/en/data-sheet/IMXRT1060CEC.pdf): table 7 (ESD HBM 1000 V), table 27 (pin driver 23 Ω)
+  - [Littelfuse SMAJ5.0A, LCSC C83329 (datasheet linked there)](https://www.lcsc.com/product-detail/esd-and-surge-protection-tvs-esd_littelfuse-smaj5-0a_C83329.html): p. 2 SMAJ5.0A row, p. 4 fig. 8 (forward voltage)
+  - [ADI/LT AN88, ceramic input capacitors can cause overvoltage transients](https://www-cce.cldnet.analog.com/media/en/technical-documentation/application-notes/an88f.pdf), fig. 2
 - **Other parts and standards:**
   - [ams AS5048 DS000298 (mirror)](https://www.basecamelectronics.com/files/Encoders/AS5048_DS000298_3-00.pdf)
   - [NXP UM10204 (mirror)](https://www.pololu.com/file/0J435/UM10204.pdf)
