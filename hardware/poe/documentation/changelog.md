@@ -21,7 +21,7 @@ Fixes land here as each review finishes; v0.62 is not final until the series and
   - **Silkscreen:** the PRIMARY / ISOLATED labels, the D1/D2 "+" and "~" marks and the back texts up to JLC's 1.0 mm / 0.15 mm (board and MBS footprint); the back URL now on two lines; the J1 outline moved 0.05 mm off the M12 post holes (≥ 0.15 mm).
   - **J2 and J3** (hand-fitted) carry "exclude from position files" in the schematic and on the board, so no BOM/CPL route can put J2 into the JLC order.
   - Plot settings and a title block with the revision stored in the board; fab files rebuilt by `hardware/tools/make_fab.py`.
-  - **Open, not changed yet:** primary copper comes within 0.54 mm of the panel edge (y = 64). See `open-issues.md`, "Before ordering".
+  - Primary copper came within 0.54 mm of the panel edge (y = 64): fixed below (D1-01, option A).
   - Checks: ERC 0; DRC 0 / 0 / 0 with the JLC rules; `tools/verify_poe.py` ALL OK. BOM and CPL unchanged.
 - **Review D2 (stock, alternates, licences):**
   - **J1 (M12) footprint redrawn from the CAZN drawing** (8 pins at 27° on Ø6.26). The old pads were LCSC/EasyEDA library data, whose terms don't allow redistribution. Pads move by 0.005 mm at most; track ends follow.
@@ -30,6 +30,13 @@ Fixes land here as each review finishes; v0.62 is not final until the series and
   - `ordering.md`: stock updated (M12 48, DP9900LP 461), Toponelec C12B-MAX-RM-8-SH as a second-source M12 to qualify with the samples, components $88.30 / subtotal $127.99 (2026-10-13; the old $91.22 didn't match BOM-full), Teensy with Ethernet chip.
   - `open-issues.md`: M12 pin numbers from the CAZN catalogue; 0.5 A contact rating; Toponelec sample (800 V rated impulse voltage) in the insulation test.
   - Checks: ERC 0; DRC 0 / 0 / 0; `tools/verify_poe.py` ALL OK.
+- **D1-01, option A (decided 2026-10-14): primary side moved off the panel edge** (layout).
+  - The board edge at y = 64 sits on the panel (chassis). Primary copper came within 0.54 mm of it (SP_45 along the bottom, CT_36, D2, BS_NODE, VIN_N; 34 items under 2.6 mm). Now every primary pad, track and via is ≥ 2.65 mm away, the same 2.6 mm the board keeps between primary and isolated copper.
+  - Moved: R1/C1, R2/C2 (columns turned so CT pads face T1), R3/C3/R4/C4 (now four rows, references beside them), D1 and D2 (stacked 4.4 mm apart), D3 (0.2 mm up). Re-routed with Freerouting 2.1.0: BS1–BS4, BS_NODE, CT_12, CT_36, SP_45, SP_78, VIN_P, VIN_N. The isolated side and the MDI pairs are unchanged. 18 vias on the primary side.
+  - New keepout rule area "panel edge (chassis): no copper" (y 61.4–64) holds it in DRC; `tools/verify_poe.py` prints the margin (check 4c).
+  - The JLC "part to board edge" rule now only excuses C5 (D2, C1, C2, R4 are ≥ 2.5 mm from the edge now).
+  - Isolation gaps unchanged (2.7 mm across C5, then 3.2 mm); nearest track to M12 pin 9 1.93 mm (was 1.79). Bob Smith node 63 mm of track (was about 93).
+  - Checks: ERC 0; DRC 0 / 0 / 0 with all rules; `tools/verify_poe.py` ALL OK.
 
 ## v0.61 (2026-10-11): KiCad 10, track moved off the M12 housing pin
 

@@ -92,7 +92,7 @@ All positions are in **carrier board coordinates** (mm). The origin is the carri
   - Each of the four pairs gets 75 Ω + 10 nF 100 V. The capacitors are needed because PoE puts DC on the pairs.
   - The common node goes through C5 (1 nF 2 kV) to the isolated GND. Through the BNC shell that GND is the chassis ground.
 - **J1 pin 9** (shield / housing contact) **is left open.** It sits 1.5 mm from the data pins inside the connector, so tying it to anything on the PCB would undercut the isolation spacing. The housing bonds to a metal panel through its nut.
-  - With GND on the chassis, that puts pin 9 on the isolated side. A DRC rule keeps every track and via ≥ 1.53 mm from it, the connector's own pin-to-pin-9 spacing. Up to v0.60 MDI_TX_P ran through the middle of the pin circle, 0.45 mm from it; v0.61 routes it round the outside, and MDI_RX_N moved to B.Cu next to MDI_RX_P so they both pass between the J1 posts. Nearest track now 1.79 mm.
+  - With GND on the chassis, that puts pin 9 on the isolated side. A DRC rule keeps every track and via ≥ 1.53 mm from it, the connector's own pin-to-pin-9 spacing. Up to v0.60 MDI_TX_P ran through the middle of the pin circle, 0.45 mm from it; v0.61 routes it round the outside, and MDI_RX_N moved to B.Cu next to MDI_RX_P so they both pass between the J1 posts. Nearest track since the v0.62 re-route: 1.93 mm (the B.Cu links between pins 5–6 and 7–8).
 
 ## 5. Isolation
 
@@ -100,6 +100,7 @@ All positions are in **carrier board coordinates** (mm). The origin is the carri
 - **The band:** a 3.0 mm band (y 46.6–49.6) runs the full width of the board as a KiCad rule area with no tracks, vias or copper fill.
   - Only these cross it: PS1 (input and output rows 11.38 mm apart), T1 (rows 8.4 mm apart), C5 (2 kV part) and the two nylon standoff holes.
   - Everything south of the band is primary.
+- **Panel edge (v0.62):** the board edge at y = 64 sits on the panel, which is chassis (= isolated GND). A keepout rule area "panel edge (chassis): no copper" covers y 61.4–64, so all primary copper stays ≥ 2.6 mm from the panel, like the band. Measured: 2.65 mm (D2's lower pads). Before v0.62 it was 0.54 mm (review D1).
 - **DRC rule:** the project's `cinetracker-poe.kicad_dru` holds a custom rule. It requires ≥ 2.6 mm between any primary-class copper and any other connected copper. Copper with no net and no-connect pins (KiCad names their nets `unconnected-...`) are left out: T1's NC pins and J1 pin 9.
   - **Measured gaps:** 2.7 mm across C5's own pads (rated 2 kV), then 3.2 mm and up everywhere else. `tools/verify_poe.py` lists every gap below 4 mm.
   - **Rule check:** tightening the rule makes it fire, so it is active.
@@ -107,7 +108,7 @@ All positions are in **carrier board coordinates** (mm). The origin is the carri
   - This is spacing only. It is not a hipot test.
   - The DP9900LP is rated by a 1500 V impulse test, not 1500 Vrms. 802.3 accepts that as one of its three test options.
   - **If you hipot it, use the impulse test** (802.3 option c: 1500 V, 10/700 µs, 10 pulses 60 s apart). In an MDI-to-GND test C5 takes about 98 % of the voltage, because the four 10 nF Bob Smith caps sit in series with it. 1500 Vrms (2.07 kV peak on C5) or 2250 V DC (2.20 kV) for 60 s would overstress C5, which is rated 2 kV and proof-tested by Yageo at 1.2 × 2 kV for 1–5 s only. The impulse puts about 1.46 kV on it.
-- **Common-mode path:** with J1 pin 9 open, common-mode current from the cable doesn't return through the M12 housing. It goes through the Bob Smith network (about 93 mm of track) and C5 into the isolated GND, then through J2/J3 into the Teensy and carrier ground and out through the BNC/M8 shells to the panel. In the 802.3 impulse test that's about 0.15 A through the ground copper for the 10 µs front (1 nF × 1500 V / 10 µs), which should be harmless (suspicion). Worth remembering if ESD testing at the M12 upsets the Teensy.
+- **Common-mode path:** with J1 pin 9 open, common-mode current from the cable doesn't return through the M12 housing. It goes through the Bob Smith network (about 63 mm of track) and C5 into the isolated GND, then through J2/J3 into the Teensy and carrier ground and out through the BNC/M8 shells to the panel. In the 802.3 impulse test that's about 0.15 A through the ground copper for the 10 µs front (1 nF × 1500 V / 10 µs), which should be harmless (suspicion). Worth remembering if ESD testing at the M12 upsets the Teensy.
 
 ## 6. Board
 
@@ -126,8 +127,8 @@ All positions are in **carrier board coordinates** (mm). The origin is the carri
   | Primary | all PoE-side nets | 0.4 mm | 0.3 mm |
 
 - **Primary clearance:** 0.3 mm between primary nets, which see up to 57 V. This is my choice and has not been checked against IPC-2221. The M12 pads themselves are only 0.43 mm apart.
-- **JLC limits in DRC (v0.62, review D1):** `cinetracker-poe.kicad_dru` adds JLCPCB's published limits for this order (2 layers, 1 oz, Economic PCBA) after the isolation rules: PTH annular ring 0.18 mm, hole-to-hole 0.45 mm, PTH hole to copper 0.28 mm, silk text 1.0 / 0.15 mm, pad-to-silk 0.15 mm, no via hole within 0.1 mm of an SMD pad, SMD parts ≥ 2.5 mm from the edge (D2, C1, C2, R4 and C5 are known exceptions, see `ordering.md`). Sources are in the file.
-- **How it was made:** the board was placed by script, routed with Freerouting, and the schematic generated from the routed board. **From now on the schematic is the source.**
+- **JLC limits in DRC (v0.62, review D1):** `cinetracker-poe.kicad_dru` adds JLCPCB's published limits for this order (2 layers, 1 oz, Economic PCBA) after the isolation rules: PTH annular ring 0.18 mm, hole-to-hole 0.45 mm, PTH hole to copper 0.28 mm, silk text 1.0 / 0.15 mm, pad-to-silk 0.15 mm, no via hole within 0.1 mm of an SMD pad, SMD parts ≥ 2.5 mm from the edge (C5 on the H2 ear is the one known exception, see `ordering.md`). Sources are in the file.
+- **How it was made:** the board was placed by script, routed with Freerouting, and the schematic generated from the routed board. **From now on the schematic is the source.** v0.62: the primary side (R1–R4, C1–C4, D1–D3 and the Bob Smith, centre-tap, spare-pair and VIN nets) was re-placed by hand and re-routed with Freerouting 2.1.0, with the isolated side, the MDI pairs and every part locked, then checked by DRC (all project rules) and `tools/verify_poe.py`.
 
 ## Sources
 

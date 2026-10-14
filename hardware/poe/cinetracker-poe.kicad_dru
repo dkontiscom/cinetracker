@@ -65,9 +65,9 @@
   (constraint physical_hole_clearance (min 0.1mm)))
 
 # [T&C] 2.3: component body >= 2.5 mm from the board edge. SMD pad copper as the proxy (warning only).
-# Known and accepted for now: D2, C1, C2, R4 (1.3-2.4 mm from the panel edge, see open-issues.md) and C5 (by the H2
-# ear). JLC may ask for edge rails: see ordering.md. Any other SMD part near an edge is flagged.
+# Known and accepted: C5 (it bridges the isolation band on the H2 ear, so it can't move away from the ear edge).
+# JLC may ask for edge rails: see ordering.md. Any other SMD part near an edge is flagged.
 (rule "JLC SMD part to board edge"
   (severity warning)
-  (condition "A.Type == 'Pad' && A.Pad_Type == 'SMD' && !A.memberOfFootprint('D2') && !A.memberOfFootprint('C1') && !A.memberOfFootprint('C2') && !A.memberOfFootprint('R4') && !A.memberOfFootprint('C5')")
+  (condition "A.Type == 'Pad' && A.Pad_Type == 'SMD' && !A.memberOfFootprint('C5')")
   (constraint edge_clearance (min 2.5mm)))

@@ -22,7 +22,7 @@ Updated 2026-10-13 for v0.62 (in review).
   - Measure the housing the drawing leaves out: nut across corners, panel thread, O-ring stack, and shoulder to board edge. The panel position relative to y = 64 can only come from this.
   - CAZN's catalogue rates X-coded M12 at 0.5 A per contact (JLC's attribute says 2 A). 0.5 A still covers 802.3af/at.
   - **Second source:** buy one Toponelec C12B-MAX-RM-8-SH (C22387824) with the CAZN samples. Its drawing has the same PCB layout and adds the panel cut-out, but it states a rated impulse voltage of only 800 V: include it in the contacts-to-shell insulation test above.
-  - Pin 9 carries an X-shaped metal plate on the board-facing side (LCSC photo). Check whether it sits flush on the board and how far its arms reach. If flush beyond about 3.3 mm from pin 9, the F.Cu SP_45 track at (46.24, 55.35)–(43.79, 57.79) is under it with only solder mask between: move that segment to B.Cu or beyond about 4.2 mm.
+  - Pin 9 carries an X-shaped metal plate on the board-facing side (LCSC photo). Check whether it sits flush on the board and how far its arms reach. Top-side copper nearest pin 9's centre (v0.62): the MDI_TX_P lead-in to pin 1 at 3.0 mm, then BS_NODE at 4.0 mm. If the plate sits flush and reaches further than that, those tracks are under it with only solder mask between: move them.
 - [ ] **DP9900LP pins:** check the pin size. The footprint uses a 1.0 mm drill (LCSC uses 0.8 mm) so that a 0.64 mm square pin also fits.
 - [ ] **Stack heights:** measure the real stack, with the Teensy header plastic and a 2×3 2.0 mm male header on the Teensy.
 - [ ] **Load current:** measure the 5 V current of the Teensy plus carrier.
@@ -33,7 +33,7 @@ Updated 2026-10-13 for v0.62 (in review).
 
 ## Before ordering
 
-- [ ] **Primary copper next to the panel edge (review D1, open).** The board edge at y = 64 is the panel line, and the panel is chassis (= isolated GND). Primary copper comes within 0.54 mm of that edge: the SP_45 track along the bottom (15 mm long), the CT_36 via and track (0.94–1.04 mm), D2's lower pads (1.30 mm), BS_NODE and VIN_N (1.57–1.72 mm); 34 primary items are closer than the board's own 2.6 mm isolation rule. Whether that's a real problem depends on where the panel's inner face sits relative to y = 64, which only the M12 sample and the enclosure drawing can tell. Fix options: re-route the primary side away from the edge, or keep the panel (or an insulating sheet) far enough from the board edge.
+- [x] **Primary copper next to the panel edge (review D1, decided 2026-10-14: option A, done in v0.62).** The board edge at y = 64 is the panel line, and the panel is chassis (= isolated GND). Up to now primary copper came within 0.54 mm of it (34 items under 2.6 mm). The primary side is re-placed and re-routed: every primary pad, track and via is now ≥ 2.65 mm from y = 64, the same 2.6 mm the board keeps between primary and isolated copper. A keepout rule area "panel edge (chassis): no copper" (y 61.4–64) holds it in DRC, and `tools/verify_poe.py` prints the margin. This no longer depends on where the panel's inner face sits.
 
 ## Bench checks on the first boards
 

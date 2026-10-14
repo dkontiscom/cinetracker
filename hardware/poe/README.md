@@ -32,7 +32,7 @@ The PoE board sits on top of the Teensy 4.1, above the carrier.
 | `lib/` | Project symbols and footprints: M12 X-coded socket, DP9900LP, B1608S, MBS bridge |
 | `fab/` | JLCPCB outputs: Gerbers and drill, BOM, CPL, full BOM with prices, 1:1 stack fit-check PDF |
 | `documentation/` | Requirements, design notes, ordering, changelog, open issues, schematic PDF, renders |
-| `tools/verify_poe.py` | Checks: ERC, DRC with schematic parity, schematic vs board, isolation gaps, and the mechanical match with the carrier |
+| `tools/verify_poe.py` | Checks: ERC, DRC with schematic parity, schematic vs board, isolation gaps, primary copper to the panel edge, and the mechanical match with the carrier |
 
 ## Checks done on v0.62
 
@@ -42,7 +42,8 @@ All with KiCad 10.0.7, `tools/verify_poe.py` runs them.
 - **Schematic vs board:** KiCad's schematic parity check finds 0 issues. An independent compare of the exported netlist agrees: 26 parts, 24 nets and 85 pads identical.
 - **DRC (project rules):** 0 violations, 0 warnings, 0 unconnected, 0 footprint-library mismatches against the KiCad 10 libraries.
 - **Isolation:** every primary-to-isolated gap under 4 mm is listed. The smallest is 2.7 mm (C5, 2 kV), then 3.2 mm.
-- **M12 housing pin (J1 pin 9):** DRC rule keeps everything ≥ 1.53 mm away (the connector's own pin spacing). Nearest track: 1.79 mm.
+- **M12 housing pin (J1 pin 9):** DRC rule keeps everything ≥ 1.53 mm away (the connector's own pin spacing). Nearest track: 1.93 mm.
+- **Panel edge:** all primary copper ≥ 2.6 mm from the panel line (y = 64); measured 2.65 mm.
 - **Carrier fit:** J3 pads match carrier J7 pads in position and net. J2 pads match the Teensy Ethernet pins (PJRC) with the right nets. The standoff spots are 5.5 mm and 3.45 mm from the nearest carrier copper or courtyard.
 - **Not done:** anything on hardware.
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Checks of the PoE board project: ERC, DRC with schematic parity (KiCad's own 'Update PCB from Schematic'
-check), an independent netlist compare, every primary-to-isolated gap below 4 mm, the copper nearest M12 pin 9, and
+check), an independent netlist compare, every primary-to-isolated gap below 4 mm, the copper nearest M12 pin 9, the
+primary copper nearest the panel edge, and
 the mechanical match with the carrier (J3 on J7, J2 on the Teensy Ethernet pins, standoff holes clear of carrier copper).
 Needs KiCad 10 (kicad-cli and the pcbnew python module).  Run: python3 tools/verify_poe.py
 kicad-cli runs on a temporary copy of the project, so nothing is written into the repo."""
@@ -47,6 +48,13 @@ print(f"4b. J1 pin 9 (M12 housing): J1 data pads {pads9} mm (the connector's own
 ok &= pads9 is not None and (trk9 is None or trk9 >= 1.53)
 
 b = pcbnew.LoadBoard(PCB)
+# 4c. panel edge (y = 64, chassis): every primary pad, track and via >= 2.6 mm away (the "panel edge" keepout area
+# enforces it in DRC; this prints the actual margin)
+PANEL_Y = 64.0
+prim = [t_ for t_ in b.GetTracks() if t_.GetNet() and t_.GetNet().GetNetClassName() == "Primary"]
+prim += [p for f in b.GetFootprints() for p in f.Pads() if p.GetNet() and p.GetNet().GetNetClassName() == "Primary"]
+dpan = min(PANEL_Y - pcbnew.ToMM(i.GetBoundingBox().GetBottom()) for i in prim)
+print(f"4c. primary copper to the panel edge (y = {PANEL_Y:g}): minimum {dpan:.2f} mm (must be >= 2.6)"); ok &= dpan >= 2.6 - 1e-6
 # 5. mechanical match with the carrier: J3 on carrier J7, J2 on the Teensy ethernet pins, standoff spots free
 car = pcbnew.LoadBoard(CAR)
 def pads(board, ref):
