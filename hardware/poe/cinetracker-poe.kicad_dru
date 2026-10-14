@@ -14,6 +14,14 @@
   (constraint clearance (min 1.53mm))
   (condition "A.NetName == 'unconnected-(J1-SHIELD-Pad9)'"))
 
+# IPC-2221B Table 6-1, 51-100 V row (PoE is up to 57 V DC). Tracks under solder mask need 0.13 mm (B4); soldering lands
+# are bare after assembly, so a land needs 0.5 mm to other copper (A6, "external component lead/termination, uncoated").
+# Review E. Not applied between nets at the same DC: the two wires of a pair, its centre tap and its Bob Smith
+# resistor node (pairs 1/2, 3/6, 4/5, 7/8), and not between the M12's own pins (0.44 mm, two pins of one pair).
+(rule "Primary lands (IPC-2221B A6, 51-100 V)"
+  (constraint clearance (min 0.5mm))
+  (condition "A.NetClass == 'Primary' && B.NetClass == 'Primary' && A.Type == 'Pad' && A.Net != B.Net && !(A.memberOfFootprint('J1') && B.memberOfFootprint('J1')) && !(((A.NetName == '/MDI_TX_P' || A.NetName == '/MDI_TX_N' || A.NetName == '/CT_12' || A.NetName == '/BS1') && (B.NetName == '/MDI_TX_P' || B.NetName == '/MDI_TX_N' || B.NetName == '/CT_12' || B.NetName == '/BS1')) || ((A.NetName == '/MDI_RX_P' || A.NetName == '/MDI_RX_N' || A.NetName == '/CT_36' || A.NetName == '/BS2') && (B.NetName == '/MDI_RX_P' || B.NetName == '/MDI_RX_N' || B.NetName == '/CT_36' || B.NetName == '/BS2')) || ((A.NetName == '/SP_45' || A.NetName == '/BS3') && (B.NetName == '/SP_45' || B.NetName == '/BS3')) || ((A.NetName == '/SP_78' || A.NetName == '/BS4') && (B.NetName == '/SP_78' || B.NetName == '/BS4')))"))
+
 # ---- JLCPCB limits for the PoE board (review D1): 2 layers, 1.6 mm, 1 oz, Economic PCBA top side.
 # KiCad 10: a custom rule replaces the Board Setup minimum for the items it matches; none of these is looser.
 # Sources: [CAP] https://jlcpcb.com/capabilities/pcb-capabilities (Rigid PCB, read 2026-10-13), "section > row";

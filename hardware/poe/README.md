@@ -28,7 +28,7 @@ The PoE board sits on top of the Teensy 4.1, above the carrier.
 | `cinetracker-poe.kicad_pro` | KiCad 10 project (10.0.7). Open this |
 | `cinetracker-poe.kicad_sch` | Schematic, the design source |
 | `cinetracker-poe.kicad_pcb` | Routed board, linked to the schematic |
-| `cinetracker-poe.kicad_dru` | Custom DRC rules: PoE isolation spacing, clearance to the M12 housing pin |
+| `cinetracker-poe.kicad_dru` | Custom DRC rules: PoE isolation spacing, clearance to the M12 housing pin, IPC-2221B 0.5 mm at primary lands, JLC limits |
 | `lib/` | Project symbols and footprints: M12 X-coded socket, DP9900LP, B1608S, MBS bridge |
 | `fab/` | JLCPCB outputs: Gerbers and drill, BOM, CPL, full BOM with prices, 1:1 stack fit-check PDF |
 | `documentation/` | Requirements, design notes, ordering, changelog, open issues, schematic PDF, renders |
@@ -40,7 +40,7 @@ All with KiCad 10.0.7, `tools/verify_poe.py` runs them.
 
 - **ERC:** 0 errors, 0 warnings.
 - **Schematic vs board:** KiCad's schematic parity check finds 0 issues. An independent compare of the exported netlist agrees: 26 parts, 24 nets and 85 pads identical.
-- **DRC (project rules):** 0 violations, 0 warnings, 0 unconnected, 0 footprint-library mismatches against the KiCad 10 libraries.
+- **DRC (project rules, incl. the IPC-2221B land rule):** 0 violations, 0 warnings, 0 unconnected, 0 footprint-library mismatches against the KiCad 10 libraries.
 - **Isolation:** every primary-to-isolated gap under 4 mm is listed. The smallest is 2.7 mm (C5, 2 kV), then 3.2 mm.
 - **M12 housing pin (J1 pin 9):** DRC rule keeps everything ≥ 1.53 mm away (the connector's own pin spacing). Nearest track: 1.93 mm.
 - **Panel edge:** all primary copper ≥ 2.6 mm from the panel line (y = 64); measured 2.65 mm.

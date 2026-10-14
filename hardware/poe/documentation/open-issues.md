@@ -22,7 +22,7 @@ Updated 2026-10-13 for v0.62 (in review).
   - Measure the housing the drawing leaves out: nut across corners, panel thread, O-ring stack, and shoulder to board edge. The panel position relative to y = 64 can only come from this.
   - CAZN's catalogue rates X-coded M12 at 0.5 A per contact (JLC's attribute says 2 A). 0.5 A still covers 802.3af/at.
   - **Second source:** buy one Toponelec C12B-MAX-RM-8-SH (C22387824) with the CAZN samples. Its drawing has the same PCB layout and adds the panel cut-out, but it states a rated impulse voltage of only 800 V: include it in the contacts-to-shell insulation test above.
-  - Pin 9 carries an X-shaped metal plate on the board-facing side (LCSC photo). Check whether it sits flush on the board and how far its arms reach. Top-side copper nearest pin 9's centre (v0.62): the MDI_TX_P lead-in to pin 1 at 3.0 mm, then BS_NODE at 4.0 mm. If the plate sits flush and reaches further than that, those tracks are under it with only solder mask between: move them.
+  - Pin 9 carries an X-shaped metal plate on the board-facing side (LCSC photo). Check whether it sits flush on the board and how far its arms reach. Top-side copper nearest pin 9's centre (v0.62): the MDI_TX_P lead-in to pin 1 at 3.0 mm, then MDI_TX_P at 4.1 mm and BS_NODE at 4.2 mm. If the plate sits flush and reaches further than that, those tracks are under it with only solder mask between: move them.
 - [ ] **DP9900LP pins:** check the pin size. The footprint uses a 1.0 mm drill (LCSC uses 0.8 mm) so that a 0.64 mm square pin also fits.
 - [ ] **Stack heights:** measure the real stack, with the Teensy header plastic and a 2×3 2.0 mm male header on the Teensy.
 - [ ] **Load current:** measure the 5 V current of the Teensy plus carrier.
@@ -35,7 +35,7 @@ Updated 2026-10-13 for v0.62 (in review).
 
 - [x] **Primary copper next to the panel edge (review D1, decided 2026-10-14: option A, done in v0.62).** The board edge at y = 64 is the panel line, and the panel is chassis (= isolated GND). Up to now primary copper came within 0.54 mm of it (34 items under 2.6 mm). The primary side is re-placed and re-routed: every primary pad, track and via is now ≥ 2.65 mm from y = 64, the same 2.6 mm the board keeps between primary and isolated copper. A keepout rule area "panel edge (chassis): no copper" (y 61.4–64) holds it in DRC, and `tools/verify_poe.py` prints the margin. This no longer depends on where the panel's inner face sits.
 
-- [ ] **IPC-2221B spacing at bare lands (review E, open).** 16 spots on the primary side have 0.30–0.47 mm between a soldering land and a track or via at another DC (up to 57 V). IPC-2221B Table 6-1, 51–100 V: 0.13 mm under solder mask (B4), 0.5 mm next to an uncoated land (A6), 0.13 mm with conformal coating over the assembly (A5/A7). A DRC rule for the 0.5 mm case is ready; the autorouter couldn't route the primary side at 0.5 mm. Options: re-route those spots by hand, conformal-coat the PoE board's primary side after assembly, or accept 0.3 mm for a dry indoor box. Owner decision.
+- [x] **IPC-2221B spacing at bare lands (review E, decided 2026-10-14: option A, done in v0.62).** 16 spots on the primary side had 0.30–0.47 mm between a soldering land and a track or via at another DC (up to 57 V); IPC-2221B Table 6-1, 51–100 V, asks 0.5 mm next to an uncoated land (A6). Fixed by re-routing those tracks by hand (no part moved). Every primary land is now ≥ 0.53 mm from copper at another DC, and the DRC rule "Primary lands (IPC-2221B A6, 51-100 V)" keeps it that way.
 
 ## Bench checks on the first boards
 
