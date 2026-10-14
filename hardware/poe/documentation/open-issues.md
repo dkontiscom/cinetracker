@@ -35,6 +35,8 @@ Updated 2026-10-13 for v0.62 (in review).
 
 - [x] **Primary copper next to the panel edge (review D1, decided 2026-10-14: option A, done in v0.62).** The board edge at y = 64 is the panel line, and the panel is chassis (= isolated GND). Up to now primary copper came within 0.54 mm of it (34 items under 2.6 mm). The primary side is re-placed and re-routed: every primary pad, track and via is now ≥ 2.65 mm from y = 64, the same 2.6 mm the board keeps between primary and isolated copper. A keepout rule area "panel edge (chassis): no copper" (y 61.4–64) holds it in DRC, and `tools/verify_poe.py` prints the margin. This no longer depends on where the panel's inner face sits.
 
+- [ ] **IPC-2221B spacing at bare lands (review E, open).** 16 spots on the primary side have 0.30–0.47 mm between a soldering land and a track or via at another DC (up to 57 V). IPC-2221B Table 6-1, 51–100 V: 0.13 mm under solder mask (B4), 0.5 mm next to an uncoated land (A6), 0.13 mm with conformal coating over the assembly (A5/A7). A DRC rule for the 0.5 mm case is ready; the autorouter couldn't route the primary side at 0.5 mm. Options: re-route those spots by hand, conformal-coat the PoE board's primary side after assembly, or accept 0.3 mm for a dry indoor box. Owner decision.
+
 ## Bench checks on the first boards
 
 - [ ] 5 V regulation and ripple. The datasheet ripple figure for the DP9900LP-5V is "TBD".

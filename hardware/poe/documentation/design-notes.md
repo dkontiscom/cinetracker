@@ -24,10 +24,13 @@ All positions are in **carrier board coordinates** (mm). The origin is the carri
 | **PoE board underside** | **about 18.9** | sum |
 | PoE board top (1.6 mm PCB) | about 20.5 | |
 | M12 axis | about 29.2 (8.71 above the PCB) | [CAZN drawing](https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2307120959_CAZN-M12-S8X-PPL_C7423431.pdf) |
-| M12 top | about 34.6 (14.14 above the PCB) | same |
-| DP9900LP top | about 30 (1.5 mm standoff + 8.0 mm body) | [DP9900 datasheet](https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2305061824_SDAPO-DP9900LP-5V_C5380108.pdf) section 4.2 |
+| M12 insert top | about 34.6 (14.14 above the PCB) | same |
+| M12 hex housing top | about 37.8 | **suspicion**: the C7423431 housing has no drawing; similar parts have a 15 mm hex (review E) |
+| DP9900LP top | 28.5 ± 0.5 (8.00 ± 0.5 above the PCB, the 1.5 mm spacer included) | [DP9900 datasheet](https://wmsc.lcsc.com/wmsc/upload/file/pdf/v2/lcsc/2305061824_SDAPO-DP9900LP-5V_C5380108.pdf) section 4.2, p. 8 |
 
-**Consequence:** the enclosure needs about 35 mm of inside height above the carrier, plus clearance. Without the PoE board, the tallest things on the carrier are the panel connectors at about 13 mm.
+**Consequence:** the lid's inner face must be at least 40.5 mm above the carrier top (the M12 housing plus the sheet-metal bend above its hole). Full list of what the box must provide: [../../documentation/enclosure-requirements.md](../../documentation/enclosure-requirements.md). Without the PoE board, the tallest things on the carrier are the panel connectors at about 13 mm.
+
+**Tolerance:** the M12 axis (≈ 29.2 mm) sums seven tolerances, about ±1.2 mm worst case. Its panel hole has to allow for that (a vertical slot), or the panel nut strains J2, the Teensy Ethernet header and J3.
 
 ### Problem: J3 cannot reach carrier J7 with standard headers
 
@@ -126,7 +129,7 @@ All positions are in **carrier board coordinates** (mm). The origin is the carri
   | Power | +5V, GND | 0.6 mm | 0.2 mm |
   | Primary | all PoE-side nets | 0.4 mm | 0.3 mm |
 
-- **Primary clearance:** 0.3 mm between primary nets, which see up to 57 V. This is my choice and has not been checked against IPC-2221. The M12 pads themselves are only 0.43 mm apart.
+- **Primary clearance:** 0.3 mm between primary nets, which see up to 57 V. Checked against IPC-2221B Table 6-1, 51–100 V row (review E): tracks under solder mask need 0.13 mm (B4), so 0.3 mm passes there. Bare soldering lands next to copper at another DC need 0.5 mm (A6) — 16 spots are at 0.30–0.47 mm, see `open-issues.md`. The M12 pads are 0.44 mm apart, but only between the two pins of one pair (same DC).
 - **JLC limits in DRC (v0.62, review D1):** `cinetracker-poe.kicad_dru` adds JLCPCB's published limits for this order (2 layers, 1 oz, Economic PCBA) after the isolation rules: PTH annular ring 0.18 mm, hole-to-hole 0.45 mm, PTH hole to copper 0.28 mm, silk text 1.0 / 0.15 mm, pad-to-silk 0.15 mm, no via hole within 0.1 mm of an SMD pad, SMD parts ≥ 2.5 mm from the edge (C5 on the H2 ear is the one known exception, see `ordering.md`). Sources are in the file.
 - **How it was made:** the board was placed by script, routed with Freerouting, and the schematic generated from the routed board. **From now on the schematic is the source.** v0.62: the primary side (R1–R4, C1–C4, D1–D3 and the Bob Smith, centre-tap, spare-pair and VIN nets) was re-placed by hand and re-routed with Freerouting 2.1.0, with the isolated side, the MDI pairs and every part locked, then checked by DRC (all project rules) and `tools/verify_poe.py`.
 

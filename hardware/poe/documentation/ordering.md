@@ -68,4 +68,5 @@ JLC's checkout total is binding. Sources: [JLCPCB assembly price](https://jlcpcb
    - D4 should light.
    - Load it with at least 100 mA, for example 47 Ω 1 W (LCSC C15261, fits the R6 footprint). Below 100 mA the DP9900 can whine and the switch can drop the port, so don't judge the 5 V without that load.
 2. **Isolation:** check isolation from every primary net to GND with an insulation tester, if one is available. For a hipot use the 1500 V impulse test only, not 1500 Vrms or 2250 V DC (C5 is rated 2 kV, see design-notes.md section 5).
-3. **Fit check:** fit the stack with the Teensy (VUSB–VIN cut) and check the heights against [design-notes.md](design-notes.md) section 2.
+3. **Fit check:** fit the stack with the Teensy (VUSB–VIN cut) and check the heights against [design-notes.md](design-notes.md) section 2. This sets the J3 pin length and the standoff shims.
+4. **J3 and the full stack:** see [../../documentation/assembly-order.md](../../documentation/assembly-order.md). J3's pin 4 sits 1 mm from PS1: solder it with a fine tip from the J3 side, or have JLC leave PS1 off and fit J3 first.

@@ -37,6 +37,10 @@ Fixes land here as each review finishes; v0.62 is not final until the series and
   - The JLC "part to board edge" rule now only excuses C5 (D2, C1, C2, R4 are ≥ 2.5 mm from the edge now).
   - Isolation gaps unchanged (2.7 mm across C5, then 3.2 mm); nearest track to M12 pin 9 1.93 mm (was 1.79). Bob Smith node 63 mm of track (was about 93).
   - Checks: ERC 0; DRC 0 / 0 / 0 with all rules; `tools/verify_poe.py` ALL OK.
+- **Review E (spacing, panels, panel thickness, stack, hand assembly):** no board change.
+  - IPC-2221B check of the 0.3 mm primary clearance: fine under solder mask; 16 land-to-copper spots below the 0.5 mm for bare lands. Open owner decision (`open-issues.md`).
+  - Design notes §2: PS1 top 28.5 ± 0.5 (the datasheet's 8.00 includes the spacer), M12 housing ≈ 37.8 (suspicion), lid ≥ 40.5 mm above the carrier (was "about 35"), M12 height tolerance ±1.2 mm.
+  - New `hardware/documentation/`: assembly order of the stack (J3 soldered after measuring, next to PS1 with care) and enclosure requirements with panel drawings (M12 hole as a vertical slot, 1.5 mm sheet, separate end panel, ≥ 5 mm carrier standoffs, sprung reset plunger).
 
 - **Copyright and licence notices (2026-10-14):** copyright holder now "2026 Dimitris Kontis and CineTracker contributors" in the schematic and board title blocks and the READMEs; every Python script under `hardware/` carries a two-line SPDX header (CERN-OHL-S-2.0). CERN-OHL-S user guide rule 2.2.6.
 ## v0.61 (2026-10-11): KiCad 10, track moved off the M12 housing pin

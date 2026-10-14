@@ -17,6 +17,8 @@ Layout
                                     encoder cable build guide (encoder-cables.md)
   hardware/poe/                     KiCad project, fab outputs
   hardware/poe/documentation/       requirements, design notes
+  hardware/documentation/           assembly order of the stack, enclosure
+                                    requirements with panel drawings
   hardware/tools/make_fab.py        rebuilds (or checks) every fab output of both
                                     boards from the repo, KiCad 10 + rsvg-convert
 

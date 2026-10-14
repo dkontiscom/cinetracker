@@ -49,7 +49,8 @@ All fab files are exported from `cinetracker-carrier.kicad_pcb` with `kicad-cli`
    - **Bench supply rule, every time:** check the polarity at the plug, set the current limit to about 0.5 A, connect with the output **off**, then switch it on. D6 doesn't protect against a reversed supply or the ringing of a live plug-in (design-notes.md section 2).
    - Without a Teensy the carrier draws about 1 mA at most (D6 leakage, PCM1808 powered down). That's fine on a bench supply, but on the PoE board it's below the DP9900's 100 mA minimum load (see the PoE board's `ordering.md`).
 3. Fit the Teensy with the USB end on the left (the J8/J9 pin-1 end). Run `../tools/check_teensy_pins.py` after any layout change.
-4. Measure the bench checks listed in [open-issues.md](open-issues.md): tri-level levels and rise times into 75 Ω, LTC levels, and the 3.3 V and 5 V currents.
+4. The whole stack (Teensy headers, PoE board, J3, enclosure), in order: [../../documentation/assembly-order.md](../../documentation/assembly-order.md).
+5. Measure the bench checks listed in [open-issues.md](open-issues.md): tri-level levels and rise times into 75 Ω, LTC levels, and the 3.3 V and 5 V currents.
 
 ## Cost estimate: 5 assembled boards, ENIG, Economic PCBA, shipped to Cyprus
 

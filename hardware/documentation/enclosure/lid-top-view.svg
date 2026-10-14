@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="1000" font-family="DejaVu Sans, Arial" font-size="11"><rect width="1100" height="1000" fill="white"/>
+<text x="20" y="26" font-size="16" font-weight="bold">Lid (top view, looking down; carrier coordinates, y = 0 rear panel, y = 64 front panel)</text>
+<rect x="70.0" y="70.0" width="720.0" height="576.0" fill="#eef5e9" stroke="#3c763d" stroke-dasharray="6,3"/>
+<text x="74.5" y="637.0" font-size="9" fill="#3c763d">carrier 80 × 64</text>
+<polygon points="709.0,457.0 785.5,457.0 785.5,547.0 709.0,547.0 709.0,646.0 223.0,646.0 223.0,556.0 137.5,556.0 137.5,466.0 223.0,466.0 223.0,304.0 709.0,304.0" fill="#fdf2e9" fill-opacity="0.7" stroke="#a04000" stroke-dasharray="4,2"/>
+<text x="232.0" y="318.4" font-size="10" fill="#a04000">PoE board (top at z 20.47)</text>
+<rect x="155.8" y="292.6" width="548.6" height="160.0" fill="none" stroke="#555" stroke-dasharray="2,2"/>
+<text x="160.0" y="288.7" font-size="9" fill="#555">Teensy 4.1 outline (y 24.73–42.51)</text>
+<rect x="155.8" y="292.8" width="548.6" height="22.5" fill="#ddd" fill-opacity="0.5" stroke="#777"/>
+<text x="538.0" y="288.7" font-size="9" fill="#555">J8 socket body 8.5 mm tall</text>
+<circle cx="349.0" cy="272.5" r="13.5" fill="#dde6f5" stroke="#1f3a93" stroke-width="1.5"/>
+<line x1="326.5" y1="272.5" x2="371.5" y2="272.5" stroke="#1f3a93" stroke-width="0.6"/><line x1="349.0" y1="250.0" x2="349.0" y2="295.0" stroke="#1f3a93" stroke-width="0.6"/>
+<text x="322.0" y="249.1" font-size="10" font-weight="bold">D1 sync LED (31, 22.5)</text>
+<text x="322.0" y="236.5" font-size="9" fill="#1f3a93">light pipe</text>
+<circle cx="421.0" cy="272.5" r="13.5" fill="#dde6f5" stroke="#1f3a93" stroke-width="1.5"/>
+<line x1="398.5" y1="272.5" x2="443.5" y2="272.5" stroke="#1f3a93" stroke-width="0.6"/><line x1="421.0" y1="250.0" x2="421.0" y2="295.0" stroke="#1f3a93" stroke-width="0.6"/>
+<text x="394.0" y="213.1" font-size="10" font-weight="bold">D2 stream LED (39, 22.5)</text>
+<text x="394.0" y="200.5" font-size="9" fill="#1f3a93">light pipe</text>
+<circle cx="731.5" cy="236.5" r="13.5" fill="#dde6f5" stroke="#1f3a93" stroke-width="1.5"/>
+<line x1="709.0" y1="236.5" x2="754.0" y2="236.5" stroke="#1f3a93" stroke-width="0.6"/><line x1="731.5" y1="214.0" x2="731.5" y2="259.0" stroke="#1f3a93" stroke-width="0.6"/>
+<text x="704.5" y="213.1" font-size="10" font-weight="bold">SW1 reset (73.5, 18.5)</text>
+<text x="704.5" y="200.5" font-size="9" fill="#1f3a93">plunger (Ø2.0 actuator, 0.2–0.25 mm travel)</text>
+<rect x="372.2" y="534.4" width="133.6" height="261.0" fill="none" stroke="#c0392b" stroke-dasharray="3,2"/>
+<text x="452.5" y="700.0" font-size="9" fill="#c0392b">PoE J1 M12 (insert top z 34.6; hex shell ≈ 37.8, SUSPICION)</text>
+<rect x="510.6" y="412.8" width="191.7" height="128.2" fill="none" stroke="#c0392b" stroke-dasharray="3,2"/>
+<text x="515.5" y="479.5" font-size="9" fill="#c0392b">PS1 DP9900LP top z 28.5 ± 0.5</text>
+<rect x="611.4" y="345.8" width="60.3" height="60.3" fill="none" stroke="#c0392b" stroke-dasharray="3,2"/>
+<text x="587.5" y="341.8" font-size="9" fill="#c0392b">C6 top z ≈ 25.9</text>
+<rect x="250.9" y="486.2" width="115.2" height="63.9" fill="none" stroke="#c0392b" stroke-dasharray="3,2"/>
+<text x="253.6" y="522.7" font-size="9" fill="#c0392b">T1 top z 26.2 ± 0.3</text>
+<text x="20" y="905" font-size="10">Hole positions = part centres from cinetracker-carrier.kicad_pcb (D1, D2, SW1). Hole Ø3.0 is an assumption (light pipe / plunger), not a datasheet value.</text>
+<text x="20" y="919" font-size="10">Lid inner face ≥ 40.5 above the carrier top (front-panel bend rule), so light pipes are ≈ 39.5 mm long (0805 LED 0.8 mm tall) and the SW1 plunger ≈ 39 mm (TS-1187A H = 1.5).</text>
+<text x="20" y="933" font-size="10">Clear vertical column: a pipe centred at y 22.5 may be up to Ø4.5 before it touches the J8 socket body (y 24.75); the PoE board starts at y 26. No part above D1/D2/SW1.</text>
+<text x="20" y="947" font-size="10">SW1 travel is only 0.2–0.25 mm (XKB TS-1187A drawing): a rigid 39 mm plunger needs its own spring/stop in the lid, or the stack tolerance (±1 mm) presses it permanently.</text>
+<text x="20" y="961" font-size="10">Tallest items under the lid: M12 shell hex ≈ 37.8 (proxy SW15 / Toponelec 17.16 above the PoE board), M12 insert 34.6 (CAZN 14.14), PS1 28.5 ± 0.5 (SDAPO 8.0 ± 0.5).</text>
+</svg>
