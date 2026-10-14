@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 Dimitris Kontis and CineTracker contributors
+# SPDX-License-Identifier: CERN-OHL-S-2.0
 """Independent check: Teensy 4.1 pins on the carrier vs PJRC card + firmware.
 usage: python3 check_teensy_pins.py ../cinetracker-carrier.kicad_pcb   (needs KiCad 10's pcbnew python module)
 J8 = VIN-row socket, J9 = GND/0/1-row socket.

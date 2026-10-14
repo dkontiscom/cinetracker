@@ -10,7 +10,7 @@
 		(rev "v0.62")
 		(company "CineTracker (github.com/dkontiscom/cinetracker)")
 		(comment 1 "Generated from the routed board netlist, then maintained in KiCad")
-		(comment 2 "Copyright CineTracker contributors. CERN-OHL-S-2.0. github.com/dkontiscom/cinetracker")
+		(comment 2 "Copyright 2026 Dimitris Kontis and CineTracker contributors. CERN-OHL-S-2.0. github.com/dkontiscom/cinetracker")
 	)
 	(lib_symbols
 		(symbol "Connector_Generic_MountingPin:Conn_01x04_MountingPin"

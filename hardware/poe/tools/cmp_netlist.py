@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 Dimitris Kontis and CineTracker contributors
+# SPDX-License-Identifier: CERN-OHL-S-2.0
 """Compare a kicad-cli schematic netlist with the board's pad nets: same partition of pads, net names may differ.
 KiCad's own 'pcb drc --schematic-parity' checks the names too; this one is an independent second check.
 No-connect pins (KiCad names their net unconnected-...) must have no net or their unconnected- net on the board.

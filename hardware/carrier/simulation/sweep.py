@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 Dimitris Kontis and CineTracker contributors
+# SPDX-License-Identifier: CERN-OHL-S-2.0
 import json, sys
 from sim2 import measure
 base=dict(R5a=5600,R5=5100,model="OPA356W",sk=(150,150,68e-12,68e-12))

@@ -50,4 +50,4 @@ All with KiCad 10.0.7, `tools/verify_carrier.py` runs them.
 
 The schematic was generated from the routed board's netlist when the design moved into KiCad (v0.5d). From now on the schematic is the source: edit it, then *Update PCB from Schematic*.
 
-Licence: the hardware (everything under `hardware/`) is **CERN-OHL-S-2.0**, copyright CineTracker contributors, see [../LICENSE](../LICENSE). Source location: https://github.com/dkontiscom/cinetracker. The firmware is AGPL-3.0-or-later (see the repository root).
+Licence: the hardware (everything under `hardware/`) is **CERN-OHL-S-2.0**, copyright 2026 Dimitris Kontis and CineTracker contributors, see [../LICENSE](../LICENSE). Source location: https://github.com/dkontiscom/cinetracker. The firmware is AGPL-3.0-or-later (see the repository root).

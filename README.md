@@ -78,7 +78,8 @@ comes from depending on QNEthernet for the PTP/genlock/AES67 timing stack
 which is AGPL itself, so the whole firmware ends up AGPL too.
 
 Hardware (everything under hardware/): CERN-OHL-S-2.0, strongly
-reciprocal, copyright CineTracker contributors, see hardware/LICENSE. the
+reciprocal, copyright 2026 Dimitris Kontis and CineTracker contributors,
+see hardware/LICENSE. the
 boards carry the source location (github.com/dkontiscom/cinetracker) on
 their silkscreen.
 

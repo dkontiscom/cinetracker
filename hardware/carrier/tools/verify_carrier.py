@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2026 Dimitris Kontis and CineTracker contributors
+# SPDX-License-Identifier: CERN-OHL-S-2.0
 """Checks of the carrier project: ERC, DRC with schematic parity (KiCad's own 'Update PCB from Schematic' check), an
 independent netlist compare (../poe/tools/cmp_netlist.py) and the Teensy pin check (check_teensy_pins.py).
 Needs KiCad 10 (kicad-cli and the pcbnew python module).  Run: python3 tools/verify_carrier.py

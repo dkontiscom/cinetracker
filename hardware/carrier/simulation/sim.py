@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 Dimitris Kontis and CineTracker contributors
+# SPDX-License-Identifier: CERN-OHL-S-2.0
 """v0.5b reference: single OPA365 buffer stage, used only for the before/after comparison"""
 import subprocess, numpy as np, os, sys, json, tempfile
 DIR=os.path.dirname(os.path.abspath(__file__))  # TI model files (OPA356.lib, OPA365.lib) go here too

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2026 Dimitris Kontis and CineTracker contributors
+# SPDX-License-Identifier: CERN-OHL-S-2.0
 """Rebuild every KiCad-made fab output of both CineTracker boards from the repo alone.
 
 Needs: KiCad 10 (kicad-cli and its pcbnew python module) and rsvg-convert (librsvg) for the fit-check PDFs and PNGs.

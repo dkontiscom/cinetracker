@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2026 Dimitris Kontis and CineTracker contributors
+# SPDX-License-Identifier: CERN-OHL-S-2.0
 """Checks of the PoE board project: ERC, DRC with schematic parity (KiCad's own 'Update PCB from Schematic'
 check), an independent netlist compare, every primary-to-isolated gap below 4 mm, the copper nearest M12 pin 9, the
 primary copper nearest the panel edge, and

@@ -38,6 +38,7 @@ Fixes land here as each review finishes; v0.62 is not final until the series and
   - Isolation gaps unchanged (2.7 mm across C5, then 3.2 mm); nearest track to M12 pin 9 1.93 mm (was 1.79). Bob Smith node 63 mm of track (was about 93).
   - Checks: ERC 0; DRC 0 / 0 / 0 with all rules; `tools/verify_poe.py` ALL OK.
 
+- **Copyright and licence notices (2026-10-14):** copyright holder now "2026 Dimitris Kontis and CineTracker contributors" in the schematic and board title blocks and the READMEs; every Python script under `hardware/` carries a two-line SPDX header (CERN-OHL-S-2.0). CERN-OHL-S user guide rule 2.2.6.
 ## v0.61 (2026-10-11): KiCad 10, track moved off the M12 housing pin
 
 - **Revision:** v0.61, together with the carrier v0.61. Silkscreen, title blocks and fab file names say v0.61.

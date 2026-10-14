@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 Dimitris Kontis and CineTracker contributors
+# SPDX-License-Identifier: CERN-OHL-S-2.0
 """genlock output stage (carrier v0.5c onward): ladder (+offset) -> OPA356 buffer -> Sallen-Key (Q=0.5) -> OPA356 line driver -> 47u -> 75R -> 75 ohm cable -> 75R"""
 import subprocess, numpy as np, os
 import sim

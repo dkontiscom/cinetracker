@@ -35,6 +35,7 @@ Fixes land here as each review finishes; v0.62 is not final until the series and
   - `encoder-cables.md`: the AS5048 adapter boards are out of stock / back-ordered to December 2026; order early.
   - Licences: each project footprint now names the vendor drawing it follows (description field); `hardware/LICENSE` is CERN's verbatim text (was SPDX's copy, 2 words different); board title block carries the copyright and licence line like the schematics; `CREDITS.md` has a hardware paragraph (paper DOI, KiCad library licence, renamed power symbols); simulation README: rename TI's `OPA356.LIB`, never commit TI's files.
 
+- **Copyright and licence notices (2026-10-14):** copyright holder now "2026 Dimitris Kontis and CineTracker contributors" in the schematic and board title blocks and the READMEs; every Python script under `hardware/` carries a two-line SPDX header (CERN-OHL-S-2.0). CERN-OHL-S user guide rule 2.2.6.
 ## v0.61 (2026-10-11): KiCad 10, no copper change
 
 - **Revision:** v0.61, together with the PoE board v0.61. Silkscreen, title blocks and fab file names say v0.61.

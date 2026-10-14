@@ -11,7 +11,7 @@
 		(company "CineTracker (github.com/dkontiscom/cinetracker)")
 		(comment 1 "802.3af/at PD on M12 X-coded, isolated 5 V into the carrier, Ethernet into the Teensy 4.1")
 		(comment 2 "Generated from the routed board netlist, then maintained in KiCad")
-		(comment 3 "Copyright CineTracker contributors. CERN-OHL-S-2.0. github.com/dkontiscom/cinetracker")
+		(comment 3 "Copyright 2026 Dimitris Kontis and CineTracker contributors. CERN-OHL-S-2.0. github.com/dkontiscom/cinetracker")
 	)
 	(lib_symbols
 		(symbol "Connector_Generic:Conn_01x04"

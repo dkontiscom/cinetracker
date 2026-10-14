@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 Dimitris Kontis and CineTracker contributors
+# SPDX-License-Identifier: CERN-OHL-S-2.0
 """Plot v0.5c genlock sims from cached waveforms (wave_*.npz written by run_waveforms.py)."""
 import numpy as np, matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
 import os, sys; HERE=os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0,HERE); import sim

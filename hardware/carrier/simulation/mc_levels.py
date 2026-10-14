@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 Dimitris Kontis and CineTracker contributors
+# SPDX-License-Identifier: CERN-OHL-S-2.0
 import numpy as np
 rng=np.random.default_rng(1); N=400000
 def run(tol_r, tol_v=0.01, dist="normal"):

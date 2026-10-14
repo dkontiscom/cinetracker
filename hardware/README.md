@@ -51,7 +51,7 @@ Licence
 
   Everything under hardware/ (KiCad sources, libraries, fab outputs,
   documentation) is licensed CERN-OHL-S-2.0, strongly reciprocal, see
-  hardware/LICENSE. Copyright CineTracker contributors.
+  hardware/LICENSE. Copyright 2026 Dimitris Kontis and CineTracker contributors.
   Source location: https://github.com/dkontiscom/cinetracker
   Boards made from these files carry that source location on their
   bottom silkscreen; keep it on derived boards.

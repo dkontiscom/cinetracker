@@ -11,7 +11,7 @@
 		(company "CineTracker (github.com/dkontiscom/cinetracker)")
 		(comment 1 "Teensy 4.1 carrier: genlock, LTC audio, 3 lens encoders, status UI")
 		(comment 2 "Stack: carrier (bottom) / Teensy 4.1 (components up) / PoE board (top)")
-		(comment 3 "Copyright CineTracker contributors. CERN-OHL-S-2.0. github.com/dkontiscom/cinetracker")
+		(comment 3 "Copyright 2026 Dimitris Kontis and CineTracker contributors. CERN-OHL-S-2.0. github.com/dkontiscom/cinetracker")
 	)
 	(lib_symbols)
 	(text "Each block is one sheet. Nets that cross sheets use global labels (firmware names: I2S_*, SPI_*, WIRE_*, ...)."

@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 Dimitris Kontis and CineTracker contributors
+# SPDX-License-Identifier: CERN-OHL-S-2.0
 import os, sys, numpy as np
 sys.path.insert(0, sys.argv[1]); import sim, sim2
 jobs=sys.argv[2].split(",")
