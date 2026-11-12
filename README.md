@@ -50,6 +50,7 @@ This is a rewrite of an earlier RP2040 version of the same idea.
 | [`EXTENDED-FREED.md`](EXTENDED-FREED.md) | Extended FreeD packet spec (draft) |
 | [`GENLOCK-TIMING.md`](GENLOCK-TIMING.md) | Genlock timing, how to measure it, planned rework |
 | [`CREDITS.md`](CREDITS.md) | The projects this builds on |
+| [`ACKNOWLEDGMENTS.md`](ACKNOWLEDGMENTS.md) | People and institutions supporting the project |
 
 ## Hardware status
 
